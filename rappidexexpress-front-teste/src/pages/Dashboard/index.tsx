@@ -758,10 +758,40 @@ export function Dashboard() {
   }, [refreshDashboard]);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void refreshDashboard(false);
+    }, 15000);
+
+    const handleVisibilityOrFocus = () => {
+      void refreshDashboard(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshDashboard(false);
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refreshDashboard]);
+
+  useEffect(() => {
     if (motoboys.length === 1) {
       setSelectedMotoboy(motoboys[0].id);
     }
   }, [motoboys]);
+
+  useEffect(() => {
+    setReportSelectedToModal("");
+    setObservation("");
+  }, [status]);
 
   useEffect(() => {
     void getCities();

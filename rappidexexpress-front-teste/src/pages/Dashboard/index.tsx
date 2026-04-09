@@ -433,9 +433,11 @@ export function Dashboard() {
       }
 
       try {
-        const currentResponse = await api.get(
-          `/delivery?status=${status}&includeDashboardCounts=true`,
-        );
+        const [currentResponse, countsResponse] = await Promise.all([
+          api.get(`/delivery?status=${status}`),
+          api.get("/delivery/counts"),
+        ]);
+
 
         if (requestId !== refreshRequestIdRef.current) {
           return;
@@ -444,26 +446,12 @@ export function Dashboard() {
         const rawReports = Array.isArray(currentResponse.data?.data)
           ? currentResponse.data.data
           : [];
-        const hasEmbeddedCounts =
-          typeof currentResponse.data?.dashboardCounts?.pending === "number" &&
-          typeof currentResponse.data?.dashboardCounts?.assigned === "number";
-
-        let nextPendingCount = Number(
-          currentResponse.data?.dashboardCounts?.pending,
-        );
-        let nextAssignedCount = Number(
-          currentResponse.data?.dashboardCounts?.assigned,
-        );
-
-        if (!hasEmbeddedCounts) {
-          const countsResponse = await api.get("/delivery/counts");
-          nextPendingCount = Number(countsResponse.data?.pending) || 0;
-          nextAssignedCount = Number(countsResponse.data?.assigned) || 0;
-        }
+        const nextPendingCount = Number(countsResponse.data?.pending) || 0;
+        const nextAssignedCount = Number(countsResponse.data?.assigned) || 0;
 
         setReports(rawReports);
-        setPendingCount(nextPendingCount || 0);
-        setAssignedCount(nextAssignedCount || 0);
+        setPendingCount(nextPendingCount);
+        setAssignedCount(nextAssignedCount);
       } catch (error: any) {
         if (requestId !== refreshRequestIdRef.current) {
           return;

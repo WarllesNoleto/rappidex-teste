@@ -1,31 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { io } from "socket.io-client";
-import { WhatsappLogo, MapPin } from "phosphor-react";
 
 import { DeliveryContext } from "../../context/DeliveryContext";
 import api, { SOCKET_URL } from "../../services/api";
 import { City, Motoboy, Report } from "../../shared/interfaces";
+import { DeliveryCard } from "./components/DeliveryCard";
 
 import {
   BaseButton,
   Container,
   ContainerButtons,
-  ContainerInfo,
   ContainerDeliveries,
-  ContainerOrder,
-  ContainerShopkeeper,
-  Delivery,
-  Link,
-  ShopkeeperInfo,
-  ShopkeeperProfileImage,
-  OrderActions,
-  OrderButton,
-  SelectContainer,
-  ContainerImagem,
   ContainerLoading,
-  ContainerStatus,
-  Status,
   Flag,
 } from "./styles";
 import { Loader } from "../../components/Loader";
@@ -34,10 +28,6 @@ import {
   StatusDelivery,
   UserType,
 } from "../../shared/constants/enums.constants";
-import {
-  getLinkToWhatsapp,
-  messageTypes,
-} from "../../shared/constants/whatsapp.constants";
 
 type DeliveryUpdateData = {
   status?: string;
@@ -61,7 +51,9 @@ export function Dashboard() {
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [assignedCount, setAssignedCount] = useState<number>(0);
-  const [updatingDeliveryIds, setUpdatingDeliveryIds] = useState<string[]>([]);
+  const [updatingDeliveryIds, setUpdatingDeliveryIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const [selectedMotoboy, setSelectedMotoboy] = useState<string>("");
 
@@ -90,34 +82,35 @@ export function Dashboard() {
     return Number.isNaN(parsed) ? 0 : parsed;
   }
 
-  const sortDashboardReports = useCallback(
-    (list: Report[]) => {
-      const sortedByCreatedAt = [...list].sort(
-        (a, b) => getDateValue(a.createdAt) - getDateValue(b.createdAt),
-      );
+  const sortedReports = useMemo(() => {
+    const sortedByCreatedAt = [...reports].sort(
+      (a, b) => getDateValue(a.createdAt) - getDateValue(b.createdAt),
+    );
 
-      if (permission !== UserType.MOTOBOY) {
-        return sortedByCreatedAt;
+    if (permission !== UserType.MOTOBOY) {
+      return sortedByCreatedAt;
+    }
+
+    const statusPriority: Record<string, number> = {
+      [StatusDelivery.ONCOURSE]: 0,
+      [StatusDelivery.COLLECTED]: 1,
+    };
+
+    return sortedByCreatedAt.sort((a, b) => {
+      const priorityA = statusPriority[a.status] ?? 99;
+      const priorityB = statusPriority[b.status] ?? 99;
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
       }
 
-      const statusPriority: Record<string, number> = {
-        [StatusDelivery.ONCOURSE]: 0,
-        [StatusDelivery.COLLECTED]: 1,
-      };
+      return getDateValue(a.createdAt) - getDateValue(b.createdAt);
+    });
+  }, [permission, reports]);
 
-      return sortedByCreatedAt.sort((a, b) => {
-        const priorityA = statusPriority[a.status] ?? 99;
-        const priorityB = statusPriority[b.status] ?? 99;
-
-        if (priorityA !== priorityB) {
-          return priorityA - priorityB;
-        }
-
-        return getDateValue(a.createdAt) - getDateValue(b.createdAt);
-      });
-    },
-    [permission],
-  );
+  const statusFilterSet = useMemo(() => {
+    return new Set(status.split(",").filter(Boolean));
+  }, [status]);
 
   function normalizeDeliveryResponse(payload: any): Report | null {
     if (!payload) return null;
@@ -153,7 +146,7 @@ export function Dashboard() {
   function statusMatchesCurrentFilter(statusValue?: string) {
     if (!statusValue) return false;
 
-    return status.split(",").includes(statusValue);
+    return statusFilterSet.has(statusValue);
   }
 
   function updateReportInListLocally(updatedReport: Report) {
@@ -166,22 +159,36 @@ export function Dashboard() {
         return withUpdate.filter((item) => item.id !== updatedReport.id);
       }
 
-      return sortDashboardReports(withUpdate);
+      return withUpdate;
     });
   }
 
   function startUpdatingDelivery(deliveryId: string) {
-    setUpdatingDeliveryIds((state) =>
-      state.includes(deliveryId) ? state : [...state, deliveryId],
-    );
+    setUpdatingDeliveryIds((state) => {
+      if (state.has(deliveryId)) {
+        return state;
+      }
+
+      const nextState = new Set(state);
+      nextState.add(deliveryId);
+      return nextState;
+    });
   }
 
   function stopUpdatingDelivery(deliveryId: string) {
-    setUpdatingDeliveryIds((state) => state.filter((id) => id !== deliveryId));
+    setUpdatingDeliveryIds((state) => {
+      if (!state.has(deliveryId)) {
+        return state;
+      }
+
+      const nextState = new Set(state);
+      nextState.delete(deliveryId);
+      return nextState;
+    });
   }
 
   function isDeliveryUpdating(deliveryId: string) {
-    return updatingDeliveryIds.includes(deliveryId);
+    return updatingDeliveryIds.has(deliveryId);
   }
 
   const refreshDashboard = useCallback(
@@ -221,7 +228,7 @@ export function Dashboard() {
           nextAssignedCount = Number(countsResponse.data?.assigned) || 0;
         }
 
-        setReports(sortDashboardReports(rawReports));
+        setReports(rawReports);
         setPendingCount(nextPendingCount || 0);
         setAssignedCount(nextAssignedCount || 0);
       } catch (error: any) {
@@ -236,7 +243,7 @@ export function Dashboard() {
         }
       }
     },
-    [sortDashboardReports, status],
+    [status],
   );
 
   const getCities = useCallback(async () => {
@@ -370,8 +377,6 @@ export function Dashboard() {
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
       updateReportInListLocally(updatedReport);
-      void getMotoboys();
-
       alert(`Solicitação avançada para o passo ${newStatus}`);
       setObservation("");
       setReportSelectedToModal("");
@@ -405,8 +410,6 @@ export function Dashboard() {
       } else {
         await refreshDashboard(false);
       }
-      void getMotoboys();
-
       alert("Motoboy foi atualizado com sucesso.");
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao salvar motoboy.");
@@ -438,8 +441,6 @@ export function Dashboard() {
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
       setReports((state) => state.filter((item) => item.id !== report.id));
-      void getMotoboys();
-
       alert("O pedido foi cancelado com sucesso.");
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao cancelar pedido.");
@@ -461,8 +462,6 @@ export function Dashboard() {
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
       setReports((state) => state.filter((item) => item.id !== report.id));
-      void getMotoboys();
-
       alert("Solicitação apagada com sucesso.");
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao apagar pedido.");
@@ -558,6 +557,20 @@ export function Dashboard() {
   }, [getMotoboys]);
 
   useEffect(() => {
+    if (permission === UserType.SHOPKEEPER) {
+      return;
+    }
+
+    const motoboysPollingInterval = window.setInterval(() => {
+      void getMotoboys();
+    }, 30000);
+
+    return () => {
+      window.clearInterval(motoboysPollingInterval);
+    };
+  }, [getMotoboys, permission]);
+
+  useEffect(() => {
     void getMyself();
   }, [getMyself]);
 
@@ -633,178 +646,27 @@ export function Dashboard() {
           </ContainerLoading>
         ) : (
           <>
-            {reports.map((report: Report) => {
-              const isIfoodOrder =
-                report.observation?.includes("Pedido iFood #") ?? false;
-
-              return (
-                <Delivery
-                  key={report.id}
-                  isfree={report.status === StatusDelivery.PENDING}
-                  isIfood={isIfoodOrder}
-                >
-                  <ContainerShopkeeper>
-                    <ContainerImagem>
-                      <ShopkeeperProfileImage src={report.establishmentImage} />
-                    </ContainerImagem>
-
-                    <ShopkeeperInfo>
-                      <p>{report.establishmentName}</p>
-
-                      <Link
-                        href={getLinkToWhatsapp(
-                          report.establishmentPhone,
-                          messageTypes.motoboy,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {formatPhoneNumber(report.establishmentPhone)}{" "}
-                        <WhatsappLogo size={18} />
-                      </Link>
-
-                      <Link
-                        href={report.establishmentLocation}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <p>Localização</p> <MapPin size={18} />
-                      </Link>
-                    </ShopkeeperInfo>
-                  </ContainerShopkeeper>
-
-                  {status !== StatusDelivery.PENDING && (
-                    <ContainerOrder>
-                      <ContainerStatus>
-                        <p>Status:</p>
-                        <Status type={report.status}>{report.status}</Status>
-                      </ContainerStatus>
-                      <p>Forma de pagamento: {report.payment}</p>
-                      <p>Valor: R$ {report.value}</p>
-                      <p>Pix: {report.establishmentPix}</p>
-                      <p>Refrigerante: {report.soda}</p>
-                    </ContainerOrder>
-                  )}
-
-                  <ContainerInfo>
-                    <div>
-                      {isIfoodOrder &&
-                        getIfoodOrderNumber(report.observation) && (
-                          <p>
-                            Pedido iFood:{" "}
-                            {getIfoodOrderNumber(report.observation)}
-                          </p>
-                        )}
-
-                      <p>Cliente: {report.clientName}</p>
-                    </div>
-
-                    {status !== StatusDelivery.PENDING && (
-                      <Link
-                        href={getLinkToWhatsapp(
-                          report.clientPhone,
-                          messageTypes.client,
-                          getClientWhatsappMessage(report),
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {formatPhoneNumber(report.clientPhone)}{" "}
-                        <WhatsappLogo size={18} />
-                      </Link>
-                    )}
-                  </ContainerInfo>
-
-                  {status !== StatusDelivery.PENDING && (
-                    <ContainerInfo>
-                      <p>Motoboy: {report.motoboyName}</p>
-                      <Link
-                        href={getLinkToWhatsapp(
-                          report.motoboyPhone,
-                          messageTypes.establishment,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {formatPhoneNumber(report.motoboyPhone)}{" "}
-                        <WhatsappLogo size={18} />
-                      </Link>
-                    </ContainerInfo>
-                  )}
-
-                  <ContainerInfo>
-                    {report.createdAt && (
-                      <p>Criado: {getHours(report.createdAt)}</p>
-                    )}
-                    {report.onCoursedAt && (
-                      <p>Atribuído: {getHours(report.onCoursedAt)}</p>
-                    )}
-                    {report.collectedAt && (
-                      <p>Coletado: {getHours(report.collectedAt)}</p>
-                    )}
-                    {report.finishedAt && (
-                      <p>Finalizado: {getHours(report.finishedAt)}</p>
-                    )}
-                  </ContainerInfo>
-
-                  {permission !== "shopkeeper" && (
-                    <SelectContainer>
-                      <label htmlFor="motoboy">Motoboy:</label>
-                      <select
-                        value={selectedMotoboy}
-                        onChange={(e) => setSelectedMotoboy(e.target.value)}
-                      >
-                        <option value="">Selecione o motoboy:</option>
-                        {motoboys.map((motoboy: Motoboy) => (
-                          <option key={motoboy.id} value={motoboy.id}>
-                            {motoboy.name}
-                          </option>
-                        ))}
-                      </select>
-                    </SelectContainer>
-                  )}
-
-                  <OrderActions>
-                    {(permission === "admin" || permission === "superadmin") &&
-                      report.status !== StatusDelivery.PENDING && (
-                        <>
-                          <OrderButton
-                            typebutton={true}
-                            onClick={() => handlerSave(report)}
-                          >
-                            Salvar
-                          </OrderButton>
-                          <OrderButton
-                            typebutton={false}
-                            onClick={() => handlerCancel(report)}
-                          >
-                            Cancelar
-                          </OrderButton>
-                        </>
-                      )}
-
-                    {permission !== "shopkeeper" && (
-                      <OrderButton
-                        typebutton={true}
-                        onClick={() => handlerNextStep(report)}
-                      >
-                        {getButtonText(report.status, report.id)}
-                      </OrderButton>
-                    )}
-
-                    {permission !== "motoboy" &&
-                      report.status === StatusDelivery.PENDING && (
-                        <OrderButton
-                          typebutton={false}
-                          onClick={() => handlerDelete(report)}
-                        >
-                          Apagar
-                        </OrderButton>
-                      )}
-                  </OrderActions>
-                </Delivery>
-              );
-            })}
+            {sortedReports.map((report: Report) => (
+              <DeliveryCard
+                key={report.id}
+                report={report}
+                statusFilter={status}
+                permission={permission}
+                selectedMotoboy={selectedMotoboy}
+                motoboys={motoboys}
+                isUpdating={isDeliveryUpdating(report.id)}
+                onSelectMotoboy={setSelectedMotoboy}
+                onSave={handlerSave}
+                onCancel={handlerCancel}
+                onNextStep={handlerNextStep}
+                onDelete={handlerDelete}
+                getButtonText={getButtonText}
+                getHours={getHours}
+                formatPhoneNumber={formatPhoneNumber}
+                getIfoodOrderNumber={getIfoodOrderNumber}
+                getClientWhatsappMessage={getClientWhatsappMessage}
+              />
+            ))}
           </>
         )}
       </ContainerDeliveries>

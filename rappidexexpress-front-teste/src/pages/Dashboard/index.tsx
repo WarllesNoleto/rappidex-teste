@@ -64,6 +64,7 @@ type DeliveryCardProps = {
   statusFilter: string;
   permission: string | null;
   selectedMotoboy: string;
+  reportSelectedToModal: string;
   motoboys: Motoboy[];
   isUpdating: boolean;
   onSelectMotoboy: (motoboyId: string) => void;
@@ -252,6 +253,7 @@ function areDeliveryCardPropsEqual(prev: DeliveryCardProps, next: DeliveryCardPr
     prev.statusFilter === next.statusFilter &&
     prev.permission === next.permission &&
     prev.selectedMotoboy === next.selectedMotoboy &&
+    prev.reportSelectedToModal === next.reportSelectedToModal &&
     prev.motoboys === next.motoboys &&
     prev.isUpdating === next.isUpdating
   );
@@ -878,6 +880,7 @@ export function Dashboard() {
                 statusFilter={status}
                 permission={permission}
                 selectedMotoboy={selectedMotoboy}
+                reportSelectedToModal={reportSelectedToModal}
                 motoboys={motoboys}
                 isUpdating={isDeliveryUpdating(report.id)}
                 onSelectMotoboy={setSelectedMotoboy}

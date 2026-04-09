@@ -67,7 +67,7 @@ type DeliveryCardProps = {
   reportSelectedToModal: string;
   motoboys: Motoboy[];
   isUpdating: boolean;
-  onSelectMotoboy: (motoboyId: string) => void;
+  onSelectMotoboy: (reportId: string, motoboyId: string) => void;
   onSave: (report: Report) => void;
   onCancel: (report: Report) => void;
   onNextStep: (report: Report) => void;
@@ -204,7 +204,7 @@ const DeliveryCard = memo(
               id={motoboySelectId}
               disabled={isUpdating}
               value={selectedMotoboy}
-              onChange={(e) => onSelectMotoboy(e.target.value)}
+              onChange={(e) => onSelectMotoboy(report.id, e.target.value)}
             >
               <option value="">Selecione o motoboy:</option>
               {motoboys.map((motoboy: Motoboy) => (
@@ -273,7 +273,9 @@ export function Dashboard() {
     () => new Set(),
   );
 
-  const [selectedMotoboy, setSelectedMotoboy] = useState<string>("");
+  const [selectedMotoboyByReport, setSelectedMotoboyByReport] = useState<
+    Record<string, string>
+  >({});
 
   const [currentCityId, setCurrentCityId] = useState<string>("");
   const reloadTimeoutRef = useRef<number | null>(null);
@@ -507,6 +509,8 @@ export function Dashboard() {
       return;
     }
 
+    const selectedMotoboy = getSelectedMotoboy(report);
+
     let data: DeliveryUpdateData | null = null;
     let newStatus = "";
 
@@ -612,6 +616,8 @@ export function Dashboard() {
     if (isDeliveryUpdating(report.id)) {
       return;
     }
+
+    const selectedMotoboy = getSelectedMotoboy(report);
 
     if (!selectedMotoboy) {
       alert("Selecione o motoboy");
@@ -741,6 +747,24 @@ export function Dashboard() {
     return date.split("T")[1].substring(0, 5);
   }
 
+  function getSelectedMotoboy(report: Report) {
+    return (
+      selectedMotoboyByReport[report.id] ||
+      report.motoboyId ||
+      (motoboys.length === 1 ? motoboys[0].id : "")
+    );
+  }
+
+  const handleSelectMotoboy = useCallback(
+    (reportId: string, motoboyId: string) => {
+      setSelectedMotoboyByReport((state) => ({
+        ...state,
+        [reportId]: motoboyId,
+      }));
+    },
+    [],
+  );
+
   const getClientWhatsappMessage = useCallback((report: Report) => {
     if (!report.establishmentCityId) {
       return undefined;
@@ -756,12 +780,6 @@ export function Dashboard() {
       didFirstLoadRef.current = true;
     });
   }, [refreshDashboard]);
-
-  useEffect(() => {
-    if (motoboys.length === 1) {
-      setSelectedMotoboy(motoboys[0].id);
-    }
-  }, [motoboys]);
 
   useEffect(() => {
     void getCities();
@@ -867,11 +885,11 @@ export function Dashboard() {
                 report={report}
                 statusFilter={status}
                 permission={permission}
-                selectedMotoboy={selectedMotoboy}
+                selectedMotoboy={getSelectedMotoboy(report)}
                 reportSelectedToModal={reportSelectedToModal}
                 motoboys={motoboys}
                 isUpdating={isDeliveryUpdating(report.id)}
-                onSelectMotoboy={setSelectedMotoboy}
+                onSelectMotoboy={handleSelectMotoboy}
                 onSave={handlerSave}
                 onCancel={handlerCancel}
                 onNextStep={handlerNextStep}

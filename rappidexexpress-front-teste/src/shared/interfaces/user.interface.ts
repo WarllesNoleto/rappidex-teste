@@ -1,6 +1,7 @@
 export interface User {
     id: string;
     isActive: boolean;
+    ifoodMerchantId?: string;
     location: string;
     name: string;
     permission: string;
@@ -8,4 +9,5 @@ export interface User {
     profileImage: string;
     type: string;
     user: string;
+    useIfoodIntegration?: boolean;
 }

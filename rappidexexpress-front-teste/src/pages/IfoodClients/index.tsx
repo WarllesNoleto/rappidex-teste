@@ -154,7 +154,7 @@ export function IfoodClients() {
   return (
     <Container>
       <Content>
-        <Title>Clientes iFood</Title>
+        <Title>Empresas Cadastradas</Title>
         <Subtitle>
           Vincule cada lojista ao Merchant ID do iFood para permitir a importação
           dos pedidos corretamente.

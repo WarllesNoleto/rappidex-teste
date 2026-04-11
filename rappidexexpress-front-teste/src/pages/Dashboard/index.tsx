@@ -932,7 +932,7 @@ export function Dashboard() {
 
       {ifoodSummary && (
         <ShopkeeperCreditsContainer>
-          <strong>Créditos iFood - {ifoodSummary.companyName || "Minha empresa"}</strong>
+          <strong>Créditos para pedidos - {ifoodSummary.companyName || "Minha empresa"}</strong>
           <span>
             Liberados: {ifoodSummary.ifoodOrdersReleased} | Utilizados: {ifoodSummary.ifoodOrdersUsed} | Disponíveis: {ifoodSummary.ifoodOrdersAvailable}
           </span>

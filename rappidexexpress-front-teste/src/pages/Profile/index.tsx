@@ -23,6 +23,8 @@ import {
     FormContainer, 
     ProfileImage,
     NotificationButton,
+    CreditHistoryContainer,
+    CreditHistoryItem,
 } from "./styles";
 import { Loader } from '../../components/Loader';
 
@@ -55,10 +57,12 @@ export function Profile(){
     const [cityId, setCityId] = useState('')
     const [isPushEnabled, setIsPushEnabled] = useState(false)
     const [ifoodSummary, setIfoodSummary] = useState<null | {
+        companyName: string
         ifoodOrdersReleased: number
         ifoodOrdersUsed: number
         ifoodOrdersAvailable: number
     }>(null)
+    const [ifoodHistory, setIfoodHistory] = useState<any[]>([])
     const [formValues, setFormValues] = useState({
         name: '',
         phone: '',
@@ -176,17 +180,22 @@ export function Profile(){
             if (response.data?.type === 'shopkeeper' || response.data?.type === 'shopkeeperadmin') {
                 try {
                     const ifoodCreditsResponse = await api.get('/ifood/credits/my-summary')
+                    const ifoodHistoryResponse = await api.get('/ifood/credits/my-history')
                     setIfoodSummary({
+                        companyName: ifoodCreditsResponse.data?.companyName || response.data?.name || '',
                         ifoodOrdersReleased: ifoodCreditsResponse.data?.ifoodOrdersReleased || 0,
                         ifoodOrdersUsed: ifoodCreditsResponse.data?.ifoodOrdersUsed || 0,
                         ifoodOrdersAvailable: ifoodCreditsResponse.data?.ifoodOrdersAvailable || 0,
                     })
+                    setIfoodHistory(Array.isArray(ifoodHistoryResponse.data?.history) ? ifoodHistoryResponse.data.history : [])
                 } catch {
                     setIfoodSummary({
+                        companyName: response.data?.name || '',
                         ifoodOrdersReleased: response.data?.ifoodOrdersReleased || 0,
                         ifoodOrdersUsed: response.data?.ifoodOrdersUsed || 0,
                         ifoodOrdersAvailable: response.data?.ifoodOrdersAvailable || 0,
                     })
+                    setIfoodHistory([])
                 }
             }
 
@@ -325,8 +334,24 @@ export function Profile(){
                                     type="text"
                                     readOnly
                                     disabled
-                                    value={`Liberados: ${ifoodSummary.ifoodOrdersReleased} | Utilizados: ${ifoodSummary.ifoodOrdersUsed} | Disponíveis: ${ifoodSummary.ifoodOrdersAvailable}`}
+                                    value={`Empresa: ${ifoodSummary.companyName || '-'} | Liberados: ${ifoodSummary.ifoodOrdersReleased} | Utilizados: ${ifoodSummary.ifoodOrdersUsed} | Disponíveis: ${ifoodSummary.ifoodOrdersAvailable}`}
                                 />
+                                <label>Histórico de créditos iFood:</label>
+                                <CreditHistoryContainer>
+                                    {ifoodHistory.length === 0 ? (
+                                        <CreditHistoryItem>Nenhum histórico disponível.</CreditHistoryItem>
+                                    ) : (
+                                        ifoodHistory.map((historyItem) => (
+                                            <CreditHistoryItem key={historyItem?.id}>
+                                                <div>Operação: {historyItem?.operationType || '-'}</div>
+                                                <div>Quantidade: {historyItem?.amount ?? 0}</div>
+                                                <div>Disponíveis após operação: {historyItem?.availableAfterOperation ?? 0}</div>
+                                                <div>Data: {historyItem?.createdAt ? new Date(historyItem.createdAt).toLocaleString('pt-BR') : '-'}</div>
+                                                {historyItem?.reason && <div>Motivo: {historyItem.reason}</div>}
+                                            </CreditHistoryItem>
+                                        ))
+                                    )}
+                                </CreditHistoryContainer>
                             </>
                         )}
 

@@ -822,6 +822,26 @@ export class DeliveryService implements OnModuleInit {
     return user;
   }
 
+  async findActiveDeliveriesByIds(deliveryIds: string[]) {
+    if (!Array.isArray(deliveryIds) || deliveryIds.length === 0) {
+      return [];
+    }
+
+    const deliveries = await this.deliveryRepository.find({
+      where: {
+        id: { $in: deliveryIds },
+        isActive: true,
+      } as any,
+      relations: { establishment: true },
+    });
+
+    return (Array.isArray(deliveries) ? deliveries : []).filter(
+      (delivery) =>
+        delivery.status !== StatusDelivery.CANCELED &&
+        delivery.status !== StatusDelivery.FINISHED,
+    );
+  }
+
   async findConfigs() {
     return {
       status: 200,

@@ -782,6 +782,27 @@ export function Dashboard() {
     return date.split("T")[1].substring(0, 5);
   }
 
+   function formatHistoryDateTime(dateValue?: string) {
+    if (!dateValue) {
+      return { date: "-", time: "-" };
+    }
+
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return { date: "-", time: "-" };
+    }
+
+    return {
+      date: parsedDate.toLocaleDateString("pt-BR"),
+      time: parsedDate.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+    };
+  }
+
   function getSelectedMotoboy(report: Report) {
     return (
       selectedMotoboyByReport[report.id] ||
@@ -921,7 +942,11 @@ export function Dashboard() {
             ) : (
               ifoodHistory.map((historyItem) => (
                 <ShopkeeperCreditsHistoryItem key={historyItem?.id}>
-                  {historyItem?.operationType || "-"} | Qtd: {historyItem?.amount ?? 0} | Saldo: {historyItem?.availableAfterOperation ?? 0}
+                  {(() => {
+                    const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt);
+
+                    return `${historyItem?.operationType || "-"} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
+                  })()}
                 </ShopkeeperCreditsHistoryItem>
               ))
             )}

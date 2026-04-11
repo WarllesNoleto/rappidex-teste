@@ -76,6 +76,27 @@ export function Profile(){
         values: formValues,
     })
 
+     function formatHistoryDateTime(dateValue?: string) {
+        if (!dateValue) {
+            return { date: '-', time: '-' }
+        }
+
+        const parsedDate = new Date(dateValue)
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return { date: '-', time: '-' }
+        }
+
+        return {
+            date: parsedDate.toLocaleDateString('pt-BR'),
+            time: parsedDate.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }),
+        }
+    }
+
     function handleConfig() {
         navigate('/configuracao')
     }
@@ -343,10 +364,19 @@ export function Profile(){
                                     ) : (
                                         ifoodHistory.map((historyItem) => (
                                             <CreditHistoryItem key={historyItem?.id}>
+                                                {(() => {
+                                                    const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt)
+
+                                                    return (
+                                                        <>
+                                                            <div>Data: {formattedDateTime.date}</div>
+                                                            <div>Hora: {formattedDateTime.time}</div>
+                                                        </>
+                                                    )
+                                                })()}
                                                 <div>Operação: {historyItem?.operationType || '-'}</div>
                                                 <div>Quantidade: {historyItem?.amount ?? 0}</div>
                                                 <div>Disponíveis após operação: {historyItem?.availableAfterOperation ?? 0}</div>
-                                                <div>Data: {historyItem?.createdAt ? new Date(historyItem.createdAt).toLocaleString('pt-BR') : '-'}</div>
                                                 {historyItem?.reason && <div>Motivo: {historyItem.reason}</div>}
                                             </CreditHistoryItem>
                                         ))

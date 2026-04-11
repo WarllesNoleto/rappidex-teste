@@ -52,6 +52,28 @@ export const ShopkeeperCreditsHistoryItem = styled.div`
   border-bottom: 1px solid ${(props) => props.theme['gray-600']};
 `;
 
+export const ShopkeeperCreditsToggleButton = styled.button`
+  background: ${(props) => props.theme['gray-500']};
+  color: ${(props) => props.theme['gray-100']};
+  border: 0;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  width: fit-content;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+`;
+
 interface ButtonProps {
   typeReport: boolean
 }

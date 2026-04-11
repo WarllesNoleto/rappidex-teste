@@ -39,6 +39,7 @@ import {
   ShopkeeperCreditsContainer,
   ShopkeeperCreditsHistory,
   ShopkeeperCreditsHistoryItem,
+  ShopkeeperCreditsToggleButton,
   ShopkeeperInfo,
   ShopkeeperProfileImage,
   Status,
@@ -286,6 +287,9 @@ export function Dashboard() {
     ifoodOrdersAvailable: number;
   }>(null);
   const [ifoodHistory, setIfoodHistory] = useState<any[]>([]);
+  const [showIfoodHistory, setShowIfoodHistory] = useState(false);
+  const [loadingIfoodHistory, setLoadingIfoodHistory] = useState(false);
+  const [hasLoadedIfoodHistory, setHasLoadedIfoodHistory] = useState(false);
 
   const [currentCityId, setCurrentCityId] = useState<string>("");
   const reloadTimeoutRef = useRef<number | null>(null);
@@ -520,10 +524,7 @@ export function Dashboard() {
     }
 
     try {
-      const [summaryResponse, historyResponse] = await Promise.all([
-        api.get("/ifood/credits/my-summary"),
-        api.get("/ifood/credits/my-history"),
-      ]);
+            const summaryResponse = await api.get("/ifood/credits/my-summary");
 
       setIfoodSummary({
         companyName: summaryResponse.data?.companyName || "",
@@ -531,13 +532,53 @@ export function Dashboard() {
         ifoodOrdersUsed: Number(summaryResponse.data?.ifoodOrdersUsed) || 0,
         ifoodOrdersAvailable: Number(summaryResponse.data?.ifoodOrdersAvailable) || 0,
       });
-      setIfoodHistory(Array.isArray(historyResponse.data?.history) ? historyResponse.data.history : []);
+      setShowIfoodHistory(false);
+      setIfoodHistory([]);
+      setHasLoadedIfoodHistory(false);
     } catch (error) {
       console.error("Erro ao carregar créditos iFood do lojista:", error);
       setIfoodSummary(null);
       setIfoodHistory([]);
+      setShowIfoodHistory(false);
+      setHasLoadedIfoodHistory(false);
     }
   }, [permission]);
+
+  const getShopkeeperIfoodHistory = useCallback(async () => {
+    if (loadingIfoodHistory) {
+      return;
+    }
+
+    setLoadingIfoodHistory(true);
+    try {
+      const historyResponse = await api.get("/ifood/credits/my-history");
+      setIfoodHistory(
+        Array.isArray(historyResponse.data?.history) ? historyResponse.data.history : [],
+      );
+      setHasLoadedIfoodHistory(true);
+    } catch (error) {
+      console.error("Erro ao carregar histórico iFood do lojista:", error);
+      setIfoodHistory([]);
+      setHasLoadedIfoodHistory(false);
+    } finally {
+      setLoadingIfoodHistory(false);
+    }
+  }, [loadingIfoodHistory]);
+
+  async function handleToggleIfoodHistory() {
+    const shouldShowHistory = !showIfoodHistory;
+
+    if (!shouldShowHistory) {
+      setShowIfoodHistory(false);
+      return;
+    }
+
+    if (!hasLoadedIfoodHistory) {
+      await getShopkeeperIfoodHistory();
+    }
+
+    setShowIfoodHistory(true);
+  }
 
   async function handlerNextStep(report: Report) {
     if (isDeliveryUpdating(report.id)) {
@@ -936,21 +977,34 @@ export function Dashboard() {
           <span>
             Liberados: {ifoodSummary.ifoodOrdersReleased} | Utilizados: {ifoodSummary.ifoodOrdersUsed} | Disponíveis: {ifoodSummary.ifoodOrdersAvailable}
           </span>
-          <ShopkeeperCreditsHistory>
-            {ifoodHistory.length === 0 ? (
-              <ShopkeeperCreditsHistoryItem>Nenhum histórico disponível.</ShopkeeperCreditsHistoryItem>
-            ) : (
-              ifoodHistory.map((historyItem) => (
-                <ShopkeeperCreditsHistoryItem key={historyItem?.id}>
-                  {(() => {
-                    const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt);
+          <ShopkeeperCreditsToggleButton
+            disabled={loadingIfoodHistory}
+            onClick={() => void handleToggleIfoodHistory()}
+            type="button"
+          >
+            {loadingIfoodHistory
+              ? "Carregando..."
+              : showIfoodHistory
+                ? "Ocultar histórico"
+                : "Ver histórico"}
+          </ShopkeeperCreditsToggleButton>
+          {showIfoodHistory && (
+            <ShopkeeperCreditsHistory>
+              {ifoodHistory.length === 0 ? (
+                <ShopkeeperCreditsHistoryItem>Nenhum histórico disponível.</ShopkeeperCreditsHistoryItem>
+              ) : (
+                ifoodHistory.map((historyItem) => (
+                  <ShopkeeperCreditsHistoryItem key={historyItem?.id}>
+                    {(() => {
+                      const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt);
 
-                    return `${historyItem?.operationType || "-"} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
-                  })()}
-                </ShopkeeperCreditsHistoryItem>
-              ))
-            )}
-          </ShopkeeperCreditsHistory>
+                      return `${historyItem?.operationType || "-"} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
+                    })()}
+                  </ShopkeeperCreditsHistoryItem>
+                ))
+              )}
+            </ShopkeeperCreditsHistory>
+          )}
         </ShopkeeperCreditsContainer>
       )}
 

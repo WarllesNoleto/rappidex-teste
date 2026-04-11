@@ -54,6 +54,11 @@ export function Profile(){
     const [cityDisplay, setCityDisplay] = useState('')
     const [cityId, setCityId] = useState('')
     const [isPushEnabled, setIsPushEnabled] = useState(false)
+    const [ifoodSummary, setIfoodSummary] = useState<null | {
+        ifoodOrdersReleased: number
+        ifoodOrdersUsed: number
+        ifoodOrdersAvailable: number
+    }>(null)
     const [formValues, setFormValues] = useState({
         name: '',
         phone: '',
@@ -167,6 +172,23 @@ export function Profile(){
 
             setUsername(response.data.user)
             setProfileImage(response.data.profileImage)
+
+            if (response.data?.type === 'shopkeeper' || response.data?.type === 'shopkeeperadmin') {
+                try {
+                    const ifoodCreditsResponse = await api.get('/ifood/credits/my-summary')
+                    setIfoodSummary({
+                        ifoodOrdersReleased: ifoodCreditsResponse.data?.ifoodOrdersReleased || 0,
+                        ifoodOrdersUsed: ifoodCreditsResponse.data?.ifoodOrdersUsed || 0,
+                        ifoodOrdersAvailable: ifoodCreditsResponse.data?.ifoodOrdersAvailable || 0,
+                    })
+                } catch {
+                    setIfoodSummary({
+                        ifoodOrdersReleased: response.data?.ifoodOrdersReleased || 0,
+                        ifoodOrdersUsed: response.data?.ifoodOrdersUsed || 0,
+                        ifoodOrdersAvailable: response.data?.ifoodOrdersAvailable || 0,
+                    })
+                }
+            }
 
             const userCityId = response.data?.cityId
                 ?? response.data?.city?.id
@@ -295,6 +317,18 @@ export function Profile(){
                             readOnly
                             disabled
                         />
+
+                        {ifoodSummary && (
+                            <>
+                                <label>Créditos iFood:</label>
+                                <BaseInput
+                                    type="text"
+                                    readOnly
+                                    disabled
+                                    value={`Liberados: ${ifoodSummary.ifoodOrdersReleased} | Utilizados: ${ifoodSummary.ifoodOrdersUsed} | Disponíveis: ${ifoodSummary.ifoodOrdersAvailable}`}
+                                />
+                            </>
+                        )}
 
                         <ContainerButtons>
                             <NotificationButton

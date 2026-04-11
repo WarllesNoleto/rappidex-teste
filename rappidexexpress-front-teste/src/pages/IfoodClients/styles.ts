@@ -84,3 +84,62 @@ export const SaveButton = styled.button`
     opacity: 0.8;
   }
 `;
+
+export const CreditSummary = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+export const CreditLine = styled.span`
+  background: ${(props) => props.theme['gray-700']};
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+`;
+
+export const CreditButtons = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+export const CreditInput = styled.input`
+  max-width: 9rem;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem;
+`;
+
+export const CreditButton = styled.button`
+  border: 0;
+  border-radius: 8px;
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
+  font-weight: 600;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+`;
+
+export const HistoryButton = styled.button`
+  border: 0;
+  border-radius: 8px;
+  background: ${(props) => props.theme['gray-500']};
+  color: ${(props) => props.theme['gray-100']};
+  font-weight: 600;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+`;
+
+export const HistoryList = styled.ul`
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+export const HistoryItem = styled.li`
+  color: ${(props) => props.theme['gray-200']};
+  font-size: 0.85rem;
+`;

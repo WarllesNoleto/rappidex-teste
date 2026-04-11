@@ -30,6 +30,7 @@ export class IfoodOrderLinkService {
       createdAt: new Date(),
     });
   }
+<<<<<<< HEAD
 
   async findByIfoodOrderIds(ifoodOrderIds: string[]) {
     if (!Array.isArray(ifoodOrderIds) || ifoodOrderIds.length === 0) {
@@ -62,4 +63,6 @@ export class IfoodOrderLinkService {
 
     return Array.isArray(links) ? links : [];
   }
+=======
+>>>>>>> parent of e08695c (.)
 }

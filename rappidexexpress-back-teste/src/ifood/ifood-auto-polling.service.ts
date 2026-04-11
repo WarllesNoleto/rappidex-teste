@@ -10,8 +10,6 @@ import { ConfigService } from '@nestjs/config';
 import { DeliveryService } from '../delivery/delivery.service';
 import { IfoodEventService } from './ifood-event.service';
 import { IfoodImportService } from './ifood-import.service';
-import { IfoodOrderLinkService } from './ifood-order-link.service';
-import { IfoodOrdersService } from './ifood-orders.service';
 import { IfoodPollingService } from './ifood-polling.service';
 
 @Injectable()
@@ -20,13 +18,10 @@ export class IfoodAutoPollingService
 {
   private readonly logger = new Logger(IfoodAutoPollingService.name);
   private intervalRef: NodeJS.Timeout | null = null;
-    private isRunning = false;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly ifoodPollingService: IfoodPollingService,
-    private readonly ifoodOrdersService: IfoodOrdersService,
-    private readonly ifoodOrderLinkService: IfoodOrderLinkService,
     private readonly ifoodImportService: IfoodImportService,
     private readonly ifoodEventService: IfoodEventService,
     @Inject(forwardRef(() => DeliveryService))
@@ -65,15 +60,6 @@ export class IfoodAutoPollingService
   }
 
   private async runPollingCycle() {
-    if (this.isRunning) {
-      this.logger.warn(
-        'Ciclo automático do iFood ainda em execução. Novo ciclo ignorado para preservar idempotência.',
-      );
-      return;
-    }
-
-    this.isRunning = true;
-
     try {
       const events = await this.ifoodPollingService.pollEvents();
       const allEvents = Array.isArray(events) ? events : [];
@@ -150,23 +136,24 @@ export class IfoodAutoPollingService
         ...new Set(ackEvents.map((event) => event?.id).filter(Boolean)),
       ];
 
-      if (eventIds.length > 0) {
-        await this.ifoodPollingService.acknowledgeEvents(eventIds);
-
-        for (const eventId of eventIds) {
-          await this.ifoodEventService.markAsAcknowledged(eventId);
-        }
-
-      this.logger.log(
-          `ACK enviado ao iFood e confirmado localmente: ${eventIds.length}`,
-        );
+      if (eventIds.length === 0) {
+        return;
       }
 
-      await this.runStatusReconciliation(allEvents);
+      await this.ifoodPollingService.acknowledgeEvents(eventIds);
+
+      for (const eventId of eventIds) {
+        await this.ifoodEventService.markAsAcknowledged(eventId);
+      }
+
+      this.logger.log(
+        `ACK enviado ao iFood e confirmado localmente: ${eventIds.length}`,
+      );
     } catch (error: any) {
       this.logger.error(
         `Erro no polling automático do iFood: ${error?.message || error}`,
       );
+<<<<<<< HEAD
       } finally {
       this.isRunning = false;
     }
@@ -357,6 +344,8 @@ export class IfoodAutoPollingService
       this.logger.warn(
         `ALERTA IFOOD_STALE_ORDER: pedido ${orderId} (delivery ${delivery.id}) está há ${elapsedMinutes} minuto(s) sem atualização. Limite configurado: ${staleThresholdMinutes} minuto(s).`,
       );
+=======
+>>>>>>> parent of e08695c (.)
     }
   }
 }

@@ -743,16 +743,27 @@ export class DeliveryService implements OnModuleInit {
       where: {
         id: ifoodLink.deliveryId,
       },
-      relations: { establishment: true },
+      relations: { establishment: true, motoboy: true },
     });
 
     if (!deliveryFinded || !deliveryFinded.isActive) {
       return;
     }
 
+    if (deliveryFinded.status === StatusDelivery.CANCELED) {
+      return;
+    }
+
+    const wasAssignedToMotoboy =
+      !!deliveryFinded.motoboy?.id ||
+      deliveryFinded.status === StatusDelivery.ONCOURSE ||
+      deliveryFinded.status === StatusDelivery.COLLECTED ||
+      !!deliveryFinded.onCoursedAt;
+
     const deliveryUpdated = await this.deliveryRepository.save({
       ...deliveryFinded,
       status: StatusDelivery.CANCELED,
+      isActive: wasAssignedToMotoboy,
       updatedAt: addHours(new Date(), -3),
     });
 
@@ -768,7 +779,7 @@ export class DeliveryService implements OnModuleInit {
     );
 
     this.logger.warn(
-      `Entrega ${deliveryFinded.id} cancelada no Rappidex por evento ${event?.fullCode || event?.code || 'CANCELLED'} do iFood. OrderId: ${orderId}`,
+      `Entrega ${deliveryFinded.id} cancelada no Rappidex por evento ${event?.fullCode || event?.code || 'CANCELLED'} do iFood. OrderId: ${orderId}. Em relatório de canceladas: ${wasAssignedToMotoboy ? 'sim' : 'não'}.`,
     );
   }
 

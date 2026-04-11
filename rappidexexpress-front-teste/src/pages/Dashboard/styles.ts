@@ -28,6 +28,30 @@ export const ContainerButtons = styled.div`
   flex-wrap: wrap;
 `;
 
+export const ShopkeeperCreditsContainer = styled.div`
+  width: min(100%, 1200px);
+  background: ${(props) => props.theme['gray-700']};
+  border-radius: 1rem;
+  padding: 1rem;
+  margin: 0.5rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+export const ShopkeeperCreditsHistory = styled.div`
+  max-height: 12rem;
+  overflow-y: auto;
+  border-top: 1px solid ${(props) => props.theme['gray-500']};
+  padding-top: 0.5rem;
+  font-size: 0.875rem;
+`;
+
+export const ShopkeeperCreditsHistoryItem = styled.div`
+  padding: 0.4rem 0;
+  border-bottom: 1px solid ${(props) => props.theme['gray-600']};
+`;
+
 interface ButtonProps {
   typeReport: boolean
 }

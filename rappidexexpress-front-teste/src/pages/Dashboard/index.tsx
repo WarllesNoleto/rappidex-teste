@@ -36,6 +36,9 @@ import {
   OrderActions,
   OrderButton,
   SelectContainer,
+  ShopkeeperCreditsContainer,
+  ShopkeeperCreditsHistory,
+  ShopkeeperCreditsHistoryItem,
   ShopkeeperInfo,
   ShopkeeperProfileImage,
   Status,
@@ -276,6 +279,13 @@ export function Dashboard() {
   const [selectedMotoboyByReport, setSelectedMotoboyByReport] = useState<
     Record<string, string>
   >({});
+  const [ifoodSummary, setIfoodSummary] = useState<null | {
+    companyName: string;
+    ifoodOrdersReleased: number;
+    ifoodOrdersUsed: number;
+    ifoodOrdersAvailable: number;
+  }>(null);
+  const [ifoodHistory, setIfoodHistory] = useState<any[]>([]);
 
   const [currentCityId, setCurrentCityId] = useState<string>("");
   const reloadTimeoutRef = useRef<number | null>(null);
@@ -503,6 +513,31 @@ export function Dashboard() {
       console.error("Erro ao carregar usuário atual:", error);
     }
   }, []);
+
+  const getShopkeeperIfoodCredits = useCallback(async () => {
+    if (permission !== UserType.SHOPKEEPER && permission !== UserType.SHOPKEEPERADMIN) {
+      return;
+    }
+
+    try {
+      const [summaryResponse, historyResponse] = await Promise.all([
+        api.get("/ifood/credits/my-summary"),
+        api.get("/ifood/credits/my-history"),
+      ]);
+
+      setIfoodSummary({
+        companyName: summaryResponse.data?.companyName || "",
+        ifoodOrdersReleased: Number(summaryResponse.data?.ifoodOrdersReleased) || 0,
+        ifoodOrdersUsed: Number(summaryResponse.data?.ifoodOrdersUsed) || 0,
+        ifoodOrdersAvailable: Number(summaryResponse.data?.ifoodOrdersAvailable) || 0,
+      });
+      setIfoodHistory(Array.isArray(historyResponse.data?.history) ? historyResponse.data.history : []);
+    } catch (error) {
+      console.error("Erro ao carregar créditos iFood do lojista:", error);
+      setIfoodSummary(null);
+      setIfoodHistory([]);
+    }
+  }, [permission]);
 
   async function handlerNextStep(report: Report) {
     if (isDeliveryUpdating(report.id)) {
@@ -806,6 +841,10 @@ export function Dashboard() {
   }, [getMyself]);
 
   useEffect(() => {
+    void getShopkeeperIfoodCredits();
+  }, [getShopkeeperIfoodCredits]);
+
+  useEffect(() => {
     if (!currentCityId) return;
 
     const socket = io(SOCKET_URL, {
@@ -869,6 +908,26 @@ export function Dashboard() {
           <Flag>{assignedCount}</Flag>
         </BaseButton>
       </ContainerButtons>
+
+      {ifoodSummary && (
+        <ShopkeeperCreditsContainer>
+          <strong>Créditos iFood - {ifoodSummary.companyName || "Minha empresa"}</strong>
+          <span>
+            Liberados: {ifoodSummary.ifoodOrdersReleased} | Utilizados: {ifoodSummary.ifoodOrdersUsed} | Disponíveis: {ifoodSummary.ifoodOrdersAvailable}
+          </span>
+          <ShopkeeperCreditsHistory>
+            {ifoodHistory.length === 0 ? (
+              <ShopkeeperCreditsHistoryItem>Nenhum histórico disponível.</ShopkeeperCreditsHistoryItem>
+            ) : (
+              ifoodHistory.map((historyItem) => (
+                <ShopkeeperCreditsHistoryItem key={historyItem?.id}>
+                  {historyItem?.operationType || "-"} | Qtd: {historyItem?.amount ?? 0} | Saldo: {historyItem?.availableAfterOperation ?? 0}
+                </ShopkeeperCreditsHistoryItem>
+              ))
+            )}
+          </ShopkeeperCreditsHistory>
+        </ShopkeeperCreditsContainer>
+      )}
 
       <ContainerDeliveries>
         {loading ? (

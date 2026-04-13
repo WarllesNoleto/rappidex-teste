@@ -13,6 +13,7 @@ import {
 
 import { DeliveryContext } from '../../context/DeliveryContext';
 import api from '../../services/api';
+import { translateIfoodOperationType } from '../../shared/utils/ifoodHistory';
 
 import { 
     BaseInput, 
@@ -374,7 +375,7 @@ export function Profile(){
                                                         </>
                                                     )
                                                 })()}
-                                                <div>Operação: {historyItem?.operationType || '-'}</div>
+                                                 <div>Operação: {translateIfoodOperationType(historyItem?.operationType)}</div>
                                                 <div>Quantidade: {historyItem?.amount ?? 0}</div>
                                                 <div>Disponíveis após operação: {historyItem?.availableAfterOperation ?? 0}</div>
                                                 {historyItem?.reason && <div>Motivo: {historyItem.reason}</div>}

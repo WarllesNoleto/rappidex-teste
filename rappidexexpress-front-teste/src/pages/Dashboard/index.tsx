@@ -18,6 +18,7 @@ import {
   getLinkToWhatsapp,
   messageTypes,
 } from "../../shared/constants/whatsapp.constants";
+import { translateIfoodOperationType } from "../../shared/utils/ifoodHistory";
 
 import {
   BaseButton,
@@ -998,7 +999,7 @@ export function Dashboard() {
                     {(() => {
                       const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt);
 
-                      return `${historyItem?.operationType || "-"} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
+                      return `${translateIfoodOperationType(historyItem?.operationType)} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
                     })()}
                   </ShopkeeperCreditsHistoryItem>
                 ))

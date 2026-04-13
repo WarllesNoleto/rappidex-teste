@@ -5,6 +5,7 @@ import { DeliveryContext } from '../../context/DeliveryContext';
 import api from '../../services/api';
 import { Loader } from '../../components/Loader';
 import { User } from '../../shared/interfaces';
+import { translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
 import {
   Actions,
   CreditButton,
@@ -258,7 +259,7 @@ export function IfoodClients() {
                   <HistoryList>
                     {historyByUser[shopkeeper.id].slice(0, 5).map((entry: any) => (
                       <HistoryItem key={entry.id}>
-                        {entry.operationType} {entry.amount} crédito(s) em{' '}
+                        {translateIfoodOperationType(entry.operationType)} {entry.amount} crédito(s) em{' '}
                         {new Date(entry.createdAt).toLocaleString('pt-BR')}
                       </HistoryItem>
                     ))}

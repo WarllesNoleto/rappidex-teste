@@ -13,7 +13,7 @@ import {
 
 import { DeliveryContext } from '../../context/DeliveryContext';
 import api from '../../services/api';
-import { translateIfoodOperationType } from '../../shared/utils/ifoodHistory';
+import { translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
 
 import { 
     BaseInput, 
@@ -199,7 +199,13 @@ export function Profile(){
             setUsername(response.data.user)
             setProfileImage(response.data.profileImage)
 
-            if (response.data?.type === 'shopkeeper' || response.data?.type === 'shopkeeperadmin') {
+            const normalizedUserType = String(response.data?.type || '').toLowerCase()
+            const normalizedPermission = String(permission || '').toLowerCase()
+            const isShopkeeperUser =
+                ['shopkeeper', 'shopkeeperadmin'].includes(normalizedUserType) ||
+                ['shopkeeper', 'shopkeeperadmin'].includes(normalizedPermission)
+
+            if (isShopkeeperUser) {
                 try {
                     const ifoodCreditsResponse = await api.get('/ifood/credits/my-summary')
                     const ifoodHistoryResponse = await api.get('/ifood/credits/my-history')
@@ -219,6 +225,9 @@ export function Profile(){
                     })
                     setIfoodHistory([])
                 }
+                } else {
+                setIfoodSummary(null)
+                setIfoodHistory([])
             }
 
             const userCityId = response.data?.cityId
@@ -269,6 +278,7 @@ export function Profile(){
 
     useEffect(() => {
         getMyData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {

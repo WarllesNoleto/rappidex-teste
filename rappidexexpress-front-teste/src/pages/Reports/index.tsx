@@ -149,8 +149,27 @@ export function Reports() {
             report.isIfoodOrder || observation?.includes('Pedido iFood #')
         )
 
+        if (isIfoodOrder && observation) {
+            const normalizedParts = observation
+                .split('|')
+                .map(part => part.trim())
+                .filter(Boolean)
+
+            if (report.status === 'CANCELADO') {
+                return normalizedParts.join(' | ')
+            }
+
+            const finalStatusParts = normalizedParts.filter(
+                part =>
+                    part.startsWith('Pedido iFood #') ||
+                    part.startsWith('Endereço:')
+            )
+
+            return finalStatusParts.join(' | ') || observation
+        }
+
         if (isIfoodOrder) {
-            return 'Pedido iFood (importado pela integração).'
+            return 'Pedido iFood importado automaticamente pelo Developer Portal.'
         }
 
         return observation || ''

@@ -142,10 +142,12 @@ export function Reports() {
     function getHours(date: string) {
         return date.split('T')[1].substring(0, 5)
     }
-
+    
     function getObservation(report: Report) {
         const observation = report.observation?.trim()
-        const isIfoodOrder = report.createdBy === 'ifood.integration'
+        const isIfoodOrder = Boolean(
+            report.isIfoodOrder || observation?.includes('Pedido iFood #')
+        )
 
         if (!observation && isIfoodOrder) {
             return 'Pedido iFood (importado pela integração).'

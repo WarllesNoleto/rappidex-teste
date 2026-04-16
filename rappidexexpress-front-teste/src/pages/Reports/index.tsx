@@ -155,7 +155,7 @@ export function Reports() {
                 .map(part => part.trim())
                 .filter(Boolean)
 
-            if (report.status === 'CANCELADO') {
+            if (report.status === 'CANCELADO' || report.status === 'FINALIZADO') {
                 return normalizedParts.join(' | ')
             }
 

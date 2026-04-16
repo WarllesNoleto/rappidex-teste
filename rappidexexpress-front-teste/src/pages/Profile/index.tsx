@@ -29,6 +29,23 @@ import {
 } from "./styles";
 import { Loader } from '../../components/Loader';
 
+
+const parseUtcDateString = (dateValue?: string) => {
+  if (!dateValue) {
+    return null;
+  }
+
+  const hasTimezoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateValue);
+  const normalizedDateValue = hasTimezoneInfo ? dateValue : `${dateValue}Z`;
+  const parsedDate = new Date(normalizedDateValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
 const ProfileFormValidationSchema = zod.object({
     name: zod.string().min(5, 'Informe o seu nome.'),
     phone: zod
@@ -82,9 +99,9 @@ export function Profile(){
             return { date: '-', time: '-' }
         }
 
-        const parsedDate = new Date(dateValue)
+        const parsedDate = parseUtcDateString(dateValue)
 
-        if (Number.isNaN(parsedDate.getTime())) {
+        if (!parsedDate) {
             return { date: '-', time: '-' }
         }
 

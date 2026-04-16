@@ -52,6 +52,23 @@ import {
   UserType,
 } from "../../shared/constants/enums.constants";
 
+
+const parseUtcDateString = (dateValue?: string) => {
+  if (!dateValue) {
+    return null;
+  }
+
+  const hasTimezoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateValue);
+  const normalizedDateValue = hasTimezoneInfo ? dateValue : `${dateValue}Z`;
+  const parsedDate = new Date(normalizedDateValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
 type DeliveryUpdateData = {
   status?: string;
   motoboyId?: string;
@@ -829,9 +846,9 @@ export function Dashboard() {
       return { date: "-", time: "-" };
     }
 
-    const parsedDate = new Date(dateValue);
+    const parsedDate = parseUtcDateString(dateValue);
 
-    if (Number.isNaN(parsedDate.getTime())) {
+    if (!parsedDate) {
       return { date: "-", time: "-" };
     }
 

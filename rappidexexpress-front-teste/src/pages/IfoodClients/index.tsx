@@ -29,6 +29,23 @@ import {
   HistoryList,
 } from './styles.ts';
 
+
+const parseUtcDateString = (dateValue?: string) => {
+  if (!dateValue) {
+    return null;
+  }
+
+  const hasTimezoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateValue);
+  const normalizedDateValue = hasTimezoneInfo ? dateValue : `${dateValue}Z`;
+  const parsedDate = new Date(normalizedDateValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
 export function IfoodClients() {
   const { token } = useContext(DeliveryContext);
   api.defaults.headers.Authorization = `Bearer ${token}`;
@@ -260,7 +277,7 @@ export function IfoodClients() {
                     {historyByUser[shopkeeper.id].slice(0, 5).map((entry: any) => (
                       <HistoryItem key={entry.id}>
                         {translateIfoodOperationType(entry.operationType)} {entry.amount} crédito(s) em{' '}
-                        {new Date(entry.createdAt).toLocaleString('pt-BR')}
+                        {parseUtcDateString(entry.createdAt)?.toLocaleString('pt-BR') || '-'}
                       </HistoryItem>
                     ))}
                   </HistoryList>

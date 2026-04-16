@@ -5,7 +5,7 @@ import { DeliveryContext } from '../../context/DeliveryContext';
 import api from '../../services/api';
 import { Loader } from '../../components/Loader';
 import { User } from '../../shared/interfaces';
-import { translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
+import { formatIfoodHistoryDateTime, translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
 import {
   Actions,
   CreditButton,
@@ -28,23 +28,6 @@ import {
   HistoryItem,
   HistoryList,
 } from './styles.ts';
-
-
-const parseUtcDateString = (dateValue?: string) => {
-  if (!dateValue) {
-    return null;
-  }
-
-  const hasTimezoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateValue);
-  const normalizedDateValue = hasTimezoneInfo ? dateValue : `${dateValue}Z`;
-  const parsedDate = new Date(normalizedDateValue);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
-};
 
 export function IfoodClients() {
   const { token } = useContext(DeliveryContext);
@@ -276,8 +259,16 @@ export function IfoodClients() {
                   <HistoryList>
                     {historyByUser[shopkeeper.id].slice(0, 5).map((entry: any) => (
                       <HistoryItem key={entry.id}>
+                        {(() => {
+                          const formattedDateTime = formatIfoodHistoryDateTime(entry.createdAt);
+
+                          return (
+                            <>
                         {translateIfoodOperationType(entry.operationType)} {entry.amount} crédito(s) em{' '}
-                        {parseUtcDateString(entry.createdAt)?.toLocaleString('pt-BR') || '-'}
+                        {`${formattedDateTime.date} ${formattedDateTime.time}`}
+                            </>
+                          );
+                        })()}
                       </HistoryItem>
                     ))}
                   </HistoryList>

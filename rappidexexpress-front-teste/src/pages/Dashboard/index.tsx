@@ -18,7 +18,10 @@ import {
   getLinkToWhatsapp,
   messageTypes,
 } from "../../shared/constants/whatsapp.constants";
-import { translateIfoodOperationType } from "../../shared/utils/ifoodHistory";
+import {
+  formatIfoodHistoryDateTime,
+  translateIfoodOperationType,
+} from "../../shared/utils/ifoodHistory";
 
 import {
   BaseButton,
@@ -52,22 +55,6 @@ import {
   UserType,
 } from "../../shared/constants/enums.constants";
 
-
-const parseUtcDateString = (dateValue?: string) => {
-  if (!dateValue) {
-    return null;
-  }
-
-  const hasTimezoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateValue);
-  const normalizedDateValue = hasTimezoneInfo ? dateValue : `${dateValue}Z`;
-  const parsedDate = new Date(normalizedDateValue);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
-};
 
 type DeliveryUpdateData = {
   status?: string;
@@ -842,24 +829,7 @@ export function Dashboard() {
   }
 
    function formatHistoryDateTime(dateValue?: string) {
-    if (!dateValue) {
-      return { date: "-", time: "-" };
-    }
-
-    const parsedDate = parseUtcDateString(dateValue);
-
-    if (!parsedDate) {
-      return { date: "-", time: "-" };
-    }
-
-    return {
-      date: parsedDate.toLocaleDateString("pt-BR"),
-      time: parsedDate.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    };
+    return formatIfoodHistoryDateTime(dateValue);
   }
 
   function getSelectedMotoboy(report: Report) {

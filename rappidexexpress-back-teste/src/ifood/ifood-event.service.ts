@@ -47,18 +47,15 @@ export class IfoodEventService {
     return Array.isArray(events) ? events : [];
   }
 
-  async markAsProcessed(
-    event: {
-      id: string;
-      orderId?: string;
-      merchantId?: string;
-      code?: string;
-      fullCode?: string;
-      salesChannel?: string;
-      createdAt?: string;
-    },
-    acknowledged = false,
-  ) {
+  async markAsProcessed(event: {
+    id: string;
+    orderId?: string;
+    merchantId?: string;
+    code?: string;
+    fullCode?: string;
+    salesChannel?: string;
+    createdAt?: string;
+  }) {
     return this.ifoodEventRepository.save({
       eventId: event.id,
       orderId: event.orderId ?? '',
@@ -68,7 +65,7 @@ export class IfoodEventService {
       salesChannel: event.salesChannel ?? '',
       createdAt: event.createdAt ?? '',
       processedAt: new Date(),
-      acknowledged,
+      acknowledged: false,
     });
   }
 

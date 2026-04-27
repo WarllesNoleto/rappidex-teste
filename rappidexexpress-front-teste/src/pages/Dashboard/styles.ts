@@ -321,7 +321,8 @@ export const SelectContainer = styled.div`
   max-width: 100%;
   min-width: 0;
 
-  select {
+  select,
+  input {
     height: 2.5rem;
     background: ${(props) => props.theme['gray-600']};
     color: ${(props) => props.theme['gray-100']};
@@ -329,12 +330,16 @@ export const SelectContainer = styled.div`
     max-width: 100%;
     min-width: 0;
     white-space: normal;
+    border: 1px solid ${(props) => props.theme['gray-500']};
+    border-radius: 0.4rem;
+    padding: 0 0.75rem;
   }
 
   @media (max-width: 480px) {
     margin: 0.75rem;
 
-    select {
+    select,
+    input {
       height: 2.3rem;
       font-size: 0.95rem;
     }

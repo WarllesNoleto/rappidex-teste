@@ -81,11 +81,13 @@ type DeliveryCardProps = {
   onCancel: (report: Report) => void;
   onNextStep: (report: Report) => void;
   onDelete: (report: Report) => void;
-  getButtonText: (currentStatus: string, id: string) => string;
+  onDeliveryCodeChange: (reportId: string, value: string) => void;
+  getButtonText: (currentStatus: string, id: string, report?: Report) => string;
   getHours: (date: string) => string;
   formatPhoneNumber: (phone: string) => string;
   getIfoodOrderNumber: (observation?: string) => string | null;
   getClientWhatsappMessage: (report: Report) => string | undefined;
+  deliveryCode: string;
 };
 
 const DeliveryCard = memo(
@@ -101,15 +103,21 @@ const DeliveryCard = memo(
     onCancel,
     onNextStep,
     onDelete,
+    onDeliveryCodeChange,
     getButtonText,
     getHours,
     formatPhoneNumber,
     getIfoodOrderNumber,
     getClientWhatsappMessage,
+    deliveryCode,
   }: DeliveryCardProps) {
     const isIfoodOrder = report.observation?.includes("Pedido iFood #") ?? false;
     const ifoodOrderNumber = getIfoodOrderNumber(report.observation);
     const motoboySelectId = `motoboy-${report.id}`;
+    const shouldShowDeliveryCodeInput =
+      isIfoodOrder &&
+      (report.status === StatusDelivery.ARRIVED_AT_DESTINATION ||
+        report.status === StatusDelivery.AWAITING_CODE);
 
     return (
       <Delivery
@@ -225,6 +233,22 @@ const DeliveryCard = memo(
           </SelectContainer>
         )}
 
+        {shouldShowDeliveryCodeInput && permission !== "shopkeeper" && (
+          <SelectContainer>
+            <label htmlFor={`delivery-code-${report.id}`}>
+              Código de entrega iFood:
+            </label>
+            <input
+              id={`delivery-code-${report.id}`}
+              type="text"
+              value={deliveryCode}
+              disabled={isUpdating}
+              placeholder="Digite o código informado pelo cliente"
+              onChange={(e) => onDeliveryCodeChange(report.id, e.target.value)}
+            />
+          </SelectContainer>
+        )}
+
         <OrderActions>
           {(permission === "admin" || permission === "superadmin") &&
             report.status !== StatusDelivery.PENDING && (
@@ -240,7 +264,7 @@ const DeliveryCard = memo(
 
           {permission !== "shopkeeper" && (
             <OrderButton typebutton={true} onClick={() => onNextStep(report)}>
-              {getButtonText(report.status, report.id)}
+              {getButtonText(report.status, report.id, report)}
             </OrderButton>
           )}
 
@@ -283,6 +307,9 @@ export function Dashboard() {
   );
 
   const [selectedMotoboyByReport, setSelectedMotoboyByReport] = useState<
+    Record<string, string>
+  >({});
+  const [deliveryCodeByReport, setDeliveryCodeByReport] = useState<
     Record<string, string>
   >({});
   const [ifoodSummary, setIfoodSummary] = useState<null | {
@@ -640,15 +667,7 @@ export function Dashboard() {
       let deliveryCode = "";
 
       if (isIfoodOrder) {
-        const codeTyped = window.prompt(
-          "Digite o código de entrega do iFood informado pelo cliente:",
-        );
-
-        if (codeTyped === null) {
-          return;
-        }
-
-        deliveryCode = codeTyped.trim();
+        deliveryCode = (deliveryCodeByReport[report.id] || "").trim();
 
         if (!deliveryCode) {
           alert("Informe o código de entrega do iFood.");
@@ -698,6 +717,11 @@ export function Dashboard() {
       updateReportInListLocally(updatedReport);
       alert(`Solicitação avançada para o passo ${newStatus}`);
       setObservation("");
+      setDeliveryCodeByReport((state) => {
+        const nextState = { ...state };
+        delete nextState[report.id];
+        return nextState;
+      });
       setReportSelectedToModal("");
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao atualizar pedido.");
@@ -791,7 +815,7 @@ export function Dashboard() {
     }
   }
 
-  function getButtonText(currentStatus: string, id: string) {
+  function getButtonText(currentStatus: string, id: string, report?: Report) {
     if (StatusDelivery.PENDING === currentStatus) {
       return "Atribuir";
     }
@@ -812,7 +836,8 @@ export function Dashboard() {
       StatusDelivery.ARRIVED_AT_DESTINATION === currentStatus ||
       StatusDelivery.AWAITING_CODE === currentStatus
     ) {
-      return "Validar código";
+      const isIfoodOrder = report?.observation?.includes("Pedido iFood #");
+      return isIfoodOrder ? "Confirmar código" : "Finalizar";
     }
 
     return "Avançar";
@@ -869,6 +894,13 @@ export function Dashboard() {
     },
     [],
   );
+
+  const handleDeliveryCodeChange = useCallback((reportId: string, value: string) => {
+    setDeliveryCodeByReport((state) => ({
+      ...state,
+      [reportId]: value,
+    }));
+  }, []);
 
   const getClientWhatsappMessage = useCallback((report: Report) => {
     if (!report.establishmentCityId) {
@@ -1038,11 +1070,13 @@ export function Dashboard() {
                 onCancel={handlerCancel}
                 onNextStep={handlerNextStep}
                 onDelete={handlerDelete}
+                onDeliveryCodeChange={handleDeliveryCodeChange}
                 getButtonText={getButtonText}
                 getHours={getHours}
                 formatPhoneNumber={formatPhoneNumber}
                 getIfoodOrderNumber={getIfoodOrderNumber}
                 getClientWhatsappMessage={getClientWhatsappMessage}
+                deliveryCode={deliveryCodeByReport[report.id] || ""}
               />
             ))}
           </>

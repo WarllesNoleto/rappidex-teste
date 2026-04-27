@@ -30,8 +30,6 @@ const ProfileFormValidationSchema = zod.object({
   location: zod.string(),
   useIfoodIntegration: zod.boolean().optional(),
   ifoodMerchantId: zod.string().optional(),
-  ifoodClientId: zod.string().optional(),
-  ifoodClientSecret: zod.string().optional(),
 });
 
 type ProfileFormData = zod.infer<typeof ProfileFormValidationSchema>;
@@ -54,8 +52,6 @@ export function NewUser() {
     location: "",
     useIfoodIntegration: false,
     ifoodMerchantId: "",
-    ifoodClientId: "",
-    ifoodClientSecret: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -93,16 +89,9 @@ export function NewUser() {
       : loggedUserCityId;
     const useIfoodIntegration = Boolean(data.useIfoodIntegration);
     const ifoodMerchantId = (data.ifoodMerchantId || "").trim();
-    const ifoodClientId = (data.ifoodClientId || "").trim();
-    const ifoodClientSecret = (data.ifoodClientSecret || "").trim();
 
-    if (
-      useIfoodIntegration &&
-      (!ifoodMerchantId || !ifoodClientId || !ifoodClientSecret)
-    ) {
-      alert(
-        "Para integração iFood, preencha merchantId, clientId e clientSecret.",
-      );
+    if (useIfoodIntegration && !ifoodMerchantId) {
+      alert("Para integração iFood, preencha o merchantId.");
       setLoading(false);
       return;
     }
@@ -125,8 +114,6 @@ export function NewUser() {
         cityId: cityIdToSubmit,
         useIfoodIntegration,
         ifoodMerchantId,
-        ifoodClientId,
-        ifoodClientSecret,
       });
       reset();
       setLoading(false);
@@ -153,22 +140,13 @@ export function NewUser() {
       location,
       useIfoodIntegration,
       ifoodMerchantId,
-      ifoodClientId,
-      ifoodClientSecret,
     } = watch();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
       : loggedUserCityId;
 
-    if (
-      useIfoodIntegration &&
-      (!(ifoodMerchantId || "").trim() ||
-        !(ifoodClientId || "").trim() ||
-        !(ifoodClientSecret || "").trim())
-    ) {
-      alert(
-        "Para integração iFood, preencha merchantId, clientId e clientSecret.",
-      );
+    if (useIfoodIntegration && !(ifoodMerchantId || "").trim()) {
+      alert("Para integração iFood, preencha o merchantId.");
       setLoading(false);
       return;
     }
@@ -190,8 +168,6 @@ export function NewUser() {
         cityId: cityIdToSubmit,
         useIfoodIntegration: Boolean(useIfoodIntegration),
         ifoodMerchantId: (ifoodMerchantId || "").trim(),
-        ifoodClientId: (ifoodClientId || "").trim(),
-        ifoodClientSecret: (ifoodClientSecret || "").trim(),
       });
       setLoading(false);
       alert("Usuário editado com sucesso!");
@@ -326,10 +302,7 @@ export function NewUser() {
     ? !selectedCityId
     : !loggedUserCityId;
   const ifoodIntegrationMissingFields =
-    Boolean(useIfoodIntegration) &&
-    (!watch("ifoodMerchantId") ||
-      !watch("ifoodClientId") ||
-      !watch("ifoodClientSecret"));
+    Boolean(useIfoodIntegration) && !watch("ifoodMerchantId");
   const isSubmitDisabled =
     !name ||
     !phone ||
@@ -450,8 +423,6 @@ export function NewUser() {
               if (nextType !== "shopkeeper" && nextType !== "shopkeeperadmin") {
                 setValue("useIfoodIntegration", false);
                 setValue("ifoodMerchantId", "");
-                setValue("ifoodClientId", "");
-                setValue("ifoodClientSecret", "");
               }
             }}
           >
@@ -475,8 +446,6 @@ export function NewUser() {
 
                     if (!enabled) {
                       setValue("ifoodMerchantId", "");
-                      setValue("ifoodClientId", "");
-                      setValue("ifoodClientSecret", "");
                     }
                   }}
                 />{" "}
@@ -491,24 +460,6 @@ export function NewUser() {
                     id="ifoodMerchantId"
                     placeholder="Informe o merchantId da empresa."
                     {...register("ifoodMerchantId")}
-                  />
-
-                  <label htmlFor="ifoodClientId">iFood Client ID:</label>
-                  <BaseInput
-                    type="text"
-                    id="ifoodClientId"
-                    placeholder="Informe o clientId do app da empresa."
-                    {...register("ifoodClientId")}
-                  />
-
-                  <label htmlFor="ifoodClientSecret">
-                    iFood Client Secret:
-                  </label>
-                  <BaseInput
-                    type="password"
-                    id="ifoodClientSecret"
-                    placeholder="Informe o clientSecret do app da empresa."
-                    {...register("ifoodClientSecret")}
                   />
                 </>
               )}

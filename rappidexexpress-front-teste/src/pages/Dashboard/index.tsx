@@ -333,6 +333,8 @@ export function Dashboard() {
     const statusPriority: Record<string, number> = {
       [StatusDelivery.ONCOURSE]: 0,
       [StatusDelivery.COLLECTED]: 1,
+      [StatusDelivery.ARRIVED_AT_DESTINATION]: 2,
+      [StatusDelivery.AWAITING_CODE]: 3,
     };
 
     return sortedByCreatedAt.sort((a, b) => {
@@ -379,7 +381,9 @@ export function Dashboard() {
   function isInAssigned(statusValue?: string) {
     return (
       statusValue === StatusDelivery.ONCOURSE ||
-      statusValue === StatusDelivery.COLLECTED
+      statusValue === StatusDelivery.COLLECTED ||
+      statusValue === StatusDelivery.ARRIVED_AT_DESTINATION ||
+      statusValue === StatusDelivery.AWAITING_CODE
     );
   }
 
@@ -621,6 +625,15 @@ export function Dashboard() {
         status: newStatus,
       };
     } else if (report.status === StatusDelivery.COLLECTED) {
+      newStatus = StatusDelivery.ARRIVED_AT_DESTINATION;
+      data = {
+        status: newStatus,
+        observation: observation === "Sem observação." ? "" : observation,
+      };
+    } else if (
+      report.status === StatusDelivery.ARRIVED_AT_DESTINATION ||
+      report.status === StatusDelivery.AWAITING_CODE
+    ) {
       newStatus = StatusDelivery.FINISHED;
 
       const isIfoodOrder = report.observation?.includes("Pedido iFood #");
@@ -792,7 +805,14 @@ export function Dashboard() {
         return "Observação";
       }
 
-      return "Finalizar";
+      return "Cheguei ao destino";
+    }
+
+    if (
+      StatusDelivery.ARRIVED_AT_DESTINATION === currentStatus ||
+      StatusDelivery.AWAITING_CODE === currentStatus
+    ) {
+      return "Validar código";
     }
 
     return "Avançar";
@@ -951,7 +971,7 @@ export function Dashboard() {
         <BaseButton
           typeReport={status !== StatusDelivery.PENDING}
           onClick={() =>
-            setStatus(`${StatusDelivery.ONCOURSE},${StatusDelivery.COLLECTED}`)
+            setStatus(`${StatusDelivery.ONCOURSE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`)
           }
         >
           Atribuídos

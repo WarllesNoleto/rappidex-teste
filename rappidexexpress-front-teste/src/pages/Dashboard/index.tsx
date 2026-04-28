@@ -622,6 +622,17 @@ export function Dashboard() {
     setShowIfoodHistory(true);
   }
 
+
+  function getObservationPatch() {
+    const trimmedObservation = observation.trim();
+
+    if (!trimmedObservation || trimmedObservation === "Sem observação.") {
+      return {};
+    }
+
+    return { observation: trimmedObservation };
+  }
+
   async function handlerNextStep(report: Report) {
     if (isDeliveryUpdating(report.id)) {
       return;
@@ -661,7 +672,7 @@ export function Dashboard() {
       newStatus = StatusDelivery.ARRIVED_AT_DESTINATION;
       data = {
         status: newStatus,
-        observation: observation === "Sem observação." ? "" : observation,
+        ...getObservationPatch(),
       };
     } else if (
       report.status === StatusDelivery.ARRIVED_AT_DESTINATION ||
@@ -686,7 +697,7 @@ export function Dashboard() {
 
       data = {
         status: newStatus,
-        observation: observation === "Sem observação." ? "" : observation,
+        ...getObservationPatch(),
         deliveryCode,
       };
     }
@@ -875,7 +886,7 @@ export function Dashboard() {
     const match = observation.match(
       /Pedido\s*(?:do\s*)?iFood(?:\s*(?:n[ºo°.]|n[uú]mero))?\s*[:#-]?\s*([A-Za-z0-9-]+)/i,
     );
-    
+
     if (!match) {
       return null;
     }

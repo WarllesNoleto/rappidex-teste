@@ -111,8 +111,15 @@ const DeliveryCard = memo(
     getClientWhatsappMessage,
     deliveryCode,
   }: DeliveryCardProps) {
-    const isIfoodOrder = report.observation?.includes("Pedido iFood #") ?? false;
-    const ifoodOrderNumber = getIfoodOrderNumber(report.observation);
+    const isIfoodOrder =
+      Boolean(report.isIfoodOrder) ||
+      report.observation?.includes("Pedido iFood #") ||
+      report.observation?.includes("Pedido iFood");
+    const ifoodOrderNumber =
+      getIfoodOrderNumber(report.observation) ||
+      (report as any).ifoodDisplayId ||
+      (report as any).ifoodOrderId ||
+      null;
     const motoboySelectId = `motoboy-${report.id}`;
     const shouldShowDeliveryCodeInput =
       isIfoodOrder &&
@@ -169,9 +176,7 @@ const DeliveryCard = memo(
 
         <ContainerInfo>
           <div>
-            {isIfoodOrder && ifoodOrderNumber && (
-              <p>Pedido iFood: {ifoodOrderNumber}</p>
-            )}
+            {isIfoodOrder && <p>Pedido iFood: {ifoodOrderNumber || "Não informado"}</p>}
 
             <p>Cliente: {report.clientName}</p>
           </div>
@@ -286,6 +291,7 @@ function areDeliveryCardPropsEqual(prev: DeliveryCardProps, next: DeliveryCardPr
     prev.statusFilter === next.statusFilter &&
     prev.permission === next.permission &&
     prev.selectedMotoboy === next.selectedMotoboy &&
+    prev.deliveryCode === next.deliveryCode &&
     prev.reportSelectedToModal === next.reportSelectedToModal &&
     prev.motoboys === next.motoboys &&
     prev.isUpdating === next.isUpdating
@@ -663,7 +669,10 @@ export function Dashboard() {
     ) {
       newStatus = StatusDelivery.FINISHED;
 
-      const isIfoodOrder = report.observation?.includes("Pedido iFood #");
+      const isIfoodOrder =
+        Boolean(report.isIfoodOrder) ||
+        report.observation?.includes("Pedido iFood #") ||
+        report.observation?.includes("Pedido iFood");
       let deliveryCode = "";
 
       if (isIfoodOrder) {
@@ -836,7 +845,10 @@ export function Dashboard() {
       StatusDelivery.ARRIVED_AT_DESTINATION === currentStatus ||
       StatusDelivery.AWAITING_CODE === currentStatus
     ) {
-      const isIfoodOrder = report?.observation?.includes("Pedido iFood #");
+      const isIfoodOrder =
+        Boolean(report?.isIfoodOrder) ||
+        report?.observation?.includes("Pedido iFood #") ||
+        report?.observation?.includes("Pedido iFood");
       return isIfoodOrder ? "Confirmar código" : "Finalizar";
     }
 
@@ -860,8 +872,10 @@ export function Dashboard() {
       return null;
     }
 
-    const match = observation.match(/Pedido iFood\s*#\s*(\d+)/i);
-
+    const match = observation.match(
+      /Pedido\s*(?:do\s*)?iFood(?:\s*(?:n[ºo°.]|n[uú]mero))?\s*[:#-]?\s*([A-Za-z0-9-]+)/i,
+    );
+    
     if (!match) {
       return null;
     }

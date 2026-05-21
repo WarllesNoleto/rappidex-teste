@@ -9,6 +9,10 @@ import { IfoodReadinessService } from './ifood-readiness.service';
 export class IfoodImportService {
   private readonly logger = new Logger(IfoodImportService.name);
 
+  private getExternalStatusFromEvent(event: any) {
+    return String(event?.fullCode || event?.code || '').trim().toUpperCase() || null;
+  }
+
   constructor(
     private readonly deliveryService: DeliveryService,
     private readonly ifoodOrdersService: IfoodOrdersService,
@@ -56,6 +60,11 @@ export class IfoodImportService {
           await this.ifoodOrderLinkService.findByIfoodOrderId(orderId);
 
         if (existingLink) {
+          await this.deliveryService.updateExternalStatusFromIfood(
+            existingLink.deliveryId,
+            this.getExternalStatusFromEvent(eventReference),
+          );
+
           this.logger.log(
             `Importação automática: pedido ${orderId} já importado. DeliveryId ${existingLink.deliveryId}`,
           );
@@ -101,7 +110,10 @@ export class IfoodImportService {
           );
 
         const createdDelivery = await this.deliveryService.createDelivery(
-          deliveryDto,
+          {
+            ...deliveryDto,
+            externalStatus: this.getExternalStatusFromEvent(eventReference),
+          },
           {
             id: targetShopkeeperId,
             phone: '',

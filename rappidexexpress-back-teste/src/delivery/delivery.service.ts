@@ -786,6 +786,7 @@ export class DeliveryService implements OnModuleInit {
       payment,
       soda,
       observation,
+      externalStatus,
     } = deliveryData;
 
     let deliveryStatus = status;
@@ -849,6 +850,7 @@ export class DeliveryService implements OnModuleInit {
         onCoursedAt,
         createdAt: addHours(new Date(), -3),
         updatedAt: addHours(new Date(), -3),
+        externalStatus: externalStatus ?? null,
       });
 
       this.ordersGateway.emitDeliveryCreated(
@@ -1019,6 +1021,42 @@ export class DeliveryService implements OnModuleInit {
     this.logger.log(
       `Entrega ${deliveryFinded.id} finalizada no Rappidex por evento ${event?.fullCode || event?.code || 'CONCLUDED'} do iFood. OrderId: ${orderId}`,
     );
+  }
+
+
+  async updateExternalStatusFromIfood(
+    deliveryId: string,
+    externalStatus: string | null | undefined,
+  ) {
+    const deliveryFinded = await this.deliveryRepository.findOne({
+      relations: { motoboy: true, establishment: true },
+      where: { id: deliveryId, isActive: true },
+    });
+
+    if (!deliveryFinded) {
+      return null;
+    }
+
+    const normalizedStatus = String(externalStatus || '').trim() || null;
+
+    if ((deliveryFinded.externalStatus || null) === normalizedStatus) {
+      return DeliveryResult.fromEntity(deliveryFinded);
+    }
+
+    const deliveryUpdated = await this.deliveryRepository.save(
+      this.buildPersistableDelivery({
+        ...deliveryFinded,
+        externalStatus: normalizedStatus,
+        updatedAt: addHours(new Date(), -3),
+      }),
+    );
+
+    this.ordersGateway.emitDeliveryUpdated(
+      DeliveryResult.fromEntity(deliveryUpdated),
+      deliveryUpdated.establishment?.cityId,
+    );
+
+    return DeliveryResult.fromEntity(deliveryUpdated);
   }
 
   async findOneUserById(userId: string) {

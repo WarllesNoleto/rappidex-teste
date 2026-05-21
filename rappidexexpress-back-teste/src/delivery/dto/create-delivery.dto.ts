@@ -35,4 +35,8 @@ export class CreateDeliveryDto {
 
   @IsEnum(PaymentType)
   payment: PaymentType;
+
+  @IsString()
+  @IsOptional()
+  externalStatus?: string;
 }

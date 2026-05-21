@@ -90,6 +90,58 @@ type DeliveryCardProps = {
   deliveryCode: string;
 };
 
+const getIfoodClientAddress = (observation?: string): string | null => {
+  if (!observation) {
+    return null;
+  }
+
+  const match = observation.match(/(?:Endere[cç]o|End)\s*[:-]\s*([^\n|]+)/i);
+
+  if (!match?.[1]) {
+    return null;
+  }
+
+  const address = match[1].trim();
+
+  if (!address || /^https?:\/\//i.test(address)) {
+    return null;
+  }
+
+  return address;
+};
+
+const getIfoodClientLocationLink = (
+  observation?: string,
+  clientLocation?: string,
+): string | null => {
+  const normalizedClientLocation = String(clientLocation || "").trim();
+  if (normalizedClientLocation) {
+    return normalizedClientLocation;
+  }
+
+  if (!observation) {
+    return null;
+  }
+
+  const match = observation.match(/Localização:\s*(https?:\/\/\S+)/i);
+
+  if (!match?.[1]) {
+    return null;
+  }
+
+  return match[1].trim();
+};
+
+const getGoogleMapsLinkFromAddress = (address?: string | null): string | null => {
+  const normalizedAddress = String(address || "").trim();
+
+  if (!normalizedAddress) {
+    return null;
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizedAddress)}`;
+};
+
 const DeliveryCard = memo(
   function DeliveryCard({
     report,
@@ -111,16 +163,6 @@ const DeliveryCard = memo(
     getClientWhatsappMessage,
     deliveryCode,
   }: DeliveryCardProps) {
-    const getOperationalStatusLabel = () => {
-      if (report.collectedAt) return "Motoboy está a caminho";
-      if (report.arrivedAtStoreAt && !report.collectedAt) {
-        return "Motoboy chegou no estabelecimento";
-      }
-      if (report.motoboyId && !report.arrivedAtStoreAt) {
-        return "Motoboy indo até o estabelecimento";
-      }
-      return "Aguardando motoboy";
-    };
     const isIfoodOrder =
       Boolean(report.isIfoodOrder) ||
       report.observation?.includes("Pedido iFood #") ||
@@ -130,6 +172,12 @@ const DeliveryCard = memo(
       (report as any).ifoodDisplayId ||
       (report as any).ifoodOrderId ||
       null;
+    const ifoodClientLocationLink = getIfoodClientLocationLink(
+      report.observation,
+      report.clientLocation,
+    );
+    const ifoodClientAddress = getIfoodClientAddress(report.observation);
+    const googleMapsAddressLink = getGoogleMapsLinkFromAddress(ifoodClientAddress);
     const motoboySelectId = `motoboy-${report.id}`;
     const shouldShowDeliveryCodeInput =
       isIfoodOrder &&
@@ -177,7 +225,6 @@ const DeliveryCard = memo(
               <p>Status:</p>
               <Status type={report.status}>{report.status}</Status>
             </ContainerStatus>
-            <p>{getOperationalStatusLabel()}</p>
             <p>Forma de pagamento: {report.payment}</p>
             <p>Valor: R$ {report.value}</p>
             <p>Pix: {report.establishmentPix}</p>
@@ -190,6 +237,27 @@ const DeliveryCard = memo(
             {isIfoodOrder && <p>Pedido iFood: {ifoodOrderNumber || "Não informado"}</p>}
 
             <p>Cliente: {report.clientName}</p>
+            {statusFilter !== StatusDelivery.PENDING && ifoodClientAddress && (
+              <p>Endereço: {ifoodClientAddress}</p>
+            )}
+            {statusFilter !== StatusDelivery.PENDING && ifoodClientLocationLink && (
+              <Link
+                href={ifoodClientLocationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <p>Localização cliente</p> <MapPin size={18} />
+              </Link>
+            )}
+            {statusFilter !== StatusDelivery.PENDING && !ifoodClientLocationLink && googleMapsAddressLink && (
+              <Link
+                href={googleMapsAddressLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <p>Localização cliente (Google Maps)</p> <MapPin size={18} />
+              </Link>
+            )}
           </div>
 
           {statusFilter !== StatusDelivery.PENDING && (
@@ -226,7 +294,6 @@ const DeliveryCard = memo(
         <ContainerInfo>
           {report.createdAt && <p>Criado: {getHours(report.createdAt)}</p>}
           {report.onCoursedAt && <p>Atribuído: {getHours(report.onCoursedAt)}</p>}
-          {report.arrivedAtStoreAt && <p>Chegou no estabelecimento: {getHours(report.arrivedAtStoreAt)}</p>}
           {report.collectedAt && <p>Coletado: {getHours(report.collectedAt)}</p>}
           {report.finishedAt && <p>Finalizado: {getHours(report.finishedAt)}</p>}
         </ContainerInfo>
@@ -377,10 +444,9 @@ export function Dashboard() {
 
     const statusPriority: Record<string, number> = {
       [StatusDelivery.ONCOURSE]: 0,
-      [StatusDelivery.ARRIVED_AT_STORE]: 1,
-      [StatusDelivery.COLLECTED]: 2,
-      [StatusDelivery.ARRIVED_AT_DESTINATION]: 3,
-      [StatusDelivery.AWAITING_CODE]: 4,
+      [StatusDelivery.COLLECTED]: 1,
+      [StatusDelivery.ARRIVED_AT_DESTINATION]: 2,
+      [StatusDelivery.AWAITING_CODE]: 3,
     };
 
     return sortedByCreatedAt.sort((a, b) => {
@@ -427,7 +493,6 @@ export function Dashboard() {
   function isInAssigned(statusValue?: string) {
     return (
       statusValue === StatusDelivery.ONCOURSE ||
-      statusValue === StatusDelivery.ARRIVED_AT_STORE ||
       statusValue === StatusDelivery.COLLECTED ||
       statusValue === StatusDelivery.ARRIVED_AT_DESTINATION ||
       statusValue === StatusDelivery.AWAITING_CODE
@@ -678,11 +743,6 @@ export function Dashboard() {
         motoboyId: selectedMotoboy,
       };
     } else if (report.status === StatusDelivery.ONCOURSE) {
-      newStatus = StatusDelivery.ARRIVED_AT_STORE;
-      data = {
-        status: newStatus,
-      };
-    } else if (report.status === StatusDelivery.ARRIVED_AT_STORE) {
       newStatus = StatusDelivery.COLLECTED;
       data = {
         status: newStatus,
@@ -860,10 +920,6 @@ export function Dashboard() {
     }
 
     if (StatusDelivery.ONCOURSE === currentStatus) {
-      return "Cheguei no estabelecimento";
-    }
-
-    if (StatusDelivery.ARRIVED_AT_STORE === currentStatus) {
       return "Coletar";
     }
 
@@ -1051,7 +1107,7 @@ export function Dashboard() {
         <BaseButton
           typeReport={status !== StatusDelivery.PENDING}
           onClick={() =>
-            setStatus(`${StatusDelivery.ONCOURSE},${StatusDelivery.ARRIVED_AT_STORE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`)
+            setStatus(`${StatusDelivery.ONCOURSE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`)
           }
         >
           Atribuídos

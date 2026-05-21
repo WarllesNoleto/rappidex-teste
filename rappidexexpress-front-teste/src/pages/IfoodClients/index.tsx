@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 
 import { DeliveryContext } from '../../context/DeliveryContext';
 import api from '../../services/api';
@@ -27,6 +27,8 @@ import {
   HistoryButton,
   HistoryItem,
   HistoryList,
+  LoadMoreButton,
+  EmptyState,
 } from './styles.ts';
 
 export function IfoodClients() {
@@ -34,26 +36,92 @@ export function IfoodClients() {
   api.defaults.headers.Authorization = `Bearer ${token}`;
 
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [savingUser, setSavingUser] = useState('');
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
   const [creditAmountByUser, setCreditAmountByUser] = useState<Record<string, number>>({});
   const [historyByUser, setHistoryByUser] = useState<Record<string, any[]>>({});
   const [loadingHistoryUser, setLoadingHistoryUser] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMoreShopkeepers, setHasMoreShopkeepers] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  async function loadShopkeepers() {
-    setLoading(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredShopkeepers = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return shopkeepers;
+    }
+
+    return shopkeepers.filter((shopkeeper) =>
+      (shopkeeper.name || '').toLowerCase().includes(normalizedSearch),
+    );
+  }, [shopkeepers, searchTerm]);
+
+  const ITEMS_PER_PAGE = 200;
+
+  async function loadShopkeepers(targetPage = 1, shouldAppend = false) {
+    if (shouldAppend) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
 
     try {
-      const usersResponse = await api.get('/user?type=shopkeeper&itemsPerPage=100');
+      const usersResponse = await api.get(
+        `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
+      );
       const users = Array.isArray(usersResponse.data?.data)
         ? usersResponse.data.data
         : [];
 
-      setShopkeepers(users);
+      setShopkeepers((currentUsers) =>
+        shouldAppend ? [...currentUsers, ...users] : users,
+      );
+      setPage(targetPage);
+      setHasMoreShopkeepers(users.length === ITEMS_PER_PAGE);
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
     } finally {
-      setLoading(false);
+      if (shouldAppend) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  }
+
+  async function loadAllShopkeepers() {
+    setIsSearching(true);
+
+    try {
+      let targetPage = 1;
+      let hasMore = true;
+      const allUsers: User[] = [];
+
+      while (hasMore) {
+        const usersResponse = await api.get(
+          `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
+        );
+
+        const users = Array.isArray(usersResponse.data?.data)
+          ? usersResponse.data.data
+          : [];
+
+        allUsers.push(...users);
+        hasMore = users.length === ITEMS_PER_PAGE;
+        targetPage += 1;
+      }
+
+      setShopkeepers(allUsers);
+      setPage(1);
+      setHasMoreShopkeepers(false);
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
+    } finally {
+      setIsSearching(false);
     }
   }
 
@@ -152,6 +220,24 @@ export function IfoodClients() {
     loadShopkeepers();
   }, []);
 
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      return;
+    }
+
+    if (hasMoreShopkeepers && !isSearching) {
+      loadAllShopkeepers();
+    }
+  }, [searchTerm, hasMoreShopkeepers, isSearching]);
+
+  async function handleLoadMoreShopkeepers() {
+    if (loading || loadingMore || !hasMoreShopkeepers) {
+      return;
+    }
+
+    await loadShopkeepers(page + 1, true);
+  }
+
   return (
     <Container>
       <Content>
@@ -161,12 +247,21 @@ export function IfoodClients() {
           dos pedidos corretamente.
         </Subtitle>
 
-        {loading ? (
+        <Input
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Pesquisar empresa por nome"
+          value={searchTerm}
+        />
+
+        {loading || isSearching ? (
           <LoadingContainer>
             <Loader size={40} biggestColor="green" smallestColor="gray" />
           </LoadingContainer>
         ) : (
-          shopkeepers.map((shopkeeper) => (
+          filteredShopkeepers.length === 0 ? (
+            <EmptyState>Nenhuma empresa encontrada para este nome.</EmptyState>
+          ) : (
+            filteredShopkeepers.map((shopkeeper) => (
             <Card key={shopkeeper.id}>
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
@@ -274,7 +369,14 @@ export function IfoodClients() {
                   </HistoryList>
                 )}
             </Card>
-          ))
+            ))
+          )
+        )}
+
+        {!loading && !searchTerm.trim() && hasMoreShopkeepers && (
+          <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
+            {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
+          </LoadMoreButton>
         )}
       </Content>
     </Container>

@@ -1,6 +1,7 @@
 export interface Report {
     clientName: string;
     clientPhone: string;
+    clientLocation?: string;
     createdAt: string;
     createdBy: string;
     establishmentId: string;
@@ -21,9 +22,7 @@ export interface Report {
     observation: string;
     soda: string;
     onCoursedAt: string;
-    arrivedAtStoreAt?: string;
     collectedAt: string;
-    externalStatus?: string;
     finishedAt: string;
     isIfoodOrder?: boolean;
 }

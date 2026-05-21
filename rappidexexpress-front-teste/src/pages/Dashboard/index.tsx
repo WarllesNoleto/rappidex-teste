@@ -679,9 +679,6 @@ export function Dashboard() {
       };
     } else if (report.status === StatusDelivery.ONCOURSE) {
       newStatus = StatusDelivery.ARRIVED_AT_STORE;
-      data = {
-        status: newStatus,
-      };
     } else if (report.status === StatusDelivery.ARRIVED_AT_STORE) {
       newStatus = StatusDelivery.COLLECTED;
       data = {
@@ -727,7 +724,10 @@ export function Dashboard() {
 
     try {
       startUpdatingDelivery(report.id);
-      const response = await api.put(`/delivery/${report.id}`, data);
+      const response =
+        report.status === StatusDelivery.ONCOURSE
+          ? await api.patch(`/delivery/${report.id}/arrived-at-store`)
+          : await api.put(`/delivery/${report.id}`, data);
       const updatedReport = normalizeDeliveryResponse(response.data);
 
       if (!updatedReport) {
@@ -864,7 +864,7 @@ export function Dashboard() {
     }
 
     if (StatusDelivery.ARRIVED_AT_STORE === currentStatus) {
-      return "Coletar";
+      return "Coletar pedido";
     }
 
     if (StatusDelivery.COLLECTED === currentStatus) {

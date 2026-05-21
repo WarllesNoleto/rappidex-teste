@@ -21,7 +21,9 @@ export interface Report {
     observation: string;
     soda: string;
     onCoursedAt: string;
+    arrivedAtStoreAt?: string;
     collectedAt: string;
+    externalStatus?: string;
     finishedAt: string;
     isIfoodOrder?: boolean;
 }

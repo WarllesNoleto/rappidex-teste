@@ -64,18 +64,6 @@ export class DeliveryEntity {
   collectedAt: Date;
 
   @Column({ nullable: true })
-  arrivedAtStoreAt?: Date;
-
-  @Column({ nullable: true })
-  ifoodStatus?: string;
-
-  @Column({ nullable: true })
-  externalStatus?: string;
-
-  @Column({ nullable: true })
-  logisticsStatus?: string;
-
-  @Column({ nullable: true })
   arrivedAtDestinationAt?: Date;
 
   @Column()

@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Put,
   Query,
@@ -191,14 +190,5 @@ export class DeliveryController {
       );
     }
     return await this.deliveryService.findConfigs();
-  }
-
-  @Patch(':deliveryId/arrived-at-store')
-  @UseGuards(JwtAuthGuard)
-  async markArrivedAtStore(
-    @Param() param: DeliveryParamsDto,
-    @User() user: UserRequest,
-  ) {
-    return await this.deliveryService.markArrivedAtStore(param.deliveryId, user);
   }
 }

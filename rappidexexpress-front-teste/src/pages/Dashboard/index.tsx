@@ -520,7 +520,6 @@ export function Dashboard() {
   function isInAssigned(statusValue?: string) {
     return (
       statusValue === StatusDelivery.ONCOURSE ||
-      statusValue === StatusDelivery.ARRIVED_AT_STORE ||
       statusValue === StatusDelivery.COLLECTED ||
       statusValue === StatusDelivery.ARRIVED_AT_DESTINATION ||
       statusValue === StatusDelivery.AWAITING_CODE
@@ -771,11 +770,6 @@ export function Dashboard() {
         motoboyId: selectedMotoboy,
       };
     } else if (report.status === StatusDelivery.ONCOURSE) {
-      newStatus = StatusDelivery.ARRIVED_AT_STORE;
-      data = {
-        status: newStatus,
-      };
-    } else if (report.status === StatusDelivery.ARRIVED_AT_STORE) {
       newStatus = StatusDelivery.COLLECTED;
       data = {
         status: newStatus,
@@ -953,10 +947,6 @@ export function Dashboard() {
     }
 
     if (StatusDelivery.ONCOURSE === currentStatus) {
-      return "Cheguei no estabelecimento";
-    }
-
-    if (StatusDelivery.ARRIVED_AT_STORE === currentStatus) {
       return "Coletar";
     }
 

@@ -163,6 +163,28 @@ const DeliveryCard = memo(
     getClientWhatsappMessage,
     deliveryCode,
   }: DeliveryCardProps) {
+    const getClientVisualStatus = (delivery: Report) => {
+      if (delivery.collectedAt) return "Motoboy está a caminho";
+      if (delivery.arrivedAtStoreAt && !delivery.collectedAt) {
+        return "Motoboy chegou ao estabelecimento";
+      }
+      if (delivery.motoboyId && !delivery.arrivedAtStoreAt) {
+        return "Motoboy indo até o estabelecimento";
+      }
+      return "Aguardando motoboy";
+    };
+
+    const getEstablishmentVisualStatus = (delivery: Report) => {
+      if (delivery.collectedAt) return "Pedido coletado pelo motoboy";
+      if (delivery.arrivedAtStoreAt && !delivery.collectedAt) {
+        return "Motoboy chegou no estabelecimento";
+      }
+      if (delivery.motoboyId && !delivery.arrivedAtStoreAt) {
+        return "Motoboy indo até o estabelecimento";
+      }
+      return "Aguardando motoboy";
+    };
+
     const isIfoodOrder =
       Boolean(report.isIfoodOrder) ||
       report.observation?.includes("Pedido iFood #") ||
@@ -225,6 +247,11 @@ const DeliveryCard = memo(
               <p>Status:</p>
               <Status type={report.status}>{report.status}</Status>
             </ContainerStatus>
+            <p>
+              {permission === UserType.SHOPKEEPER
+                ? getEstablishmentVisualStatus(report)
+                : getClientVisualStatus(report)}
+            </p>
             <p>Forma de pagamento: {report.payment}</p>
             <p>Valor: R$ {report.value}</p>
             <p>Pix: {report.establishmentPix}</p>
@@ -1117,7 +1144,9 @@ export function Dashboard() {
         <BaseButton
           typeReport={status !== StatusDelivery.PENDING}
           onClick={() =>
-            setStatus(`${StatusDelivery.ONCOURSE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`)
+            setStatus(
+              `${StatusDelivery.ONCOURSE},${StatusDelivery.ARRIVED_AT_STORE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`,
+            )
           }
         >
           Atribuídos

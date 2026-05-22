@@ -18,10 +18,6 @@ import {
   getLinkToWhatsapp,
   messageTypes,
 } from "../../shared/constants/whatsapp.constants";
-import {
-  formatIfoodHistoryDateTime,
-  translateIfoodOperationType,
-} from "../../shared/utils/ifoodHistory";
 
 import {
   BaseButton,
@@ -40,10 +36,6 @@ import {
   OrderActions,
   OrderButton,
   SelectContainer,
-  ShopkeeperCreditsContainer,
-  ShopkeeperCreditsHistory,
-  ShopkeeperCreditsHistoryItem,
-  ShopkeeperCreditsToggleButton,
   ShopkeeperInfo,
   ShopkeeperProfileImage,
   Status,
@@ -424,17 +416,6 @@ export function Dashboard() {
   const [deliveryCodeByReport, setDeliveryCodeByReport] = useState<
     Record<string, string>
   >({});
-  const [ifoodSummary, setIfoodSummary] = useState<null | {
-    companyName: string;
-    ifoodOrdersReleased: number;
-    ifoodOrdersUsed: number;
-    ifoodOrdersAvailable: number;
-  }>(null);
-  const [ifoodHistory, setIfoodHistory] = useState<any[]>([]);
-  const [showIfoodHistory, setShowIfoodHistory] = useState(false);
-  const [loadingIfoodHistory, setLoadingIfoodHistory] = useState(false);
-  const [hasLoadedIfoodHistory, setHasLoadedIfoodHistory] = useState(false);
-
   const [currentCityId, setCurrentCityId] = useState<string>("");
   const reloadTimeoutRef = useRef<number | null>(null);
   const refreshRequestIdRef = useRef(0);
@@ -666,69 +647,6 @@ export function Dashboard() {
       console.error("Erro ao carregar usuário atual:", error);
     }
   }, []);
-
-  const getShopkeeperIfoodCredits = useCallback(async () => {
-    if (permission !== UserType.SHOPKEEPER && permission !== UserType.SHOPKEEPERADMIN) {
-      return;
-    }
-
-    try {
-            const summaryResponse = await api.get("/ifood/credits/my-summary");
-
-      setIfoodSummary({
-        companyName: summaryResponse.data?.companyName || "",
-        ifoodOrdersReleased: Number(summaryResponse.data?.ifoodOrdersReleased) || 0,
-        ifoodOrdersUsed: Number(summaryResponse.data?.ifoodOrdersUsed) || 0,
-        ifoodOrdersAvailable: Number(summaryResponse.data?.ifoodOrdersAvailable) || 0,
-      });
-      setShowIfoodHistory(false);
-      setIfoodHistory([]);
-      setHasLoadedIfoodHistory(false);
-    } catch (error) {
-      console.error("Erro ao carregar créditos iFood do lojista:", error);
-      setIfoodSummary(null);
-      setIfoodHistory([]);
-      setShowIfoodHistory(false);
-      setHasLoadedIfoodHistory(false);
-    }
-  }, [permission]);
-
-  const getShopkeeperIfoodHistory = useCallback(async () => {
-    if (loadingIfoodHistory) {
-      return;
-    }
-
-    setLoadingIfoodHistory(true);
-    try {
-      const historyResponse = await api.get("/ifood/credits/my-history");
-      setIfoodHistory(
-        Array.isArray(historyResponse.data?.history) ? historyResponse.data.history : [],
-      );
-      setHasLoadedIfoodHistory(true);
-    } catch (error) {
-      console.error("Erro ao carregar histórico iFood do lojista:", error);
-      setIfoodHistory([]);
-      setHasLoadedIfoodHistory(false);
-    } finally {
-      setLoadingIfoodHistory(false);
-    }
-  }, [loadingIfoodHistory]);
-
-  async function handleToggleIfoodHistory() {
-    const shouldShowHistory = !showIfoodHistory;
-
-    if (!shouldShowHistory) {
-      setShowIfoodHistory(false);
-      return;
-    }
-
-    if (!hasLoadedIfoodHistory) {
-      await getShopkeeperIfoodHistory();
-    }
-
-    setShowIfoodHistory(true);
-  }
-
 
   function getObservationPatch() {
     const trimmedObservation = observation.trim();
@@ -1014,10 +932,6 @@ export function Dashboard() {
     return date.split("T")[1].substring(0, 5);
   }
 
-   function formatHistoryDateTime(dateValue?: string) {
-    return formatIfoodHistoryDateTime(dateValue);
-  }
-
   function getSelectedMotoboy(report: Report) {
     return (
       selectedMotoboyByReport[report.id] ||
@@ -1082,10 +996,6 @@ export function Dashboard() {
   useEffect(() => {
     void getMyself();
   }, [getMyself]);
-
-  useEffect(() => {
-    void getShopkeeperIfoodCredits();
-  }, [getShopkeeperIfoodCredits]);
 
   useEffect(() => {
     if (!currentCityId) return;
@@ -1153,43 +1063,6 @@ export function Dashboard() {
           <Flag>{assignedCount}</Flag>
         </BaseButton>
       </ContainerButtons>
-
-      {ifoodSummary && (
-        <ShopkeeperCreditsContainer>
-          <strong>Créditos para pedidos - {ifoodSummary.companyName || "Minha empresa"}</strong>
-          <span>
-            Liberados: {ifoodSummary.ifoodOrdersReleased} | Utilizados: {ifoodSummary.ifoodOrdersUsed} | Disponíveis: {ifoodSummary.ifoodOrdersAvailable}
-          </span>
-          <ShopkeeperCreditsToggleButton
-            disabled={loadingIfoodHistory}
-            onClick={() => void handleToggleIfoodHistory()}
-            type="button"
-          >
-            {loadingIfoodHistory
-              ? "Carregando..."
-              : showIfoodHistory
-                ? "Ocultar histórico"
-                : "Ver histórico"}
-          </ShopkeeperCreditsToggleButton>
-          {showIfoodHistory && (
-            <ShopkeeperCreditsHistory>
-              {ifoodHistory.length === 0 ? (
-                <ShopkeeperCreditsHistoryItem>Nenhum histórico disponível.</ShopkeeperCreditsHistoryItem>
-              ) : (
-                ifoodHistory.map((historyItem) => (
-                  <ShopkeeperCreditsHistoryItem key={historyItem?.id}>
-                    {(() => {
-                      const formattedDateTime = formatHistoryDateTime(historyItem?.createdAt);
-
-                      return `${translateIfoodOperationType(historyItem?.operationType)} | Qtd: ${historyItem?.amount ?? 0} | Saldo: ${historyItem?.availableAfterOperation ?? 0} | Data: ${formattedDateTime.date} | Hora: ${formattedDateTime.time}`;
-                    })()}
-                  </ShopkeeperCreditsHistoryItem>
-                ))
-              )}
-            </ShopkeeperCreditsHistory>
-          )}
-        </ShopkeeperCreditsContainer>
-      )}
 
       <ContainerDeliveries>
         {loading ? (

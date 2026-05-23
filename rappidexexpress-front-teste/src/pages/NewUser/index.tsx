@@ -30,12 +30,6 @@ const ProfileFormValidationSchema = zod.object({
   location: zod.string(),
   useIfoodIntegration: zod.boolean().optional(),
   ifoodMerchantId: zod.string().optional(),
-  aiqfomeEnabled: zod.boolean().optional(),
-  aiqfomeStoreId: zod.string().optional(),
-  aiqfomeAccessToken: zod.string().optional(),
-  aiqfomeRefreshToken: zod.string().optional(),
-  aiqfomeTokenExpiresAt: zod.string().optional(),
-  aiqfomeWebhookSecret: zod.string().optional(),
 });
 
 type ProfileFormData = zod.infer<typeof ProfileFormValidationSchema>;
@@ -58,12 +52,6 @@ export function NewUser() {
     location: "",
     useIfoodIntegration: false,
     ifoodMerchantId: "",
-    aiqfomeEnabled: false,
-    aiqfomeStoreId: "",
-    aiqfomeAccessToken: "",
-    aiqfomeRefreshToken: "",
-    aiqfomeTokenExpiresAt: "",
-    aiqfomeWebhookSecret: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -189,29 +177,6 @@ export function NewUser() {
     }
   }
   
-
-  async function handleSaveAiqfomeConfig() {
-    if (!userId) return;
-
-    try {
-      await api.put(`/user/${userId}/aiqfome-config`, {
-        aiqfomeEnabled: Boolean(watch("aiqfomeEnabled")),
-        aiqfomeStoreId: (watch("aiqfomeStoreId") || "").trim(),
-        aiqfomeAccessToken: watch("aiqfomeAccessToken"),
-        aiqfomeRefreshToken: watch("aiqfomeRefreshToken"),
-        aiqfomeTokenExpiresAt: watch("aiqfomeTokenExpiresAt") || undefined,
-        aiqfomeWebhookSecret: (watch("aiqfomeWebhookSecret") || "").trim(),
-      });
-
-      alert("Configuração aiqfome salva com sucesso!");
-      if (user) {
-        await getUserData();
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Erro ao salvar configuração aiqfome.");
-    }
-  }
-
   async function handleDelete() {
     if (loadingDelete) {
       return;
@@ -332,7 +297,6 @@ export function NewUser() {
   const pix = watch("pix");
   const profileImage = watch("profileImage");
   const useIfoodIntegration = watch("useIfoodIntegration");
-  const aiqfomeEnabled = watch("aiqfomeEnabled");
   // const location = watch('location')
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
@@ -393,45 +357,6 @@ export function NewUser() {
             placeholder="Informe o usuário."
             {...register("user")}
           />
-
-
-          {isShopkeeperType && (
-            <>
-              <h3>Integração aiqfome</h3>
-              <label htmlFor="aiqfomeEnabled">
-                <input
-                  type="checkbox"
-                  id="aiqfomeEnabled"
-                  checked={Boolean(aiqfomeEnabled)}
-                  onChange={(event) => setValue("aiqfomeEnabled", event.target.checked)}
-                />
-                {" "}Ativar integração aiqfome
-              </label>
-
-              <label htmlFor="aiqfomeStoreId">Store ID aiqfome:</label>
-              <BaseInput id="aiqfomeStoreId" type="text" {...register("aiqfomeStoreId")} />
-
-              <label htmlFor="aiqfomeAccessToken">Access Token:</label>
-              <BaseInput id="aiqfomeAccessToken" type="text" {...register("aiqfomeAccessToken")} />
-
-              <label htmlFor="aiqfomeRefreshToken">Refresh Token:</label>
-              <BaseInput id="aiqfomeRefreshToken" type="text" {...register("aiqfomeRefreshToken")} />
-
-              <label htmlFor="aiqfomeTokenExpiresAt">Token expira em:</label>
-              <BaseInput id="aiqfomeTokenExpiresAt" type="datetime-local" {...register("aiqfomeTokenExpiresAt")} />
-
-              <label htmlFor="aiqfomeWebhookSecret">Webhook Secret:</label>
-              <BaseInput id="aiqfomeWebhookSecret" type="text" {...register("aiqfomeWebhookSecret")} />
-
-              <ContainerButtons>
-                {user && (
-                  <BaseButton type="button" onClick={handleSaveAiqfomeConfig}>
-                    Salvar configuração aiqfome
-                  </BaseButton>
-                )}
-              </ContainerButtons>
-            </>
-          )}
 
           {!user && (
             <>
@@ -540,7 +465,6 @@ export function NewUser() {
               )}
             </>
           )}
-
 
           {!user && (
             <ContainerButtons>

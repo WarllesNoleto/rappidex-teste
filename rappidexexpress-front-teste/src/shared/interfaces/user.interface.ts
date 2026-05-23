@@ -14,10 +14,4 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
-  aiqfomeEnabled?: boolean;
-  aiqfomeStoreId?: string;
-  aiqfomeAccessToken?: string;
-  aiqfomeRefreshToken?: string;
-  aiqfomeTokenExpiresAt?: string;
-  aiqfomeWebhookSecret?: string;
 }

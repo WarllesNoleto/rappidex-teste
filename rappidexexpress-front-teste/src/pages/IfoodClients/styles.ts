@@ -160,13 +160,3 @@ export const EmptyState = styled.p`
   text-align: center;
   margin-top: 1rem;
 `;
-
-export const SectionTitle = styled.h3`
-  margin: 0;
-  font-size: 1rem;
-`;
-
-export const SectionDivider = styled.hr`
-  border: 0;
-  border-top: 1px solid ${(props) => props.theme['gray-500']};
-`;

@@ -395,7 +395,7 @@ export function NewUser() {
           />
 
 
-          {isShopkeeperType && user && (
+          {isShopkeeperType && (
             <>
               <h3>Integração aiqfome</h3>
               <label htmlFor="aiqfomeEnabled">
@@ -424,22 +424,11 @@ export function NewUser() {
               <BaseInput id="aiqfomeWebhookSecret" type="text" {...register("aiqfomeWebhookSecret")} />
 
               <ContainerButtons>
-                <BaseButton type="button" onClick={handleSaveAiqfomeConfig}>
-                  Salvar configuração aiqfome
-                </BaseButton>
-                <BaseButton
-                  type="button"
-                  onClick={() => {
-                    const storeId = (watch("aiqfomeStoreId") || "").trim();
-                    if (!storeId) {
-                      alert("Informe o Store ID aiqfome para testar.");
-                      return;
-                    }
-                    window.open(`/api/aiqfome/debug/v2-routes?storeId=${encodeURIComponent(storeId)}&orderId=test-order`, "_blank");
-                  }}
-                >
-                  Testar integração aiqfome
-                </BaseButton>
+                {user && (
+                  <BaseButton type="button" onClick={handleSaveAiqfomeConfig}>
+                    Salvar configuração aiqfome
+                  </BaseButton>
+                )}
               </ContainerButtons>
             </>
           )}
@@ -552,55 +541,6 @@ export function NewUser() {
             </>
           )}
 
-
-          {isShopkeeperType && user && (
-            <>
-              <h3>Integração aiqfome</h3>
-              <label htmlFor="aiqfomeEnabled">
-                <input
-                  type="checkbox"
-                  id="aiqfomeEnabled"
-                  checked={Boolean(aiqfomeEnabled)}
-                  onChange={(event) => setValue("aiqfomeEnabled", event.target.checked)}
-                />
-                {" "}Ativar integração aiqfome
-              </label>
-
-              <label htmlFor="aiqfomeStoreId">Store ID aiqfome:</label>
-              <BaseInput id="aiqfomeStoreId" type="text" {...register("aiqfomeStoreId")} />
-
-              <label htmlFor="aiqfomeAccessToken">Access Token:</label>
-              <BaseInput id="aiqfomeAccessToken" type="text" {...register("aiqfomeAccessToken")} />
-
-              <label htmlFor="aiqfomeRefreshToken">Refresh Token:</label>
-              <BaseInput id="aiqfomeRefreshToken" type="text" {...register("aiqfomeRefreshToken")} />
-
-              <label htmlFor="aiqfomeTokenExpiresAt">Token expira em:</label>
-              <BaseInput id="aiqfomeTokenExpiresAt" type="datetime-local" {...register("aiqfomeTokenExpiresAt")} />
-
-              <label htmlFor="aiqfomeWebhookSecret">Webhook Secret:</label>
-              <BaseInput id="aiqfomeWebhookSecret" type="text" {...register("aiqfomeWebhookSecret")} />
-
-              <ContainerButtons>
-                <BaseButton type="button" onClick={handleSaveAiqfomeConfig}>
-                  Salvar configuração aiqfome
-                </BaseButton>
-                <BaseButton
-                  type="button"
-                  onClick={() => {
-                    const storeId = (watch("aiqfomeStoreId") || "").trim();
-                    if (!storeId) {
-                      alert("Informe o Store ID aiqfome para testar.");
-                      return;
-                    }
-                    window.open(`/api/aiqfome/debug/v2-routes?storeId=${encodeURIComponent(storeId)}&orderId=test-order`, "_blank");
-                  }}
-                >
-                  Testar integração aiqfome
-                </BaseButton>
-              </ContainerButtons>
-            </>
-          )}
 
           {!user && (
             <ContainerButtons>

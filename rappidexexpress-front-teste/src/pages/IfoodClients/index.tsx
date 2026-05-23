@@ -259,6 +259,7 @@ export function IfoodClients() {
         </Subtitle>
 
         <Input
+          autoComplete="off"
           onChange={(event) => setSearchTerm(event.target.value)}
           placeholder="Pesquisar empresa por nome"
           value={searchTerm}
@@ -298,6 +299,7 @@ export function IfoodClients() {
                     Merchant ID
                   </MerchantIdLabel>
                   <Input
+                    autoComplete="off"
                     disabled={!shopkeeper.useIfoodIntegration}
                     id={`merchant-${shopkeeper.id}`}
                     onChange={(event) =>
@@ -334,6 +336,7 @@ export function IfoodClients() {
                     aiqfome Store ID
                   </MerchantIdLabel>
                   <Input
+                    autoComplete="off"
                     disabled={!shopkeeper.aiqfomeEnabled}
                     id={`aiqfome-store-${shopkeeper.id}`}
                     onChange={(event) =>
@@ -351,6 +354,7 @@ export function IfoodClients() {
                     aiqfome Webhook Secret
                   </MerchantIdLabel>
                   <Input
+                    autoComplete="off"
                     disabled={!shopkeeper.aiqfomeEnabled}
                     id={`aiqfome-secret-${shopkeeper.id}`}
                     onChange={(event) =>

@@ -89,11 +89,10 @@ export function Login() {
 
     return (
         <Container>
-            <form onSubmit={handleSubmit(handleLogin)} autoComplete="off" action="">
+            <form onSubmit={handleSubmit(handleLogin)} action="">
                 <FormContainer>
                     <Logo src="https://i.pinimg.com/736x/a5/9f/17/a59f176343c6fd0d83adea72eaf0c57f.jpg" />
                     <BaseInput
-                        autoComplete="off"
                         type="text"
                         id="user"
                         placeholder="Informe o usuário."
@@ -101,7 +100,6 @@ export function Login() {
                     />
 
                     <BaseInput
-                        autoComplete="new-password"
                         type="password"
                         id="password"
                         placeholder="Informe a senha."

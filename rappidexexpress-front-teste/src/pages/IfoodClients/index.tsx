@@ -147,23 +147,15 @@ export function IfoodClients() {
     setSavingUser(shopkeeper.user);
 
     try {
-      const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
-      const aiqfomeWebhookSecret = (shopkeeper.aiqfomeWebhookSecret || '').trim();
-
-      if (shopkeeper.aiqfomeEnabled && (!aiqfomeStoreId || !aiqfomeWebhookSecret)) {
-        alert('Para integração aiqfome, preencha Store ID e Webhook Secret.');
-        return;
-      }
-
       await api.put(`/user/${shopkeeper.id}`, {
         useIfoodIntegration: Boolean(shopkeeper.useIfoodIntegration),
+        usesExternalIfoodPdv:
+          Boolean(shopkeeper.useIfoodIntegration) &&
+          Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
-        aiqfomeEnabled: Boolean(shopkeeper.aiqfomeEnabled),
-        aiqfomeStoreId,
-        aiqfomeWebhookSecret,
       });
 
-      alert('Configurações de integração salvas com sucesso.');
+      alert('Configuração iFood salva com sucesso.');
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
     } finally {
@@ -254,12 +246,11 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Vincule cada lojista ao Merchant ID do iFood e/ou aos dados do aiqfome
-          para permitir a importação dos pedidos corretamente.
+          Vincule cada lojista ao Merchant ID do iFood para permitir a importação
+          dos pedidos corretamente.
         </Subtitle>
 
         <Input
-          autoComplete="off"
           onChange={(event) => setSearchTerm(event.target.value)}
           placeholder="Pesquisar empresa por nome"
           value={searchTerm}
@@ -284,6 +275,9 @@ export function IfoodClients() {
                     onChange={(event) =>
                       updateLocalUser(shopkeeper.id, {
                         useIfoodIntegration: event.target.checked,
+                        usesExternalIfoodPdv: event.target.checked
+                          ? Boolean(shopkeeper.usesExternalIfoodPdv)
+                          : false,
                         ifoodMerchantId: event.target.checked
                           ? shopkeeper.ifoodMerchantId
                           : '',
@@ -294,12 +288,26 @@ export function IfoodClients() {
                   Usar integração iFood
                 </Checkbox>
 
+                {shopkeeper.useIfoodIntegration && (
+                  <Checkbox>
+                    <input
+                      checked={Boolean(shopkeeper.usesExternalIfoodPdv)}
+                      onChange={(event) =>
+                        updateLocalUser(shopkeeper.id, {
+                          usesExternalIfoodPdv: event.target.checked,
+                        })
+                      }
+                      type="checkbox"
+                    />
+                    Usa PDV externo integrado ao iFood?
+                  </Checkbox>
+                )}
+
                 <div>
                   <MerchantIdLabel htmlFor={`merchant-${shopkeeper.id}`}>
                     Merchant ID
                   </MerchantIdLabel>
                   <Input
-                    autoComplete="off"
                     disabled={!shopkeeper.useIfoodIntegration}
                     id={`merchant-${shopkeeper.id}`}
                     onChange={(event) =>
@@ -311,63 +319,7 @@ export function IfoodClients() {
                     value={shopkeeper.ifoodMerchantId || ''}
                   />
                 </div>
-
-                <Checkbox>
-                  <input
-                    checked={Boolean(shopkeeper.aiqfomeEnabled)}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        aiqfomeEnabled: event.target.checked,
-                        aiqfomeStoreId: event.target.checked
-                          ? shopkeeper.aiqfomeStoreId
-                          : '',
-                        aiqfomeWebhookSecret: event.target.checked
-                          ? shopkeeper.aiqfomeWebhookSecret
-                          : '',
-                      })
-                    }
-                    type="checkbox"
-                  />
-                  Usar integração aiqfome
-                </Checkbox>
-
-                <div>
-                  <MerchantIdLabel htmlFor={`aiqfome-store-${shopkeeper.id}`}>
-                    aiqfome Store ID
-                  </MerchantIdLabel>
-                  <Input
-                    autoComplete="off"
-                    disabled={!shopkeeper.aiqfomeEnabled}
-                    id={`aiqfome-store-${shopkeeper.id}`}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        aiqfomeStoreId: event.target.value,
-                      })
-                    }
-                    placeholder="Ex.: 123456"
-                    value={shopkeeper.aiqfomeStoreId || ''}
-                  />
-                </div>
-
-                <div>
-                  <MerchantIdLabel htmlFor={`aiqfome-secret-${shopkeeper.id}`}>
-                    aiqfome Webhook Secret
-                  </MerchantIdLabel>
-                  <Input
-                    autoComplete="off"
-                    disabled={!shopkeeper.aiqfomeEnabled}
-                    id={`aiqfome-secret-${shopkeeper.id}`}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        aiqfomeWebhookSecret: event.target.value,
-                      })
-                    }
-                    placeholder="Informe o segredo do webhook"
-                    type="password"
-                    value={shopkeeper.aiqfomeWebhookSecret || ''}
-                  />
-                </div>
-
+                
                 <CreditSummary>
                   <CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine>
                   <CreditLine>Utilizados: {shopkeeper.ifoodOrdersUsed || 0}</CreditLine>

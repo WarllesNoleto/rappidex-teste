@@ -27,131 +27,54 @@ import {
   HistoryButton,
   HistoryItem,
   HistoryList,
-  LoadMoreButton,
-  EmptyState,
+  SectionTitle,
+  SectionDivider,
 } from './styles.ts';
 
 export function IfoodClients() {
   const { token } = useContext(DeliveryContext);
   api.defaults.headers.Authorization = `Bearer ${token}`;
-
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [savingUser, setSavingUser] = useState('');
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
   const [creditAmountByUser, setCreditAmountByUser] = useState<Record<string, number>>({});
   const [historyByUser, setHistoryByUser] = useState<Record<string, any[]>>({});
-  const [loadingHistoryUser, setLoadingHistoryUser] = useState('');
-  const [page, setPage] = useState(1);
-  const [hasMoreShopkeepers, setHasMoreShopkeepers] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-
   const [searchTerm, setSearchTerm] = useState('');
+  const ITEMS_PER_PAGE = 200;
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return shopkeepers;
-    }
-
-    return shopkeepers.filter((shopkeeper) =>
-      (shopkeeper.name || '').toLowerCase().includes(normalizedSearch),
-    );
+    if (!normalizedSearch) return shopkeepers;
+    return shopkeepers.filter((shopkeeper) => (shopkeeper.name || '').toLowerCase().includes(normalizedSearch));
   }, [shopkeepers, searchTerm]);
 
-  const ITEMS_PER_PAGE = 200;
+  function updateLocalUser(userId: string, changes: Partial<User>) {
+    setShopkeepers((currentUsers) => currentUsers.map((shopkeeper) => (shopkeeper.id === userId ? { ...shopkeeper, ...changes } : shopkeeper)));
+  }
 
   async function loadShopkeepers(targetPage = 1, shouldAppend = false) {
-    if (shouldAppend) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-    }
-
+setLoading(true);
     try {
-      const usersResponse = await api.get(
-        `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
-      );
-      const users = Array.isArray(usersResponse.data?.data)
-        ? usersResponse.data.data
-        : [];
-
-      setShopkeepers((currentUsers) =>
-        shouldAppend ? [...currentUsers, ...users] : users,
-      );
-      setPage(targetPage);
-      setHasMoreShopkeepers(users.length === ITEMS_PER_PAGE);
+      const usersResponse = await api.get(`/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`);
+      const users = Array.isArray(usersResponse.data?.data) ? usersResponse.data.data : [];
+      setShopkeepers((currentUsers) => (shouldAppend ? [...currentUsers, ...users] : users));
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
     } finally {
-      if (shouldAppend) {
-        setLoadingMore(false);
-      } else {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }
-
-  async function loadAllShopkeepers() {
-    setIsSearching(true);
-
-    try {
-      let targetPage = 1;
-      let hasMore = true;
-      const allUsers: User[] = [];
-
-      while (hasMore) {
-        const usersResponse = await api.get(
-          `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
-        );
-
-        const users = Array.isArray(usersResponse.data?.data)
-          ? usersResponse.data.data
-          : [];
-
-        allUsers.push(...users);
-        hasMore = users.length === ITEMS_PER_PAGE;
-        targetPage += 1;
-      }
-
-      setShopkeepers(allUsers);
-      setPage(1);
-      setHasMoreShopkeepers(false);
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
-    } finally {
-      setIsSearching(false);
-    }
-  }
-
-  function updateLocalUser(userId: string, changes: Partial<User>) {
-    setShopkeepers((currentUsers) =>
-      currentUsers.map((shopkeeper) =>
-        shopkeeper.id === userId ? { ...shopkeeper, ...changes } : shopkeeper,
-      ),
-    );
   }
 
   async function handleSave(shopkeeper: User) {
-    if (savingUser) {
-      return;
-    }
-
+    if (savingUser) return;
     const merchantId = (shopkeeper.ifoodMerchantId || '').trim();
     if (shopkeeper.useIfoodIntegration && !merchantId) {
       alert('Informe o Merchant ID para ativar a integração iFood.');
       return;
     }
-
     setSavingUser(shopkeeper.user);
-
     try {
-      await api.put(`/user/${shopkeeper.id}`, {
-        useIfoodIntegration: Boolean(shopkeeper.useIfoodIntegration),
-        ifoodMerchantId: merchantId,
-      });
-
+      await api.put(`/user/${shopkeeper.id}`, { useIfoodIntegration: Boolean(shopkeeper.useIfoodIntegration), ifoodMerchantId: merchantId });
       alert('Configuração iFood salva com sucesso.');
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
@@ -160,225 +83,53 @@ export function IfoodClients() {
     }
   }
 
-  function updateCreditAmount(userId: string, value: string) {
-    const parsedValue = Number(value);
-
-    setCreditAmountByUser((current) => ({
-      ...current,
-      [userId]: Number.isNaN(parsedValue) ? 0 : parsedValue,
-    }));
-  }
-
-  async function handleCreditAdjustment(shopkeeper: User, action: 'add' | 'remove') {
-    if (savingUser) {
-      return;
-    }
-
-    const amount = Number(creditAmountByUser[shopkeeper.id] || 0);
-    if (!amount || amount < 1) {
-      alert('Informe uma quantidade válida de créditos.');
-      return;
-    }
-
+  async function handleSaveAiqfome(shopkeeper: User) {
+    if (savingUser) return;
     setSavingUser(shopkeeper.user);
-
     try {
-      const response = await api.post(`/ifood/credits/company/${shopkeeper.id}/${action}`, {
-        amount,
+      await api.put(`/user/${shopkeeper.id}/aiqfome-config`, {
+        aiqfomeEnabled: Boolean(shopkeeper.aiqfomeEnabled),
+        aiqfomeStoreId: (shopkeeper.aiqfomeStoreId || '').trim(),
+        aiqfomeAccessToken: shopkeeper.aiqfomeAccessToken || '',
+        aiqfomeRefreshToken: shopkeeper.aiqfomeRefreshToken || '',
+        aiqfomeTokenExpiresAt: shopkeeper.aiqfomeTokenExpiresAt || undefined,
+        aiqfomeWebhookSecret: (shopkeeper.aiqfomeWebhookSecret || '').trim(),
       });
-
-      updateLocalUser(shopkeeper.id, {
-        ifoodOrdersReleased: response.data?.ifoodOrdersReleased ?? shopkeeper.ifoodOrdersReleased,
-        ifoodOrdersUsed: response.data?.ifoodOrdersUsed ?? shopkeeper.ifoodOrdersUsed,
-        ifoodOrdersAvailable: response.data?.ifoodOrdersAvailable ?? shopkeeper.ifoodOrdersAvailable,
-      });
-
-      alert(`Créditos ${action === 'add' ? 'adicionados' : 'removidos'} com sucesso.`);
+      alert('Configuração aiqfome salva com sucesso.');
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao ajustar créditos.');
+      alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
     } finally {
       setSavingUser('');
     }
   }
 
-  async function handleLoadHistory(shopkeeper: User) {
-    setLoadingHistoryUser(shopkeeper.id);
-    try {
-      const response = await api.get(`/ifood/credits/company/${shopkeeper.id}/history`);
-      setHistoryByUser((current) => ({
-        ...current,
-        [shopkeeper.id]: Array.isArray(response.data?.history) ? response.data.history : [],
-      }));
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao carregar histórico.');
-    } finally {
-      setLoadingHistoryUser('');
-    }
+  function updateCreditAmount(userId: string, value: string) { const parsedValue = Number(value); setCreditAmountByUser((c) => ({ ...c, [userId]: Number.isNaN(parsedValue) ? 0 : parsedValue })); }
+  async function handleCreditAdjustment(shopkeeper: User, action: 'add' | 'remove') { /* unchanged behavior */
+    if (savingUser) return; const amount = Number(creditAmountByUser[shopkeeper.id] || 0); if (!amount || amount < 1) return alert('Informe uma quantidade válida de créditos.');
+    setSavingUser(shopkeeper.user); try { const response = await api.post(`/ifood/credits/company/${shopkeeper.id}/${action}`, { amount }); updateLocalUser(shopkeeper.id, { ifoodOrdersReleased: response.data?.ifoodOrdersReleased ?? shopkeeper.ifoodOrdersReleased, ifoodOrdersUsed: response.data?.ifoodOrdersUsed ?? shopkeeper.ifoodOrdersUsed, ifoodOrdersAvailable: response.data?.ifoodOrdersAvailable ?? shopkeeper.ifoodOrdersAvailable, }); alert(`Créditos ${action === 'add' ? 'adicionados' : 'removidos'} com sucesso.`); } catch (error: any) { alert(error?.response?.data?.message || 'Erro ao ajustar créditos.'); } finally { setSavingUser(''); }
   }
+  async function handleLoadHistory(shopkeeper: User) { try { const response = await api.get(`/ifood/credits/company/${shopkeeper.id}/history`); setHistoryByUser((c) => ({ ...c, [shopkeeper.id]: Array.isArray(response.data?.history) ? response.data.history : [] })); } catch (error: any) { alert(error?.response?.data?.message || 'Erro ao carregar histórico.'); } }
 
-  useEffect(() => {
-    loadShopkeepers();
-  }, []);
+  useEffect(() => { loadShopkeepers(); }, []);
 
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      return;
-    }
-
-    if (hasMoreShopkeepers && !isSearching) {
-      loadAllShopkeepers();
-    }
-  }, [searchTerm, hasMoreShopkeepers, isSearching]);
-
-  async function handleLoadMoreShopkeepers() {
-    if (loading || loadingMore || !hasMoreShopkeepers) {
-      return;
-    }
-
-    await loadShopkeepers(page + 1, true);
-  }
-
-  return (
-    <Container>
-      <Content>
-        <Title>Empresas Cadastradas</Title>
-        <Subtitle>
-          Vincule cada lojista ao Merchant ID do iFood para permitir a importação
-          dos pedidos corretamente.
-        </Subtitle>
-
-        <Input
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Pesquisar empresa por nome"
-          value={searchTerm}
-        />
-
-        {loading || isSearching ? (
-          <LoadingContainer>
-            <Loader size={40} biggestColor="green" smallestColor="gray" />
-          </LoadingContainer>
-        ) : (
-          filteredShopkeepers.length === 0 ? (
-            <EmptyState>Nenhuma empresa encontrada para este nome.</EmptyState>
-          ) : (
-            filteredShopkeepers.map((shopkeeper) => (
-            <Card key={shopkeeper.id}>
-              <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
-
-              <Actions>
-                <Checkbox>
-                  <input
-                    checked={Boolean(shopkeeper.useIfoodIntegration)}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        useIfoodIntegration: event.target.checked,
-                        ifoodMerchantId: event.target.checked
-                          ? shopkeeper.ifoodMerchantId
-                          : '',
-                      })
-                    }
-                    type="checkbox"
-                  />
-                  Usar integração iFood
-                </Checkbox>
-
-                <div>
-                  <MerchantIdLabel htmlFor={`merchant-${shopkeeper.id}`}>
-                    Merchant ID
-                  </MerchantIdLabel>
-                  <Input
-                    disabled={!shopkeeper.useIfoodIntegration}
-                    id={`merchant-${shopkeeper.id}`}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        ifoodMerchantId: event.target.value,
-                      })
-                    }
-                    placeholder="Ex.: 12345678-90ab-cdef-1234-567890abcdef"
-                    value={shopkeeper.ifoodMerchantId || ''}
-                  />
-                </div>
-                
-                <CreditSummary>
-                  <CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine>
-                  <CreditLine>Utilizados: {shopkeeper.ifoodOrdersUsed || 0}</CreditLine>
-                  <CreditLine>Disponíveis: {shopkeeper.ifoodOrdersAvailable || 0}</CreditLine>
-                </CreditSummary>
-
-                <CreditButtons>
-                  <CreditInput
-                    min={1}
-                    onChange={(event) => updateCreditAmount(shopkeeper.id, event.target.value)}
-                    placeholder="Qtd. créditos"
-                    type="number"
-                    value={creditAmountByUser[shopkeeper.id] || ''}
-                  />
-                  <CreditButton
-                    disabled={savingUser === shopkeeper.user}
-                    onClick={() => handleCreditAdjustment(shopkeeper, 'add')}
-                    type="button"
-                  >
-                    + Créditos
-                  </CreditButton>
-                  <CreditButton
-                    disabled={savingUser === shopkeeper.user}
-                    onClick={() => handleCreditAdjustment(shopkeeper, 'remove')}
-                    type="button"
-                  >
-                    - Créditos
-                  </CreditButton>
-                  <HistoryButton
-                    disabled={loadingHistoryUser === shopkeeper.id}
-                    onClick={() => handleLoadHistory(shopkeeper)}
-                    type="button"
-                  >
-                    {loadingHistoryUser === shopkeeper.id ? 'Carregando...' : 'Ver histórico'}
-                  </HistoryButton>
-                </CreditButtons>
-              </Actions>
-
-              <SaveButton
-                disabled={savingUser === shopkeeper.user}
-                onClick={() => handleSave(shopkeeper)}
-                type="button"
-              >
-                {savingUser === shopkeeper.user ? (
-                  <Loader size={20} biggestColor="gray" smallestColor="gray" />
-                ) : (
-                  'Salvar'
-                )}
-              </SaveButton>
-              
-              {Array.isArray(historyByUser[shopkeeper.id]) &&
-                historyByUser[shopkeeper.id]?.length > 0 && (
-                  <HistoryList>
-                    {historyByUser[shopkeeper.id].slice(0, 5).map((entry: any) => (
-                      <HistoryItem key={entry.id}>
-                        {(() => {
-                          const formattedDateTime = formatIfoodHistoryDateTime(entry.createdAt);
-
-                          return (
-                            <>
-                        {translateIfoodOperationType(entry.operationType)} {entry.amount} crédito(s) em{' '}
-                        {`${formattedDateTime.date} ${formattedDateTime.time}`}
-                            </>
-                          );
-                        })()}
-                      </HistoryItem>
-                    ))}
-                  </HistoryList>
-                )}
-            </Card>
-            ))
-          )
-        )}
-
-        {!loading && !searchTerm.trim() && hasMoreShopkeepers && (
-          <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
-            {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
-          </LoadMoreButton>
-        )}
-      </Content>
-    </Container>
-  );
+  return <Container><Content><Title>Empresas Cadastradas</Title><Subtitle>Vincule cada lojista ao Merchant ID do iFood para permitir a importação dos pedidos corretamente.</Subtitle>
+    <Input onChange={(e) => setSearchTerm(e.target.value)} placeholder="Pesquisar empresa por nome" value={searchTerm} />
+    {loading ? <LoadingContainer><Loader size={40} biggestColor="green" smallestColor="gray" /></LoadingContainer> : filteredShopkeepers.map((shopkeeper) => <Card key={shopkeeper.id}><ShopkeeperName>{shopkeeper.name}</ShopkeeperName><Actions>
+      <SectionTitle>Integração iFood</SectionTitle>
+      <Checkbox><input checked={Boolean(shopkeeper.useIfoodIntegration)} onChange={(event) => updateLocalUser(shopkeeper.id, { useIfoodIntegration: event.target.checked, ifoodMerchantId: event.target.checked ? shopkeeper.ifoodMerchantId : '' })} type="checkbox"/> Usar integração iFood</Checkbox>
+      <div><MerchantIdLabel>Merchant ID</MerchantIdLabel><Input disabled={!shopkeeper.useIfoodIntegration} onChange={(e)=>updateLocalUser(shopkeeper.id,{ifoodMerchantId:e.target.value})} value={shopkeeper.ifoodMerchantId||''}/></div>
+      <CreditSummary><CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine><CreditLine>Utilizados: {shopkeeper.ifoodOrdersUsed || 0}</CreditLine><CreditLine>Disponíveis: {shopkeeper.ifoodOrdersAvailable || 0}</CreditLine></CreditSummary>
+      <CreditButtons><CreditInput min={1} onChange={(e)=>updateCreditAmount(shopkeeper.id,e.target.value)} type="number" value={creditAmountByUser[shopkeeper.id]||''}/><CreditButton type="button" onClick={()=>handleCreditAdjustment(shopkeeper,'add')}>+ Créditos</CreditButton><CreditButton type="button" onClick={()=>handleCreditAdjustment(shopkeeper,'remove')}>- Créditos</CreditButton><HistoryButton type="button" onClick={()=>handleLoadHistory(shopkeeper)}>Ver histórico</HistoryButton></CreditButtons>
+      {historyByUser[shopkeeper.id]?.length ? <HistoryList>{historyByUser[shopkeeper.id].map((entry)=> <HistoryItem key={entry.id}>{formatIfoodHistoryDateTime(entry.createdAt)} - {translateIfoodOperationType(entry.operationType)} ({entry.amount})</HistoryItem>)}</HistoryList> : null}
+      <SaveButton type="button" onClick={()=>handleSave(shopkeeper)}>Salvar</SaveButton>
+      <SectionDivider />
+      <SectionTitle>Integração aiqfome</SectionTitle>
+      <Checkbox><input type="checkbox" checked={Boolean(shopkeeper.aiqfomeEnabled)} onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeEnabled:e.target.checked})}/> Usar integração aiqfome</Checkbox>
+      <div><MerchantIdLabel>Store ID aiqfome</MerchantIdLabel><Input onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeStoreId:e.target.value})} value={shopkeeper.aiqfomeStoreId||''}/></div>
+      <div><MerchantIdLabel>Access Token aiqfome</MerchantIdLabel><Input onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeAccessToken:e.target.value})} value={shopkeeper.aiqfomeAccessToken||''}/></div>
+      <div><MerchantIdLabel>Refresh Token aiqfome</MerchantIdLabel><Input onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeRefreshToken:e.target.value})} value={shopkeeper.aiqfomeRefreshToken||''}/></div>
+      <div><MerchantIdLabel>Token expira em</MerchantIdLabel><Input type="datetime-local" onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeTokenExpiresAt:e.target.value})} value={shopkeeper.aiqfomeTokenExpiresAt ? String(shopkeeper.aiqfomeTokenExpiresAt).slice(0,16) : ''}/></div>
+      <div><MerchantIdLabel>Webhook Secret aiqfome</MerchantIdLabel><Input onChange={(e)=>updateLocalUser(shopkeeper.id,{aiqfomeWebhookSecret:e.target.value})} value={shopkeeper.aiqfomeWebhookSecret||''}/></div>
+      <SaveButton type="button" onClick={()=>handleSaveAiqfome(shopkeeper)}>Salvar configuração aiqfome</SaveButton>
+    </Actions></Card>)}</Content></Container>;
 }

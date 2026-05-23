@@ -14,4 +14,7 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
+  aiqfomeEnabled?: boolean;
+  aiqfomeStoreId?: string;
+  aiqfomeWebhookSecret?: string;
 }

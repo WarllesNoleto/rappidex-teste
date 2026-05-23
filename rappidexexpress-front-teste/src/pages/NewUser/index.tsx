@@ -30,6 +30,9 @@ const ProfileFormValidationSchema = zod.object({
   location: zod.string(),
   useIfoodIntegration: zod.boolean().optional(),
   ifoodMerchantId: zod.string().optional(),
+  aiqfomeEnabled: zod.boolean().optional(),
+  aiqfomeStoreId: zod.string().optional(),
+  aiqfomeWebhookSecret: zod.string().optional(),
 });
 
 type ProfileFormData = zod.infer<typeof ProfileFormValidationSchema>;
@@ -52,6 +55,9 @@ export function NewUser() {
     location: "",
     useIfoodIntegration: false,
     ifoodMerchantId: "",
+    aiqfomeEnabled: false,
+    aiqfomeStoreId: "",
+    aiqfomeWebhookSecret: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -89,12 +95,16 @@ export function NewUser() {
       : loggedUserCityId;
     const useIfoodIntegration = Boolean(data.useIfoodIntegration);
     const ifoodMerchantId = (data.ifoodMerchantId || "").trim();
+    const aiqfomeEnabled = Boolean(data.aiqfomeEnabled);
+    const aiqfomeStoreId = (data.aiqfomeStoreId || "").trim();
+    const aiqfomeWebhookSecret = (data.aiqfomeWebhookSecret || "").trim();
 
     if (useIfoodIntegration && !ifoodMerchantId) {
       alert("Para integração iFood, preencha o merchantId.");
       setLoading(false);
       return;
     }
+    if (aiqfomeEnabled && (!aiqfomeStoreId || !aiqfomeWebhookSecret)) { alert("Para integração aiqfome, preencha Store ID e Webhook Secret."); setLoading(false); return; }
 
     if (!cityIdToSubmit) {
       alert("Não foi possível identificar a cidade para vincular ao usuário.");
@@ -114,6 +124,9 @@ export function NewUser() {
         cityId: cityIdToSubmit,
         useIfoodIntegration,
         ifoodMerchantId,
+        aiqfomeEnabled,
+        aiqfomeStoreId,
+        aiqfomeWebhookSecret,
       });
       reset();
       setLoading(false);
@@ -140,6 +153,9 @@ export function NewUser() {
       location,
       useIfoodIntegration,
       ifoodMerchantId,
+      aiqfomeEnabled,
+      aiqfomeStoreId,
+      aiqfomeWebhookSecret,
     } = watch();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
@@ -150,6 +166,7 @@ export function NewUser() {
       setLoading(false);
       return;
     }
+    if (aiqfomeEnabled && (!(aiqfomeStoreId || "").trim() || !(aiqfomeWebhookSecret || "").trim())) { alert("Para integração aiqfome, preencha Store ID e Webhook Secret."); setLoading(false); return; }
 
     if (!cityIdToSubmit) {
       alert("Não foi possível identificar a cidade para vincular ao usuário.");
@@ -168,6 +185,9 @@ export function NewUser() {
         cityId: cityIdToSubmit,
         useIfoodIntegration: Boolean(useIfoodIntegration),
         ifoodMerchantId: (ifoodMerchantId || "").trim(),
+        aiqfomeEnabled: Boolean(aiqfomeEnabled),
+        aiqfomeStoreId: (aiqfomeStoreId || "").trim(),
+        aiqfomeWebhookSecret: (aiqfomeWebhookSecret || "").trim(),
       });
       setLoading(false);
       alert("Usuário editado com sucesso!");
@@ -297,6 +317,7 @@ export function NewUser() {
   const pix = watch("pix");
   const profileImage = watch("profileImage");
   const useIfoodIntegration = watch("useIfoodIntegration");
+  const aiqfomeEnabled = watch("aiqfomeEnabled");
   // const location = watch('location')
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
@@ -310,7 +331,9 @@ export function NewUser() {
     !profileImage ||
     phone.includes("_") ||
     citySelectionMissing ||
-    ifoodIntegrationMissingFields;
+    ifoodIntegrationMissingFields ||
+    (Boolean(aiqfomeEnabled) &&
+      (!watch("aiqfomeStoreId") || !watch("aiqfomeWebhookSecret")));
   const isShopkeeperType =
     selectedType === "shopkeeper" || selectedType === "shopkeeperadmin";
 
@@ -461,6 +484,25 @@ export function NewUser() {
                     placeholder="Informe o merchantId da empresa."
                     {...register("ifoodMerchantId")}
                   />
+                </>
+              )}
+
+              <label htmlFor="aiqfomeEnabled">
+                <input
+                  type="checkbox"
+                  id="aiqfomeEnabled"
+                  checked={Boolean(aiqfomeEnabled)}
+                  onChange={(event) => setValue("aiqfomeEnabled", event.target.checked)}
+                />{" "}
+                Usar integração aiqfome para esta empresa
+              </label>
+
+              {aiqfomeEnabled && (
+                <>
+                  <label htmlFor="aiqfomeStoreId">aiqfome Store ID:</label>
+                  <BaseInput type="text" id="aiqfomeStoreId" placeholder="Informe o store_id da empresa." {...register("aiqfomeStoreId")} />
+                  <label htmlFor="aiqfomeWebhookSecret">aiqfome Webhook Secret:</label>
+                  <BaseInput type="password" id="aiqfomeWebhookSecret" placeholder="Informe o segredo do webhook." {...register("aiqfomeWebhookSecret")} />
                 </>
               )}
             </>

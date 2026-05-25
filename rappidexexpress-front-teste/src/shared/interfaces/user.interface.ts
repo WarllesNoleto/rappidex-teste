@@ -16,8 +16,7 @@ export interface User {
   ifoodOrdersAvailable?: number;
   aiqfomeEnabled?: boolean;
   aiqfomeStoreId?: string;
-  aiqfomeWebhookSecret?: string;
-  aiqfomeAccessToken?: string;
   aiqfomeTokenExpiresAt?: string;
   aiqfomeIntegrationStatus?: "not_configured" | "connected" | "error";
+  hasAiqfomeAccessToken?: boolean;
 }

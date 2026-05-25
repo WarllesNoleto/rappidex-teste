@@ -9,11 +9,18 @@ import {
   Put,
   Query,
   Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AiqfomeService } from './aiqfome.service';
 import { AiqfomeWebhookService } from './aiqfome-webhook.service';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../authenticator/guards/jwt-auth.guard';
+import { User } from '../shared/decorators';
+import { UserRequest } from '../shared/interfaces';
+import { UserType } from '../shared/constants/enums.constants';
 
+@UseGuards(JwtAuthGuard)
 @Controller('aiqfome')
 export class AiqfomeController {
   constructor(
@@ -22,8 +29,8 @@ export class AiqfomeController {
   ) {}
 
   @Get('oauth/start/:companyId')
-  async oauthStart(@Res() res: Response, @Param('companyId') companyId: string) {
-    const authUrl = await this.aiqfomeService.oauthStart(companyId);
+  async oauthStart(@User() user: UserRequest, @Res() res: Response, @Param('companyId') companyId: string) {
+    const authUrl = await this.aiqfomeService.oauthStart(companyId, user);
     return res.redirect(authUrl);
   }
 
@@ -63,10 +70,14 @@ export class AiqfomeController {
   }
 
   @Post('sync-order/:companyId/:orderId')
-  syncOrder(
+  async syncOrder(
+    @User() user: UserRequest,
     @Param('companyId') companyId: string,
     @Param('orderId') orderId: string,
   ) {
+    if ([UserType.SHOPKEEPER, UserType.SHOPKEEPERADMIN].includes(user.type as UserType) && user.id !== companyId) {
+      throw new UnauthorizedException('Você não tem permissão para sincronizar pedidos de outra empresa.');
+    }
     return this.aiqfomeService.syncOrder(companyId, orderId);
   }
 }

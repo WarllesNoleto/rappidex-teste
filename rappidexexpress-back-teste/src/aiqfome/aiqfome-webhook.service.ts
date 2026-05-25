@@ -68,8 +68,8 @@ export class AiqfomeWebhookService {
       return this.cancelOrder(orderId, company, event);
     if (event === 'order-logistic')
       return this.updateLogistic(orderId, company, payload);
-    if (!['new-order', 'read-order', 'ready-order'].includes(event))
-      return { ok: true };
+    if (event === 'new-order' || event === 'read-order') return { ok: true };
+    if (event !== 'ready-order') return { ok: true };
     if (!company.aiqfomeAccessToken) {
       this.logger.error('[AiqfomeWebhook] Token ausente para store_id');
       return { ok: true };

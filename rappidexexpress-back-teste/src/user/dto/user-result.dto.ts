@@ -64,10 +64,19 @@ export class UserResult {
   aiqfomeStoreId?: string;
 
   @Expose()
-  aiqfomeWebhookSecret?: string;
+  aiqfomeIntegrationStatus?: 'not_configured' | 'connected' | 'error';
+
+  @Expose()
+  aiqfomeTokenExpiresAt?: Date;
+
+  @Expose()
+  hasAiqfomeAccessToken?: boolean;
 
   public static fromEntity(user: UserEntity) {
-    return plainToClass<UserResult, UserResult>(UserResult, user, {
+    return plainToClass<UserResult, UserResult>(UserResult, {
+      ...user,
+      hasAiqfomeAccessToken: Boolean(user?.aiqfomeAccessToken),
+    }, {
       excludeExtraneousValues: true,
     });
   }

@@ -34,7 +34,7 @@ import {
 } from './styles.ts';
 
 export function IfoodClients() {
-  const { token } = useContext(DeliveryContext);
+  const { token, permission } = useContext(DeliveryContext);
   api.defaults.headers.Authorization = `Bearer ${token}`;
 
   const [loading, setLoading] = useState(true);
@@ -72,12 +72,17 @@ export function IfoodClients() {
     }
 
     try {
-      const usersResponse = await api.get(
-        `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
-      );
-      const users = Array.isArray(usersResponse.data?.data)
-        ? usersResponse.data.data
-        : [];
+      const isShopkeeperView = permission === 'shopkeeper' || permission === 'shopkeeperadmin';
+      if (isShopkeeperView) {
+        const myUserResponse = await api.get('/user/myself');
+        const myUser = myUserResponse.data as User;
+        setShopkeepers(myUser ? [myUser] : []);
+        setPage(1);
+        setHasMoreShopkeepers(false);
+        return;
+      }
+      const usersResponse = await api.get(`/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`);
+      const users = Array.isArray(usersResponse.data?.data) ? usersResponse.data.data : [];
 
       setShopkeepers((currentUsers) =>
         shouldAppend ? [...currentUsers, ...users] : users,
@@ -150,10 +155,8 @@ export function IfoodClients() {
 
     try {
       const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
-      const aiqfomeWebhookSecret = (shopkeeper.aiqfomeWebhookSecret || '').trim();
-
-      if (shopkeeper.aiqfomeEnabled && (!aiqfomeStoreId || !aiqfomeWebhookSecret)) {
-        alert('Para integração aiqfome, preencha Store ID e Webhook Secret.');
+      if (shopkeeper.aiqfomeEnabled && !aiqfomeStoreId) {
+        alert('Para integração aiqfome, preencha Store ID.');
         return;
       }
 
@@ -162,7 +165,6 @@ export function IfoodClients() {
         ifoodMerchantId: merchantId,
         aiqfomeEnabled: Boolean(shopkeeper.aiqfomeEnabled),
         aiqfomeStoreId,
-        aiqfomeWebhookSecret,
       });
 
       alert('Configurações de integração salvas com sucesso.');
@@ -247,13 +249,12 @@ export function IfoodClients() {
 
   async function handleConnectAiqfome(companyId: string) {
     const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
-    window.open(`${baseUrl}/aiqfome/oauth/start/${companyId}`, '_blank');
+    window.location.href = `${baseUrl}/aiqfome/oauth/start/${companyId}`;
   }
 
   function getAiqfomeStatus(shopkeeper: User) {
-    if (!shopkeeper.aiqfomeEnabled || !shopkeeper.aiqfomeAccessToken) return 'Não conectado';
+    if (!shopkeeper.aiqfomeEnabled || !shopkeeper.hasAiqfomeAccessToken) return 'Não conectado';
     if (shopkeeper.aiqfomeTokenExpiresAt && new Date(shopkeeper.aiqfomeTokenExpiresAt).getTime() <= Date.now()) return 'Token expirado';
-    if (shopkeeper.aiqfomeIntegrationStatus === 'error') return 'Erro na integração';
     return 'Conectado';
   }
 
@@ -270,16 +271,14 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Vincule cada lojista ao Merchant ID do iFood e/ou aos dados do aiqfome
-          para permitir a importação dos pedidos corretamente.
+          {permission === 'shopkeeper' || permission === 'shopkeeperadmin'
+            ? 'Visualização limitada da sua loja e status da integração aiqfome.'
+            : 'Vincule cada lojista ao Merchant ID do iFood e/ou aos dados do aiqfome para permitir a importação dos pedidos corretamente.'}
         </Subtitle>
 
-        <Input
-          autoComplete="off"
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Pesquisar empresa por nome"
-          value={searchTerm}
-        />
+        {!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (
+          <Input autoComplete="off" onChange={(event) => setSearchTerm(event.target.value)} placeholder="Pesquisar empresa por nome" value={searchTerm} />
+        )}
 
         {loading || isSearching ? (
           <LoadingContainer>
@@ -294,7 +293,7 @@ export function IfoodClients() {
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
               <Actions>
-                <Checkbox>
+                {!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (<><Checkbox>
                   <input
                     checked={Boolean(shopkeeper.useIfoodIntegration)}
                     onChange={(event) =>
@@ -336,10 +335,7 @@ export function IfoodClients() {
                         aiqfomeEnabled: event.target.checked,
                         aiqfomeStoreId: event.target.checked
                           ? shopkeeper.aiqfomeStoreId
-                          : '',
-                        aiqfomeWebhookSecret: event.target.checked
-                          ? shopkeeper.aiqfomeWebhookSecret
-                          : '',
+                          : ''
                       })
                     }
                     type="checkbox"
@@ -365,6 +361,8 @@ export function IfoodClients() {
                   />
                 </div>
 
+                </>) }
+
                 <div>
                   <StatusBadge>Status aiqfome: {getAiqfomeStatus(shopkeeper)}</StatusBadge>
                   <OAuthButton
@@ -372,27 +370,8 @@ export function IfoodClients() {
                     onClick={() => handleConnectAiqfome(shopkeeper.id)}
                     type="button"
                   >
-                    Conectar aiqfome
+                    {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </OAuthButton>
-                </div>
-
-                <div>
-                  <MerchantIdLabel htmlFor={`aiqfome-secret-${shopkeeper.id}`}>
-                    aiqfome Webhook Secret
-                  </MerchantIdLabel>
-                  <Input
-                    autoComplete="off"
-                    disabled={!shopkeeper.aiqfomeEnabled}
-                    id={`aiqfome-secret-${shopkeeper.id}`}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        aiqfomeWebhookSecret: event.target.value,
-                      })
-                    }
-                    placeholder="Informe o segredo do webhook"
-                    type="password"
-                    value={shopkeeper.aiqfomeWebhookSecret || ''}
-                  />
                 </div>
 
                 <CreditSummary>

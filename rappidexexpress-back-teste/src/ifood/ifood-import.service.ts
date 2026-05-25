@@ -4,6 +4,14 @@ import { IfoodEventService } from './ifood-event.service';
 import { IfoodOrderLinkService } from './ifood-order-link.service';
 import { IfoodOrdersService } from './ifood-orders.service';
 import { IfoodReadinessService } from './ifood-readiness.service';
+import { StatusDelivery } from '../shared/constants/enums.constants';
+
+const IFOOD_IMPORT_EVENT_CODES = new Set([
+  'CONFIRMED',
+  'ORDER_CONFIRMED',
+  'PREPARATION_STARTED',
+  'SEPARATION_STARTED',
+]);
 
 @Injectable()
 export class IfoodImportService {
@@ -25,13 +33,16 @@ export class IfoodImportService {
       return;
     }
 
-    const eligibleEvents = events.filter(
-      (event) =>
-        event?.code === 'RTP' ||
-        event?.fullCode === 'READY_TO_PICKUP' ||
-        event?.code === 'DSP' ||
-        event?.fullCode === 'DISPATCHED',
-    );
+    const eligibleEvents = events.filter((event) => {
+      const code = String(event?.code || '').toUpperCase();
+      const fullCode = String(event?.fullCode || '').toUpperCase();
+      return (
+        IFOOD_IMPORT_EVENT_CODES.has(code) ||
+        IFOOD_IMPORT_EVENT_CODES.has(fullCode) ||
+        code === 'DISPATCHED' ||
+        fullCode === 'DISPATCHED'
+      );
+    });
 
     if (eligibleEvents.length === 0) {
       this.logger.log(
@@ -95,10 +106,8 @@ export class IfoodImportService {
         }
 
         const deliveryDto =
-          await this.ifoodOrdersService.buildCreateDeliveryDto(
-            orderId,
-            merchantId,
-          );
+          await this.ifoodOrdersService.buildCreateDeliveryDto(orderId, merchantId);
+        deliveryDto.status = StatusDelivery.AWAITING_RELEASE as any;
 
         const createdDelivery = await this.deliveryService.createDelivery(
           deliveryDto,
@@ -111,6 +120,20 @@ export class IfoodImportService {
             cityId: '',
           },
           { creditOrderId: orderId },
+        );
+        await this.deliveryService.updateDelivery(
+          createdDelivery.id,
+          {
+            status: StatusDelivery.AWAITING_RELEASE,
+          } as any,
+          {
+            id: targetShopkeeperId,
+            phone: '',
+            user: 'ifood.integration',
+            type: 'shopkeeperadmin' as any,
+            permission: 'admin' as any,
+            cityId: '',
+          },
         );
 
         this.logger.log(

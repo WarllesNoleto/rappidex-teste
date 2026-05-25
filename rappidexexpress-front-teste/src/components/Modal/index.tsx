@@ -1,6 +1,5 @@
 import { Modal, Typography, Box } from '@mui/material';
 import { BaseButton, BaseInput } from './styles';
-import { useState } from 'react';
 
 const style = {
   position: 'absolute',
@@ -18,15 +17,13 @@ const style = {
 export interface ModalProps {
     isVisible: boolean
     handleClose: () => void
-    onConfirmObservation: (text: string) => void
+    observation: string
+    isSaving?: boolean
+    onObservationChange: (text: string) => void
+    onConfirmObservation: () => void
 }
 
-export function BaseModal({isVisible, handleClose, onConfirmObservation}: ModalProps){
-    const [observation, setModalObservation] = useState('')
-    function handleNext() {
-        onConfirmObservation(observation);
-        setModalObservation('')
-    }
+export function BaseModal({isVisible, handleClose, observation, isSaving = false, onObservationChange, onConfirmObservation}: ModalProps){
 
     return (
         <Modal 
@@ -44,9 +41,11 @@ export function BaseModal({isVisible, handleClose, onConfirmObservation}: ModalP
                     id="user"
                     placeholder="Opcional"
                     value={observation}
-                    onChange={(event) => { setModalObservation(event.target.value) }}
+                    onChange={(event) => { onObservationChange(event.target.value) }}
                 />
-                <BaseButton onClick={handleNext}>Adicionar</BaseButton>
+                <BaseButton onClick={onConfirmObservation} disabled={isSaving}>
+                    {isSaving ? 'Salvando...' : 'Adicionar'}
+                </BaseButton>
             </Box>
         </Modal>
     )

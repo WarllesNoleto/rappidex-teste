@@ -67,7 +67,6 @@ type DeliveryCardProps = {
   statusFilter: string;
   permission: string | null;
   selectedMotoboy: string;
-  reportSelectedToModal: string;
   motoboys: Motoboy[];
   isUpdating: boolean;
   onSelectMotoboy: (reportId: string, motoboyId: string) => void;
@@ -404,7 +403,6 @@ function areDeliveryCardPropsEqual(prev: DeliveryCardProps, next: DeliveryCardPr
     prev.permission === next.permission &&
     prev.selectedMotoboy === next.selectedMotoboy &&
     prev.deliveryCode === next.deliveryCode &&
-    prev.reportSelectedToModal === next.reportSelectedToModal &&
     prev.motoboys === next.motoboys &&
     prev.isUpdating === next.isUpdating &&
     prev.previewObservation === next.previewObservation &&
@@ -438,16 +436,32 @@ export function Dashboard() {
   const refreshRequestIdRef = useRef(0);
   const didFirstLoadRef = useRef(false);
 
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [reportSelectedToModal, setReportSelectedToModal] =
-    useState<string>("");
+  const [observationModalDeliveryId, setObservationModalDeliveryId] = useState<string | null>(null);
+  const [observationTextByDeliveryId, setObservationTextByDeliveryId] = useState<Record<string, string>>({});
+  const [observationSavingId, setObservationSavingId] = useState<string | null>(null);
 
   useEffect(() => {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
   }, [token]);
 
-  function handleModal() {
-    setIsVisible((state) => !state);
+  function openObservationModal(deliveryId: string, initialText = "") {
+    setObservationModalDeliveryId(deliveryId);
+    setObservationTextByDeliveryId((state) => ({
+      ...state,
+      [deliveryId]: state[deliveryId] ?? initialText,
+    }));
+  }
+
+  function closeObservationModal() {
+    setObservationModalDeliveryId(null);
+  }
+
+  function clearObservationText(deliveryId: string) {
+    setObservationTextByDeliveryId((state) => {
+      const next = { ...state };
+      delete next[deliveryId];
+      return next;
+    });
   }
 
   function getDateValue(date?: string) {
@@ -679,14 +693,14 @@ export function Dashboard() {
 
 
 
-  async function handleConfirmObservation(text: string) {
-    if (!reportSelectedToModal) return;
+  async function handleConfirmObservation() {
+    if (!observationModalDeliveryId) return;
 
-    const deliveryId = reportSelectedToModal;
-    const finalText = text.trim();
+    const deliveryId = observationModalDeliveryId;
+    const finalText = (observationTextByDeliveryId[deliveryId] || "").trim();
 
     try {
-      startUpdatingDelivery(deliveryId);
+      setObservationSavingId(deliveryId);
 
       const response = await api.put(`/delivery/${deliveryId}`, {
         destinationObservation: finalText || "Sem observação.",
@@ -701,12 +715,12 @@ export function Dashboard() {
         await refreshDashboard(false);
       }
 
-      setReportSelectedToModal("");
-      handleModal();
+      closeObservationModal();
+      clearObservationText(deliveryId);
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao salvar observação.");
     } finally {
-      stopUpdatingDelivery(deliveryId);
+      setObservationSavingId(null);
     }
   }
   async function handlerNextStep(report: Report) {
@@ -763,8 +777,7 @@ export function Dashboard() {
       report.status === StatusDelivery.AWAITING_CODE
     ) {
       if (!report.destinationObservationConfirmed) {
-        setReportSelectedToModal(report.id);
-        handleModal();
+        openObservationModal(report.id, report.destinationObservation?.trim() || "");
         return;
       }
 
@@ -830,7 +843,6 @@ export function Dashboard() {
         delete nextState[report.id];
         return nextState;
       });
-      setReportSelectedToModal("");
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao atualizar pedido.");
     } finally {
@@ -1101,10 +1113,19 @@ export function Dashboard() {
   return (
     <Container>
       <BaseModal
-        isVisible={isVisible}
-        handleClose={handleModal}
-        onConfirmObservation={(text) => {
-          void handleConfirmObservation(text);
+        isVisible={Boolean(observationModalDeliveryId)}
+        handleClose={closeObservationModal}
+        observation={observationModalDeliveryId ? (observationTextByDeliveryId[observationModalDeliveryId] || "") : ""}
+        isSaving={Boolean(observationModalDeliveryId && observationSavingId === observationModalDeliveryId)}
+        onObservationChange={(text) => {
+          if (!observationModalDeliveryId) return;
+          setObservationTextByDeliveryId((state) => ({
+            ...state,
+            [observationModalDeliveryId]: text,
+          }));
+        }}
+        onConfirmObservation={() => {
+          void handleConfirmObservation();
         }}
       />
 
@@ -1157,7 +1178,6 @@ export function Dashboard() {
                 statusFilter={status}
                 permission={permission}
                 selectedMotoboy={getSelectedMotoboy(report)}
-                reportSelectedToModal={reportSelectedToModal}
                 motoboys={motoboys}
                 isUpdating={isDeliveryUpdating(report.id)}
                 onSelectMotoboy={handleSelectMotoboy}

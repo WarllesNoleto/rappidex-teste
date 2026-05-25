@@ -52,6 +52,7 @@ type DeliveryUpdateData = {
   status?: string;
   motoboyId?: string;
   observation?: string;
+  destinationObservation?: string;
   deliveryCode?: string;
 };
 
@@ -652,11 +653,7 @@ export function Dashboard() {
   function getObservationPatch() {
     const trimmedObservation = observation.trim();
 
-    if (!trimmedObservation || trimmedObservation === "Sem observação.") {
-      return {};
-    }
-
-    return { observation: trimmedObservation };
+    return { destinationObservation: trimmedObservation || "Sem observação." };
   }
 
   async function handlerNextStep(report: Report) {

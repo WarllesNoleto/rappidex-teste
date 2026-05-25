@@ -144,32 +144,27 @@ export function Reports() {
     }
 
     function getObservation(report: Report) {
-        const observation = report.observation?.trim()
+        const observation = report.observation?.trim() || ''
+        const destinationObservation = report.destinationObservation?.trim() || 'Sem observação.'
         const isIfoodOrder = Boolean(
-            report.isIfoodOrder || observation?.includes('Pedido iFood #')
+            report.isIfoodOrder ||
+            observation.includes('Pedido iFood #') ||
+            observation.includes('Pedido iFood')
         )
 
-        if (isIfoodOrder && observation) {
-            const normalizedParts = observation
-                .split('|')
-                .map(part => part.trim())
-                .filter(Boolean)
-
-            if (report.status === 'CANCELADO' || report.status === 'FINALIZADO') {
-                return normalizedParts.join(' | ')
-            }
-
-            const finalStatusParts = normalizedParts.filter(
-                part =>
-                    part.startsWith('Pedido iFood #') ||
-                    part.startsWith('Endereço:')
-            )
-
-            return finalStatusParts.join(' | ') || observation
-        }
-
         if (isIfoodOrder) {
-            return 'Pedido iFood importado automaticamente pelo Developer Portal.'
+            const hasIfoodMarker =
+                observation.includes('Pedido iFood #') || observation.includes('Pedido iFood')
+            const ifoodBase = hasIfoodMarker
+                ? observation
+                : 'Pedido iFood importado automaticamente'
+            const addressPart = report.clientLocation?.trim()
+                ? `Endereço: ${report.clientLocation.trim()}`
+                : ''
+
+            return [ifoodBase, addressPart, `Observação destino: ${destinationObservation}`]
+                .filter(Boolean)
+                .join(' | ')
         }
 
         return observation || ''

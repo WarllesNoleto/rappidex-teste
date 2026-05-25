@@ -17,4 +17,7 @@ export interface User {
   aiqfomeEnabled?: boolean;
   aiqfomeStoreId?: string;
   aiqfomeWebhookSecret?: string;
+  aiqfomeAccessToken?: string;
+  aiqfomeTokenExpiresAt?: string;
+  aiqfomeIntegrationStatus?: "not_configured" | "connected" | "error";
 }

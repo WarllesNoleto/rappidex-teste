@@ -29,6 +29,8 @@ import {
   HistoryList,
   LoadMoreButton,
   EmptyState,
+  OAuthButton,
+  StatusBadge,
 } from './styles.ts';
 
 export function IfoodClients() {
@@ -241,6 +243,20 @@ export function IfoodClients() {
     }
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
 
+
+
+  async function handleConnectAiqfome(companyId: string) {
+    const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
+    window.open(`${baseUrl}/aiqfome/oauth/start/${companyId}`, '_blank');
+  }
+
+  function getAiqfomeStatus(shopkeeper: User) {
+    if (!shopkeeper.aiqfomeEnabled || !shopkeeper.aiqfomeAccessToken) return 'Não conectado';
+    if (shopkeeper.aiqfomeTokenExpiresAt && new Date(shopkeeper.aiqfomeTokenExpiresAt).getTime() <= Date.now()) return 'Token expirado';
+    if (shopkeeper.aiqfomeIntegrationStatus === 'error') return 'Erro na integração';
+    return 'Conectado';
+  }
+
   async function handleLoadMoreShopkeepers() {
     if (loading || loadingMore || !hasMoreShopkeepers) {
       return;
@@ -347,6 +363,17 @@ export function IfoodClients() {
                     placeholder="Ex.: 123456"
                     value={shopkeeper.aiqfomeStoreId || ''}
                   />
+                </div>
+
+                <div>
+                  <StatusBadge>Status aiqfome: {getAiqfomeStatus(shopkeeper)}</StatusBadge>
+                  <OAuthButton
+                    disabled={!shopkeeper.aiqfomeEnabled}
+                    onClick={() => handleConnectAiqfome(shopkeeper.id)}
+                    type="button"
+                  >
+                    Conectar aiqfome
+                  </OAuthButton>
                 </div>
 
                 <div>

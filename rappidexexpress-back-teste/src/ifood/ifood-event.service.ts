@@ -5,13 +5,6 @@ import { IfoodEventEntity } from '../database/entities';
 
 @Injectable()
 export class IfoodEventService {
-  private static readonly IFOOD_IMPORT_EVENT_CODES = [
-    'CONFIRMED',
-    'ORDER_CONFIRMED',
-    'PREPARATION_STARTED',
-    'SEPARATION_STARTED',
-    'DISPATCHED',
-  ];
   constructor(
     @InjectRepository(IfoodEventEntity)
     private readonly ifoodEventRepository: MongoRepository<IfoodEventEntity>,
@@ -41,12 +34,10 @@ export class IfoodEventService {
     const events = await this.ifoodEventRepository.find({
       where: {
         $or: [
-          ...IfoodEventService.IFOOD_IMPORT_EVENT_CODES.map((code) => ({
-            code,
-          })),
-          ...IfoodEventService.IFOOD_IMPORT_EVENT_CODES.map((fullCode) => ({
-            fullCode,
-          })),
+          { code: 'RTP' },
+          { fullCode: 'READY_TO_PICKUP' },
+          { code: 'DSP' },
+          { fullCode: 'DISPATCHED' },
         ],
       } as any,
       order: { processedAt: 'DESC' },

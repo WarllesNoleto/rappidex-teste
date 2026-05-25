@@ -60,7 +60,6 @@ type DeliveryUpdateData = {
 type DeliveryCountsDelta = {
   pending: number;
   assigned: number;
-  waitingRelease: number;
 };
 
 type DeliveryCardProps = {
@@ -423,7 +422,6 @@ export function Dashboard() {
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [assignedCount, setAssignedCount] = useState<number>(0);
-  const [waitingReleaseCount, setWaitingReleaseCount] = useState<number>(0);
   const [updatingDeliveryIds, setUpdatingDeliveryIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -537,9 +535,6 @@ export function Dashboard() {
     const nextStatus = nextReport?.status;
 
     return {
-      waitingRelease:
-        (previousStatus === StatusDelivery.AWAITING_RELEASE ? -1 : 0) +
-        (nextStatus === StatusDelivery.AWAITING_RELEASE ? 1 : 0),
       pending:
         (previousStatus === StatusDelivery.PENDING ? -1 : 0) +
         (nextStatus === StatusDelivery.PENDING ? 1 : 0),
@@ -621,12 +616,10 @@ export function Dashboard() {
           : [];
         const nextPendingCount = Number(countsResponse.data?.pending) || 0;
         const nextAssignedCount = Number(countsResponse.data?.assigned) || 0;
-        const nextWaitingReleaseCount = Number(countsResponse.data?.waitingRelease) || 0;
 
         setReports(rawReports);
         setPendingCount(nextPendingCount);
         setAssignedCount(nextAssignedCount);
-        setWaitingReleaseCount(nextWaitingReleaseCount);
       } catch (error: any) {
         if (requestId !== refreshRequestIdRef.current) {
           return;
@@ -730,26 +723,6 @@ export function Dashboard() {
         status: newStatus,
         motoboyId: selectedMotoboy,
       };
-    } else if (report.status === StatusDelivery.AWAITING_RELEASE) {
-      try {
-        startUpdatingDelivery(report.id);
-        const response = await api.put(`/delivery/${report.id}/release`);
-        const updatedReport = normalizeDeliveryResponse(response.data);
-        if (updatedReport) {
-          const delta = getCountDelta(report, updatedReport);
-          setWaitingReleaseCount((state) => Math.max(0, state + delta.waitingRelease));
-          setPendingCount((state) => Math.max(0, state + delta.pending));
-          setAssignedCount((state) => Math.max(0, state + delta.assigned));
-          updateReportInListLocally(updatedReport);
-        } else {
-          await refreshDashboard(false);
-        }
-      } catch (error: any) {
-        alert(error.response?.data?.message || "Erro ao liberar pedido.");
-      } finally {
-        stopUpdatingDelivery(report.id);
-      }
-      return;
     } else if (report.status === StatusDelivery.ONCOURSE) {
       newStatus = StatusDelivery.ARRIVED_AT_STORE;
       data = {
@@ -830,7 +803,6 @@ export function Dashboard() {
       );
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
-      setWaitingReleaseCount((state) => Math.max(0, state + delta.waitingRelease));
       updateReportInListLocally(updatedReport);
       alert(`Solicitação avançada para o passo ${newStatus}`);
       setDeliveryCodeByReport((state) => {
@@ -870,7 +842,6 @@ export function Dashboard() {
         const delta = getCountDelta(report, { ...report, ...updatedReport });
         setPendingCount((state) => Math.max(0, state + delta.pending));
         setAssignedCount((state) => Math.max(0, state + delta.assigned));
-        setWaitingReleaseCount((state) => Math.max(0, state + delta.waitingRelease));
         updateReportInListLocally(updatedReport);
       } else {
         await refreshDashboard(false);
@@ -905,7 +876,6 @@ export function Dashboard() {
       const delta = getCountDelta(report, { ...report, status: StatusDelivery.CANCELED });
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
-      setWaitingReleaseCount((state) => Math.max(0, state + delta.waitingRelease));
       setReports((state) => state.filter((item) => item.id !== report.id));
       alert("O pedido foi cancelado com sucesso.");
     } catch (error: any) {
@@ -927,7 +897,6 @@ export function Dashboard() {
       const delta = getCountDelta(report, undefined);
       setPendingCount((state) => Math.max(0, state + delta.pending));
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
-      setWaitingReleaseCount((state) => Math.max(0, state + delta.waitingRelease));
       setReports((state) => state.filter((item) => item.id !== report.id));
       alert("Solicitação apagada com sucesso.");
     } catch (error: any) {
@@ -940,9 +909,6 @@ export function Dashboard() {
   function getButtonText(currentStatus: string, report?: Report) {
     if (StatusDelivery.PENDING === currentStatus) {
       return "Atribuir";
-    }
-    if (StatusDelivery.AWAITING_RELEASE === currentStatus) {
-      return "Liberar produto";
     }
 
     if (StatusDelivery.ONCOURSE === currentStatus) {
@@ -1120,15 +1086,6 @@ export function Dashboard() {
       />
 
       <ContainerButtons>
-        {permission !== UserType.MOTOBOY && (
-          <BaseButton
-            typeReport={status === StatusDelivery.AWAITING_RELEASE}
-            onClick={() => setStatus(StatusDelivery.AWAITING_RELEASE)}
-          >
-            Aguardando liberação
-            <Flag>{waitingReleaseCount}</Flag>
-          </BaseButton>
-        )}
         <BaseButton
           typeReport={status === StatusDelivery.PENDING}
           onClick={() => setStatus(StatusDelivery.PENDING)}

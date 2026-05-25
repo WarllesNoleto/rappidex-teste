@@ -201,13 +201,4 @@ export class DeliveryController {
   ) {
     return await this.deliveryService.markArrivedAtStore(param.deliveryId, user);
   }
-
-  @Put(':deliveryId/release')
-  @UseGuards(JwtAuthGuard)
-  async releaseDelivery(
-    @Param() param: DeliveryParamsDto,
-    @User() user: UserRequest,
-  ) {
-    return await this.deliveryService.releaseDelivery(param.deliveryId, user);
-  }
 }

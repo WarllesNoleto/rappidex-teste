@@ -554,20 +554,14 @@ export class DeliveryService implements OnModuleInit {
 
     const assignedWhere = this.buildAssignedDeliveriesWhere(userForRequest);
 
-    const waitingReleaseWhere = this.buildDeliveriesWhere(userForRequest, {
-      status: StatusDelivery.AWAITING_RELEASE,
-    } as ListDeliveriesQueryDTO);
-
-    const [pending, assigned, waitingRelease] = await Promise.all([
+    const [pending, assigned] = await Promise.all([
       this.deliveryRepository.count(pendingWhere),
       this.deliveryRepository.count(assignedWhere),
-      this.deliveryRepository.count(waitingReleaseWhere),
     ]);
 
     return {
       pending,
       assigned,
-      waitingRelease,
     };
   }
 
@@ -577,11 +571,7 @@ export class DeliveryService implements OnModuleInit {
       isActive: true,
       motoboy: { $ne: null },
       status: {
-        $nin: [
-          StatusDelivery.FINISHED,
-          StatusDelivery.CANCELED,
-          StatusDelivery.AWAITING_RELEASE,
-        ],
+        $nin: [StatusDelivery.FINISHED, StatusDelivery.CANCELED],
       },
     };
 
@@ -895,42 +885,6 @@ export class DeliveryService implements OnModuleInit {
     }
 
     return DeliveryResult.fromEntity(deliveryUpdated);
-  }
-
-  async releaseDelivery(deliveryId: string, user: UserRequest) {
-    const [userFinded, deliveryFinded] = await Promise.all([
-      this.findOneUserById(user.id),
-      this.deliveryRepository.findOneByOrFail({ id: deliveryId }),
-    ]);
-
-    if (
-      ![UserType.ADMIN, UserType.SUPERADMIN, UserType.SHOPKEEPER, UserType.SHOPKEEPERADMIN].includes(
-        userFinded.type,
-      )
-    ) {
-      throw new UnauthorizedException('Você não tem permissão para liberar pedidos.');
-    }
-
-    if (deliveryFinded.status !== StatusDelivery.AWAITING_RELEASE) {
-      throw new BadRequestException('Entrega não está aguardando liberação.');
-    }
-
-    const updated = await this.deliveryRepository.save(
-      this.buildPersistableDelivery({
-        ...deliveryFinded,
-        status: StatusDelivery.PENDING,
-        releasedAt: addHours(new Date(), -3),
-        releasedBy: userFinded.id,
-        updatedAt: addHours(new Date(), -3),
-      }),
-    );
-
-    this.ordersGateway.emitDeliveryUpdated(
-      DeliveryResult.fromEntity(updated),
-      updated.establishment?.cityId ?? deliveryFinded.establishment?.cityId,
-    );
-
-    return DeliveryResult.fromEntity(updated);
   }
 
   async createDelivery(
@@ -1639,10 +1593,7 @@ export class DeliveryService implements OnModuleInit {
         where['status'] = { $in: selectedStatuses };
 
         // Se tiver um momento em que for necessario que o motoboy solicite todos os pedidos, ele vai conseguir ver tudo
-        if (
-          !selectedStatuses.includes(StatusDelivery.PENDING) &&
-          !selectedStatuses.includes(StatusDelivery.AWAITING_RELEASE)
-        ) {
+        if (!selectedStatuses.includes(StatusDelivery.PENDING)) {
           where['motoboy.id'] = userForRequest.id;
         }
       } else {

@@ -617,10 +617,13 @@ export function Dashboard() {
           : [];
         const nextPendingCount = Number(countsResponse.data?.pending) || 0;
         const nextAssignedCount = Number(countsResponse.data?.assigned) || 0;
+        const nextWaitingReleaseCount =
+          Number(countsResponse.data?.waitingRelease) || 0;
 
         setReports(rawReports);
         setPendingCount(nextPendingCount);
         setAssignedCount(nextAssignedCount);
+        setWaitingReleaseCount(nextWaitingReleaseCount);
       } catch (error: any) {
         if (requestId !== refreshRequestIdRef.current) {
           return;

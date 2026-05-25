@@ -132,4 +132,31 @@ export class DeliveryEntity {
 
   @Column({ default: false })
   ifoodArrivedAtDestinationSynced?: boolean;
+
+  @Column({ nullable: true })
+  ifoodImportedAt?: Date;
+
+  @Column({ nullable: true })
+  ifoodOrderId?: string;
+
+  @Column({ nullable: true })
+  ifoodDisplayId?: string;
+
+  @Column({ nullable: true })
+  ifoodMerchantId?: string;
+
+  @Column({ nullable: true })
+  ifoodLastEventCode?: string;
+
+  @Column({ nullable: true })
+  ifoodLastEventFullCode?: string;
+
+  @Column({ nullable: true })
+  ifoodConfirmedAt?: Date;
+
+  @Column({ nullable: true })
+  releasedAt?: Date;
+
+  @Column({ nullable: true })
+  releasedBy?: string;
 }

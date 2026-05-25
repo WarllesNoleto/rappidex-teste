@@ -7,13 +7,14 @@ export class IfoodOrderLinkEntity {
   internalId: ObjectId;
 
   @Column()
-  @Index({ unique: true })
+  @Index('IDX_IFOOD_ORDER_ID_MERCHANT_UNIQUE', { unique: true })
   ifoodOrderId: string;
 
   @Column()
   ifoodDisplayId: string;
 
   @Column()
+  @Index('IDX_IFOOD_ORDER_ID_MERCHANT_UNIQUE', { unique: true })
   merchantId: string;
 
   @Column()

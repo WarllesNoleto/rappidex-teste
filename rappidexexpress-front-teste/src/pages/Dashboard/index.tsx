@@ -717,7 +717,11 @@ export function Dashboard() {
     let newStatus = "";
 
     if (report.status === StatusDelivery.AWAITING_RELEASE) {
-      await api.put(`/delivery/${report.id}/release`);
+      const motoboyId = selectedMotoboy || report.motoboy?.id || null;
+
+      await api.put(`/delivery/${report.id}/release`, {
+        motoboyId,
+      });
       return refreshDashboard(false);
     }
 

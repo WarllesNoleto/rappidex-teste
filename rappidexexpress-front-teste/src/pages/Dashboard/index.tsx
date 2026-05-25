@@ -62,16 +62,6 @@ type DeliveryCountsDelta = {
   assigned: number;
 };
 
-const isIfoodOrderReport = (report?: Partial<Report> | null): boolean =>
-  Boolean(
-    report?.isIfoodOrder ||
-      report?.ifoodOrderId ||
-      report?.ifoodDisplayId ||
-      report?.ifoodMerchantId ||
-      report?.observation?.includes("Pedido iFood #") ||
-      report?.observation?.includes("Pedido iFood"),
-  );
-
 type DeliveryCardProps = {
   report: Report;
   statusFilter: string;
@@ -193,7 +183,10 @@ const DeliveryCard = memo(
       return "Aguardando motoboy";
     };
 
-    const isIfoodOrder = isIfoodOrderReport(report);
+    const isIfoodOrder =
+      Boolean(report.isIfoodOrder) ||
+      report.observation?.includes("Pedido iFood #") ||
+      report.observation?.includes("Pedido iFood");
     const ifoodOrderNumber =
       getIfoodOrderNumber(report.observation) ||
       (report as any).ifoodDisplayId ||
@@ -770,7 +763,10 @@ export function Dashboard() {
 
       newStatus = StatusDelivery.FINISHED;
 
-      const isIfoodOrder = isIfoodOrderReport(report);
+      const isIfoodOrder =
+        Boolean(report.isIfoodOrder) ||
+        report.observation?.includes("Pedido iFood #") ||
+        report.observation?.includes("Pedido iFood");
       let deliveryCode = "";
 
       if (isIfoodOrder) {
@@ -951,7 +947,10 @@ export function Dashboard() {
         return "Observação";
       }
 
-      const isIfoodOrder = isIfoodOrderReport(report);
+      const isIfoodOrder =
+        Boolean(report?.isIfoodOrder) ||
+        report?.observation?.includes("Pedido iFood #") ||
+        report?.observation?.includes("Pedido iFood");
       return isIfoodOrder ? "Confirmar código" : "Finalizar";
     }
 

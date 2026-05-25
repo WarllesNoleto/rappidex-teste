@@ -1,11 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
 import axios from 'axios';
-import { UserEntity } from '../database/entities';
+import { DeliveryEntity, UserEntity } from '../database/entities';
 import { AiqfomeAuthService } from './aiqfome-auth.service';
+import { UserRequest } from '../shared/interfaces';
+import { UserType } from '../shared/constants/enums.constants';
+import { AiqfomeOrderMapperService } from './aiqfome-order-mapper.service';
+import { OrdersGateway } from '../gateway/orders.gateway';
+import { DeliveryResult } from '../delivery/dto';
 
 @Injectable()
 export class AiqfomeService {
@@ -16,9 +21,14 @@ export class AiqfomeService {
     private readonly config: ConfigService,
     @InjectRepository(UserEntity)
     private readonly userRepository: MongoRepository<UserEntity>,
+    @InjectRepository(DeliveryEntity)
+    private readonly deliveryRepository: MongoRepository<DeliveryEntity>,
+    private readonly mapper: AiqfomeOrderMapperService,
+    private readonly gateway: OrdersGateway,
   ) {}
 
-  oauthStart(companyId: string) {
+  async oauthStart(companyId: string, requestUser: UserRequest) {
+    this.ensureCompanyAccess(companyId, requestUser);
     return this.authService.buildOAuthUrlByCompany(companyId);
   }
 
@@ -171,6 +181,26 @@ export class AiqfomeService {
     if (!order) {
       return { success: false, message: 'Pedido aiqfome não encontrado ou não disponível na API V2' };
     }
-    return { success: true, order };
+    const existing = await this.deliveryRepository.findOneBy({
+      $or: [
+        { aiqfomeOrderId: orderId, aiqfomeStoreId: String(c.aiqfomeStoreId || '').trim() } as any,
+        { externalOrderId: orderId, externalPlatform: 'aiqfome' } as any,
+      ] as any,
+    } as any);
+    const mapped = this.mapper.toDelivery(order, c, orderId, String(c.aiqfomeStoreId || '').trim()) as any;
+    const saved = await this.deliveryRepository.save(existing ? { ...existing, ...mapped, id: existing.id } : mapped);
+    if (existing) {
+      this.gateway.emitDeliveryUpdated(DeliveryResult.fromEntity(saved as any), c.cityId);
+    } else {
+      this.gateway.emitDeliveryCreated(DeliveryResult.fromEntity(saved as any), c.cityId);
+    }
+    return { success: true, deliveryId: saved.id, updated: Boolean(existing) };
+  }
+
+  private ensureCompanyAccess(companyId: string, requestUser: UserRequest) {
+    const type = requestUser.type as UserType;
+    if ([UserType.SHOPKEEPER, UserType.SHOPKEEPERADMIN].includes(type) && requestUser.id !== companyId) {
+      throw new ForbiddenException('Você não tem permissão para acessar outra empresa.');
+    }
   }
 }

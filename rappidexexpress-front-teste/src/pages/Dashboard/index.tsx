@@ -342,6 +342,7 @@ const DeliveryCard = memo(
               Código de entrega iFood:
             </label>
             <input
+              autoComplete="off"
               id={`delivery-code-${report.id}`}
               type="text"
               value={deliveryCode}

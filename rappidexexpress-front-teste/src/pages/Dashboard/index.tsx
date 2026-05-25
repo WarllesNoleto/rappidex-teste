@@ -711,7 +711,7 @@ export function Dashboard() {
       return;
     }
 
-    const selectedMotoboy = getSelectedMotoboy(report);
+    const selectedMotoboy = getSelectedMotoboy(report)?.trim();
 
     let data: DeliveryUpdateData | null = null;
     let newStatus = "";
@@ -832,7 +832,7 @@ export function Dashboard() {
       return;
     }
 
-    const selectedMotoboy = getSelectedMotoboy(report);
+    const selectedMotoboy = getSelectedMotoboy(report)?.trim();
 
     if (!selectedMotoboy) {
       alert("Selecione o motoboy");

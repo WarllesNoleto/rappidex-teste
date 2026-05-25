@@ -734,8 +734,7 @@ export class DeliveryService implements OnModuleInit {
 
     if (normalizedMotoboyId && !deliveryData.status) {
       const canAutoAssignStatus =
-        deliveryFinded.status === StatusDelivery.PENDING ||
-        deliveryFinded.status === StatusDelivery.AWAITING_RELEASE;
+        deliveryFinded.status === StatusDelivery.PENDING;
 
       if (canAutoAssignStatus) {
         changedDelivery.status = StatusDelivery.ONCOURSE;

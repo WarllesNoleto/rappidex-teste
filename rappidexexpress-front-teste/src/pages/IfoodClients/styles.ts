@@ -160,3 +160,20 @@ export const EmptyState = styled.p`
   text-align: center;
   margin-top: 1rem;
 `;
+
+
+export const OAuthButton = styled.button`
+  border: 0;
+  border-radius: 8px;
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
+  font-weight: 700;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+`;
+
+export const StatusBadge = styled.div`
+  font-size: 0.85rem;
+  color: ${(props) => props.theme['gray-200']};
+  margin-bottom: 0.5rem;
+`;

@@ -422,6 +422,7 @@ export function Dashboard() {
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [assignedCount, setAssignedCount] = useState<number>(0);
+  const [waitingReleaseCount, setWaitingReleaseCount] = useState<number>(0);
   const [updatingDeliveryIds, setUpdatingDeliveryIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -712,6 +713,11 @@ export function Dashboard() {
     let data: DeliveryUpdateData | null = null;
     let newStatus = "";
 
+    if (report.status === StatusDelivery.AWAITING_RELEASE) {
+      await api.put(`/delivery/${report.id}/release`);
+      return refreshDashboard(false);
+    }
+
     if (report.status === StatusDelivery.PENDING) {
       if (!selectedMotoboy) {
         alert("Selecione o motoboy");
@@ -907,6 +913,9 @@ export function Dashboard() {
   }
 
   function getButtonText(currentStatus: string, report?: Report) {
+    if (StatusDelivery.AWAITING_RELEASE === currentStatus) {
+      return "Liberar produto";
+    }
     if (StatusDelivery.PENDING === currentStatus) {
       return "Atribuir";
     }
@@ -1086,6 +1095,16 @@ export function Dashboard() {
       />
 
       <ContainerButtons>
+        {permission !== UserType.MOTOBOY && (
+          <BaseButton
+            typeReport={status === StatusDelivery.AWAITING_RELEASE}
+            onClick={() => setStatus(StatusDelivery.AWAITING_RELEASE)}
+          >
+            Aguardando liberação
+            <Flag>{waitingReleaseCount}</Flag>
+          </BaseButton>
+        )}
+
         <BaseButton
           typeReport={status === StatusDelivery.PENDING}
           onClick={() => setStatus(StatusDelivery.PENDING)}
@@ -1095,7 +1114,10 @@ export function Dashboard() {
         </BaseButton>
 
         <BaseButton
-          typeReport={status !== StatusDelivery.PENDING}
+          typeReport={
+            status !== StatusDelivery.PENDING &&
+            status !== StatusDelivery.AWAITING_RELEASE
+          }
           onClick={() =>
             setStatus(
               `${StatusDelivery.ONCOURSE},${StatusDelivery.ARRIVED_AT_STORE},${StatusDelivery.COLLECTED},${StatusDelivery.ARRIVED_AT_DESTINATION},${StatusDelivery.AWAITING_CODE}`,

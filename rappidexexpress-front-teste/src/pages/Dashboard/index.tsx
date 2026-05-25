@@ -519,13 +519,16 @@ export function Dashboard() {
     if (!report) return false;
 
     const statusValue = report.status;
-    const hasMotoboy = Boolean(report.motoboyId);
     const isActiveDelivery = report.isActive !== false;
-    const isFinishedOrCanceled =
-      statusValue === StatusDelivery.FINISHED ||
-      statusValue === StatusDelivery.CANCELED;
+    const assignedStatuses: StatusDelivery[] = [
+      StatusDelivery.ONCOURSE,
+      StatusDelivery.ARRIVED_AT_STORE,
+      StatusDelivery.COLLECTED,
+      StatusDelivery.ARRIVED_AT_DESTINATION,
+      StatusDelivery.AWAITING_CODE,
+    ];
 
-    return hasMotoboy && isActiveDelivery && !isFinishedOrCanceled;
+    return isActiveDelivery && Boolean(statusValue && assignedStatuses.includes(statusValue as StatusDelivery));
   }
 
   function getCountDelta(
@@ -717,11 +720,15 @@ export function Dashboard() {
     let newStatus = "";
 
     if (report.status === StatusDelivery.AWAITING_RELEASE) {
-      const motoboyId = selectedMotoboy || report.motoboy?.id || null;
+      const motoboyId =
+        selectedMotoboyByReport[report.id] ||
+        report.motoboyId ||
+        "";
 
-      await api.put(`/delivery/${report.id}/release`, {
-        motoboyId,
-      });
+      await api.put(
+        `/delivery/${report.id}/release`,
+        motoboyId ? { motoboyId } : {},
+      );
       return refreshDashboard(false);
     }
 

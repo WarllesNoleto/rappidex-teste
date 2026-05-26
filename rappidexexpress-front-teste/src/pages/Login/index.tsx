@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useContext, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as zod from 'zod'
 import { useForm } from 'react-hook-form'
 import { SignIn } from 'phosphor-react'
@@ -25,6 +25,7 @@ type NewLoginFormData = zod.infer<typeof newLoginFormValidationSchema>
 export function Login() {
     const { login } = useContext(DeliveryContext)
     const navigate = useNavigate()
+    const location = useLocation()
 
     const newLoginFormData = useForm<NewLoginFormData>({
         resolver: zodResolver(newLoginFormValidationSchema),
@@ -75,7 +76,9 @@ export function Login() {
             await runOneSignal(data.user, response.data.token)
 
             reset()
-            navigate('/')
+            const returnPath = String((location.state as { from?: string } | null)?.from || '').trim()
+            const safeReturnPath = returnPath.startsWith('/') ? returnPath : '/'
+            navigate(safeReturnPath)
         } catch (error: any) {
             alert(error.response?.data?.message ?? 'Erro ao fazer login.')
         } finally {

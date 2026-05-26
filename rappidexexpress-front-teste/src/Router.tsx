@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 
 import { DeliveryContext } from './context/DeliveryContext'
 import api from './services/api'
@@ -24,6 +24,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy'
 export function Router() {
   const { token, permission } = useContext(DeliveryContext)
   const [aiqfomeEnabled, setAiqfomeEnabled] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     if (!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') || !token) return
@@ -36,8 +37,15 @@ export function Router() {
     <Routes>
       <Route path="/termos-de-uso" element={<TermsOfUse />} />
       <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
-      { 
-      !token ? <Route path="/" element={<Login />} /> :
+      {!token ? (
+        <>
+          <Route path="/" element={<Login />} />
+          <Route
+            path="*"
+            element={<Navigate to="/" replace state={{ from: `${location.pathname}${location.search}` }} />}
+          />
+        </>
+      ) : (
         <Route path="/" element={<DefaultLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/relatorios" element={<Reports />} />
@@ -62,7 +70,7 @@ export function Router() {
             <Route path="/cidades" element={<Cities />} />
           )}
         </Route>
-      }
+      )}
     </Routes>
   )
-  }
+}

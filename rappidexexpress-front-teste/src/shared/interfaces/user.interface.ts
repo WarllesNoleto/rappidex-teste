@@ -2,6 +2,12 @@ export interface User {
   id: string;
   isActive: boolean;
   ifoodMerchantId?: string;
+  ifoodMerchants?: Array<{
+    merchantId: string;
+    name: string;
+    enabled: boolean;
+    pickupAddress?: string;
+  }>;
   ifoodClientId?: string;
   location: string;
   name: string;
@@ -15,11 +21,4 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
-  aiqfomeEnabled?: boolean;
-  aiqfomeStoreId?: string;
-  aiqfomeIntegrationStatus?: string;
-  aiqfomeTokenExpiresAt?: string;
-  aiqfomeConnected?: boolean;
-  hasAiqfomeAccessToken?: boolean;
 }
-

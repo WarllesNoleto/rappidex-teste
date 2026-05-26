@@ -32,7 +32,7 @@ import {
 } from './styles.ts';
 
 export function IfoodClients() {
-  const { token, permission } = useContext(DeliveryContext);
+  const { token } = useContext(DeliveryContext);
   api.defaults.headers.Authorization = `Bearer ${token}`;
 
   const [loading, setLoading] = useState(true);
@@ -47,22 +47,18 @@ export function IfoodClients() {
   const [isSearching, setIsSearching] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [pendingAuthorizationId, setPendingAuthorizationId] = useState('');
-  const [syncOrderIdByUser, setSyncOrderIdByUser] = useState<Record<string, string>>({});
-  const isShopkeeperView = permission === 'shopkeeper' || permission === 'shopkeeperadmin';
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    if (!normalizedSearch || isShopkeeperView) {
+    if (!normalizedSearch) {
       return shopkeepers;
     }
 
     return shopkeepers.filter((shopkeeper) =>
       (shopkeeper.name || '').toLowerCase().includes(normalizedSearch),
     );
-  }, [isShopkeeperView, shopkeepers, searchTerm]);
+  }, [shopkeepers, searchTerm]);
 
   const ITEMS_PER_PAGE = 200;
 
@@ -137,13 +133,36 @@ export function IfoodClients() {
     );
   }
 
-  async function handleSaveIfoodConfig(shopkeeper: User) {
+  function resolveLegacyMerchantId(merchantId: string, merchants: User['ifoodMerchants'] = []) {
+    const normalizedLegacyMerchantId = String(merchantId || '').trim();
+    if (normalizedLegacyMerchantId) {
+      return normalizedLegacyMerchantId;
+    }
+
+    const firstActiveMerchantId = (Array.isArray(merchants) ? merchants : [])
+      .find((merchant) => merchant?.enabled !== false && String(merchant?.merchantId || '').trim())
+      ?.merchantId;
+
+    return String(firstActiveMerchantId || '').trim();
+  }
+
+  async function handleSave(shopkeeper: User) {
     if (savingUser) {
       return;
     }
 
-    const merchantId = (shopkeeper.ifoodMerchantId || '').trim();
-    if (shopkeeper.useIfoodIntegration && !merchantId) {
+    const merchants = Array.isArray(shopkeeper.ifoodMerchants)
+      ? shopkeeper.ifoodMerchants
+          .map((merchant) => ({
+            ...merchant,
+            merchantId: String(merchant.merchantId || '').trim(),
+            name: String(merchant.name || '').trim(),
+            pickupAddress: String(merchant.pickupAddress || '').trim(),
+          }))
+          .filter((merchant) => merchant.merchantId)
+      : [];
+    const merchantId = resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', merchants);
+    if (shopkeeper.useIfoodIntegration && !merchantId && merchants.length === 0) {
       alert('Informe o Merchant ID para ativar a integração iFood.');
       return;
     }
@@ -157,6 +176,7 @@ export function IfoodClients() {
           Boolean(shopkeeper.useIfoodIntegration) &&
           Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
+        ifoodMerchants: merchants,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
         await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
@@ -168,40 +188,6 @@ export function IfoodClients() {
       }
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
-    } finally {
-      setSavingUser('');
-    }
-  }
-
-  async function handleSaveAiqfomeConfig(shopkeeper: User) {
-    if (savingUser) {
-      return;
-    }
-
-    const aiqfomeEnabled = Boolean(shopkeeper.aiqfomeEnabled);
-    const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
-
-    if (aiqfomeEnabled && !aiqfomeStoreId) {
-      alert('Informe o ID da loja aiqfome.');
-      return;
-    }
-
-    setSavingUser(shopkeeper.user);
-
-    try {
-      const response = await api.put(`/aiqfome/config/${shopkeeper.id}`, {
-        aiqfomeEnabled,
-        aiqfomeStoreId,
-      });
-
-      updateLocalUser(shopkeeper.id, {
-        aiqfomeEnabled: Boolean(response.data?.aiqfomeEnabled),
-        aiqfomeStoreId: String(response.data?.aiqfomeStoreId || '').trim(),
-        hasAiqfomeAccessToken: Boolean(response.data?.hasAiqfomeAccessToken),
-      });
-      alert('Configuração aiqfome salva com sucesso.');
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
     } finally {
       setSavingUser('');
     }
@@ -264,28 +250,7 @@ export function IfoodClients() {
   }
 
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const pendingId = String(query.get('aiqfomePending') || '').trim();
-    if (pendingId) setPendingAuthorizationId(pendingId);
-
-    async function bootstrap() {
-      const meResponse = await api.get('/user/myself');
-      const me = meResponse.data as User;
-      setCurrentUser(me);
-      if (me.type === 'shopkeeper' || me.type === 'shopkeeperadmin') {
-        setShopkeepers([me]);
-        setLoading(false);
-        return;
-      }
-      await loadShopkeepers();
-    }
-
-    bootstrap().catch(() => {
-      if (pendingId) {
-        alert('Faça login no Rappidex e abra este link novamente para concluir a integração aiqfome.');
-      }
-      setLoading(false);
-    });
+    loadShopkeepers();
   }, []);
 
   useEffect(() => {
@@ -298,111 +263,6 @@ export function IfoodClients() {
     }
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
 
-  async function handleAiqfomeConnect(companyId: string) {
-    const shopkeeper = shopkeepers.find((user) => user.id === companyId);
-    if (!shopkeeper?.aiqfomeEnabled) {
-      alert('Ative e salve a integração aiqfome antes de conectar.');
-      return;
-    }
-
-    if (!String(shopkeeper?.aiqfomeStoreId || '').trim()) {
-      alert('Informe e salve o ID da loja aiqfome antes de conectar.');
-      return;
-    }
-
-    try {
-      const statusResponse = await api.get(`/aiqfome/status/${companyId}`);
-      const backendEnabled = Boolean(statusResponse.data?.aiqfomeEnabled);
-      const backendStoreId = String(statusResponse.data?.aiqfomeStoreId || '').trim();
-
-      if (!backendEnabled) {
-        alert('Ative e salve a integração aiqfome antes de conectar.');
-        return;
-      }
-
-      if (!backendStoreId) {
-        alert('Informe e salve o ID da loja aiqfome antes de conectar.');
-        return;
-      }
-
-      updateLocalUser(companyId, {
-        aiqfomeEnabled: backendEnabled,
-        aiqfomeStoreId: backendStoreId,
-        hasAiqfomeAccessToken: Boolean(statusResponse.data?.hasAiqfomeAccessToken),
-      });
-
-      const response = await api.get(`/aiqfome/oauth/url/${companyId}`);
-      const authUrl = response.data?.authUrl;
-
-      if (!authUrl) {
-        alert('Não foi possível gerar o link de autorização do aiqfome.');
-        return;
-      }
-
-      window.location.href = authUrl;
-    } catch (error) {
-      console.error('[aiqfome] erro ao gerar URL OAuth', error);
-      alert((error as any)?.response?.data?.message || 'Não foi possível iniciar a integração com o aiqfome.');
-    }
-  }
-
-
-
-  async function handleCompletePendingAuthorization(shopkeeper?: User) {
-    if (!pendingAuthorizationId) return;
-    try {
-      const isAdmin = permission === 'admin' || permission === 'superadmin';
-      const companyId = isAdmin ? (shopkeeper?.id || currentUser?.id || '') : (currentUser?.id || '');
-      const payload = isAdmin ? { companyId } : {};
-
-      if (isAdmin && !companyId) {
-        alert('Selecione uma empresa para concluir a integração aiqfome.');
-        return;
-      }
-
-      await api.post(`/aiqfome/oauth/complete-pending/${pendingAuthorizationId}`, payload);
-      alert('Integração aiqfome concluída com sucesso.');
-
-      const url = new URL(window.location.href);
-      url.searchParams.delete('aiqfomePending');
-      window.history.replaceState({}, '', `${url.pathname}${url.search}`);
-      setPendingAuthorizationId('');
-
-      if (companyId) {
-        const statusResponse = await api.get(`/aiqfome/status/${companyId}`);
-        updateLocalUser(companyId, {
-          hasAiqfomeAccessToken: Boolean(statusResponse.data?.hasAiqfomeAccessToken),
-          aiqfomeIntegrationStatus: statusResponse.data?.aiqfomeIntegrationStatus,
-          aiqfomeTokenExpiresAt: statusResponse.data?.aiqfomeTokenExpiresAt,
-        });
-      }
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Não foi possível concluir a integração aiqfome.');
-    }
-  }
-
-
-  async function handleSyncAiqfomeOrder(shopkeeper: User) {
-    const orderId = String(syncOrderIdByUser[shopkeeper.id] || '').trim();
-    if (!orderId) {
-      alert('Informe o orderId real para sincronizar.');
-      return;
-    }
-    setSavingUser(shopkeeper.user);
-    try {
-      const response = await api.post(`/aiqfome/sync-order/${shopkeeper.id}/${encodeURIComponent(orderId)}`);
-      if (response.data?.success) {
-        alert('Pedido sincronizado com sucesso no Rappidex.');
-      } else {
-        alert(response.data?.message || 'Não foi possível sincronizar o pedido.');
-      }
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao sincronizar pedido aiqfome.');
-    } finally {
-      setSavingUser('');
-    }
-  }
-
   async function handleLoadMoreShopkeepers() {
     if (loading || loadingMore || !hasMoreShopkeepers) {
       return;
@@ -414,23 +274,17 @@ export function IfoodClients() {
   return (
     <Container>
       <Content>
-        <Title>{isShopkeeperView ? 'Integração aiqfome' : 'Empresas Cadastradas'}</Title>
+        <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          {isShopkeeperView
-            ? 'Conecte sua loja ao aiqfome para liberar a integração de pedidos.'
-            : 'Vincule cada lojista ao Merchant ID do iFood para permitir a importação dos pedidos corretamente.'}
+          Vincule cada lojista ao Merchant ID do iFood para permitir a importação
+          dos pedidos corretamente.
         </Subtitle>
-        {pendingAuthorizationId && (
-          <Subtitle>Encontramos uma autorização aiqfome pendente. Deseja concluir a integração com esta loja?</Subtitle>
-        )}
 
-        {!isShopkeeperView && (
-          <Input
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Pesquisar empresa por nome"
-            value={searchTerm}
-          />
-        )}
+        <Input
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Pesquisar empresa por nome"
+          value={searchTerm}
+        />
 
         {loading || isSearching ? (
           <LoadingContainer>
@@ -444,27 +298,6 @@ export function IfoodClients() {
             <Card key={shopkeeper.id}>
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
-              {isShopkeeperView ? (
-                <Actions>
-                  <SaveButton
-                    disabled={
-                      savingUser === shopkeeper.user ||
-                      !shopkeeper.aiqfomeEnabled ||
-                      !String(shopkeeper.aiqfomeStoreId || '').trim()
-                    }
-                    onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)}
-                    type="button"
-                  >
-                    {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
-                  </SaveButton>
-                  {pendingAuthorizationId && (
-                    <SaveButton onClick={() => handleCompletePendingAuthorization(shopkeeper)} type="button">
-                      Concluir integração aiqfome
-                    </SaveButton>
-                  )}
-                </Actions>
-              ) : (
-              <>
               <Actions>
                 <Checkbox>
                   <input
@@ -502,7 +335,7 @@ export function IfoodClients() {
 
                 <div>
                   <MerchantIdLabel htmlFor={`merchant-${shopkeeper.id}`}>
-                    Merchant ID
+                    Merchant ID (legado)
                   </MerchantIdLabel>
                   <Input
                     disabled={!shopkeeper.useIfoodIntegration}
@@ -512,72 +345,61 @@ export function IfoodClients() {
                         ifoodMerchantId: event.target.value,
                       })
                     }
-                    placeholder="Ex.: 12345678-90ab-cdef-1234-567890abcdef"
+                    placeholder="Compatibilidade com cadastro antigo"
                     value={shopkeeper.ifoodMerchantId || ''}
                   />
                 </div>
-                
-
                 <div>
-                  <MerchantIdLabel>Integração aiqfome</MerchantIdLabel>
-                  <Checkbox>
-                    <input
-                      checked={Boolean(shopkeeper.aiqfomeEnabled)}
-                      onChange={(event) =>
-                        updateLocalUser(shopkeeper.id, {
-                          aiqfomeEnabled: event.target.checked,
-                          aiqfomeStoreId: event.target.checked ? shopkeeper.aiqfomeStoreId : '',
-                        })
-                      }
-                      type="checkbox"
-                    />
-                    Usar integração aiqfome
-                  </Checkbox>
-                  <MerchantIdLabel htmlFor={`aiqfome-store-${shopkeeper.id}`}>
-                    ID da loja aiqfome
-                  </MerchantIdLabel>
-                  <Input
-                    disabled={!shopkeeper.aiqfomeEnabled}
-                    id={`aiqfome-store-${shopkeeper.id}`}
-                    onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, {
-                        aiqfomeStoreId: event.target.value,
-                      })
-                    }
-                    placeholder="Ex.: 140703"
-                    value={shopkeeper.aiqfomeStoreId || ''}
-                  />
-                  <Subtitle>
-                    Webhook: https://rappidex-api2-91dbcacd3915.herokuapp.com/api/aiqfome/webhook. Caso o cadastro automático falhe, cadastre esta URL manualmente no portal/developer aiqfome.
-                  </Subtitle>
-                  <Actions>
-                    <Input
-                      onChange={(event) => setSyncOrderIdByUser((current) => ({ ...current, [shopkeeper.id]: event.target.value }))}
-                      placeholder="OrderId real aiqfome"
-                      value={syncOrderIdByUser[shopkeeper.id] || ''}
-                    />
-                    <SaveButton disabled={savingUser === shopkeeper.user} onClick={() => handleSyncAiqfomeOrder(shopkeeper)} type="button">
-                      Sincronizar pedido por orderId
-                    </SaveButton>
-                  </Actions>
-                  <Actions>
-                    <SaveButton
-                      disabled={
-                      savingUser === shopkeeper.user ||
-                      !shopkeeper.aiqfomeEnabled ||
-                      !String(shopkeeper.aiqfomeStoreId || '').trim()
-                    }
-                      onClick={() => handleAiqfomeConnect(shopkeeper.id)}
-                      type="button"
-                    >
-                      {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
-                    </SaveButton>
-                    {pendingAuthorizationId && (
-                      <SaveButton onClick={() => handleCompletePendingAuthorization(shopkeeper)} type="button">
-                        Concluir integração aiqfome
-                      </SaveButton>
-                    )}
-                  </Actions>
+                  <MerchantIdLabel>Lojas iFood vinculadas</MerchantIdLabel>
+                  {(shopkeeper.ifoodMerchants || []).map((merchant, index) => (
+                    <div key={`${shopkeeper.id}-${index}`} style={{ border: '1px solid #555', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                      <Input
+                        disabled={!shopkeeper.useIfoodIntegration}
+                        placeholder="Nome da loja"
+                        value={merchant.name || ''}
+                        onChange={(event) => updateLocalUser(shopkeeper.id, {
+                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item),
+                        })}
+                      />
+                      <Input
+                        disabled={!shopkeeper.useIfoodIntegration}
+                        placeholder="Merchant ID"
+                        value={merchant.merchantId || ''}
+                        onChange={(event) => updateLocalUser(shopkeeper.id, {
+                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, merchantId: event.target.value } : item),
+                        })}
+                      />
+                      <Input
+                        disabled={!shopkeeper.useIfoodIntegration}
+                        placeholder="Endereço de coleta (opcional)"
+                        value={merchant.pickupAddress || ''}
+                        onChange={(event) => updateLocalUser(shopkeeper.id, {
+                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, pickupAddress: event.target.value } : item),
+                        })}
+                      />
+                      <Checkbox>
+                        <input
+                          disabled={!shopkeeper.useIfoodIntegration}
+                          type="checkbox"
+                          checked={merchant.enabled !== false}
+                          onChange={(event) => updateLocalUser(shopkeeper.id, {
+                            ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, enabled: event.target.checked } : item),
+                          })}
+                        /> Ativa
+                      </Checkbox>
+                      <CreditButton type="button" onClick={() => updateLocalUser(shopkeeper.id, { ifoodMerchants: (shopkeeper.ifoodMerchants || []).filter((_, itemIndex) => itemIndex !== index) })}>Remover loja</CreditButton>
+                    </div>
+                  ))}
+                  <CreditButton type="button" disabled={!shopkeeper.useIfoodIntegration} onClick={() => {
+                    const updatedMerchants = [
+                      ...(shopkeeper.ifoodMerchants || []),
+                      { merchantId: '', name: '', enabled: true, pickupAddress: '' },
+                    ];
+                    updateLocalUser(shopkeeper.id, {
+                      ifoodMerchants: updatedMerchants,
+                      ifoodMerchantId: resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', updatedMerchants),
+                    });
+                  }}>Adicionar loja iFood</CreditButton>
                 </div>
 
                 <CreditSummary>
@@ -620,24 +442,13 @@ export function IfoodClients() {
 
               <SaveButton
                 disabled={savingUser === shopkeeper.user}
-                onClick={() => handleSaveIfoodConfig(shopkeeper)}
+                onClick={() => handleSave(shopkeeper)}
                 type="button"
               >
                 {savingUser === shopkeeper.user ? (
                   <Loader size={20} biggestColor="gray" smallestColor="gray" />
                 ) : (
-                  'Salvar configuração iFood'
-                )}
-              </SaveButton>
-              <SaveButton
-                disabled={savingUser === shopkeeper.user}
-                onClick={() => handleSaveAiqfomeConfig(shopkeeper)}
-                type="button"
-              >
-                {savingUser === shopkeeper.user ? (
-                  <Loader size={20} biggestColor="gray" smallestColor="gray" />
-                ) : (
-                  'Salvar configuração aiqfome'
+                  'Salvar'
                 )}
               </SaveButton>
               
@@ -660,14 +471,12 @@ export function IfoodClients() {
                     ))}
                   </HistoryList>
                 )}
-              </>
-              )}
             </Card>
             ))
           )
         )}
 
-        {!loading && !isShopkeeperView && !searchTerm.trim() && hasMoreShopkeepers && (
+        {!loading && !searchTerm.trim() && hasMoreShopkeepers && (
           <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
             {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
           </LoadMoreButton>

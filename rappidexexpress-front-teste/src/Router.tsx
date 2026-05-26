@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useContext } from 'react'
+import { Routes, Route } from 'react-router-dom'
 
 import { DeliveryContext } from './context/DeliveryContext'
-import api from './services/api'
 
 import { Login } from './pages/Login'
 
@@ -23,29 +22,12 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy'
 
 export function Router() {
   const { token, permission } = useContext(DeliveryContext)
-  const [aiqfomeEnabled, setAiqfomeEnabled] = useState(false)
-  const location = useLocation()
-
-  useEffect(() => {
-    if (!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') || !token) return
-    api.defaults.headers.Authorization = `Bearer ${token}`
-    api.get('/user/myself')
-      .then((res) => setAiqfomeEnabled(Boolean(res.data?.aiqfomeEnabled)))
-      .catch(() => setAiqfomeEnabled(false))
-  }, [permission, token])
   return (
     <Routes>
       <Route path="/termos-de-uso" element={<TermsOfUse />} />
       <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
-      {!token ? (
-        <>
-          <Route path="/" element={<Login />} />
-          <Route
-            path="*"
-            element={<Navigate to="/" replace state={{ from: `${location.pathname}${location.search}` }} />}
-          />
-        </>
-      ) : (
+      { 
+      !token ? <Route path="/" element={<Login />} /> :
         <Route path="/" element={<DefaultLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/relatorios" element={<Reports />} />
@@ -60,17 +42,11 @@ export function Router() {
           {(permission === 'admin' || permission === 'superadmin') && (
             <Route path="/clientes-ifood" element={<IfoodClients />} />
           )}
-          {(permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (
-            <Route
-              path="/clientes-ifood"
-              element={aiqfomeEnabled ? <IfoodClients /> : <Navigate to="/" replace />}
-            />
-          )}
           {permission === 'superadmin' && (
             <Route path="/cidades" element={<Cities />} />
           )}
         </Route>
-      )}
+      }
     </Routes>
   )
-}
+  }

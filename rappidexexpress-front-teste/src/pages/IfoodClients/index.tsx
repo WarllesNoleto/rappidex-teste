@@ -279,7 +279,12 @@ export function IfoodClients() {
       await loadShopkeepers();
     }
 
-    bootstrap().catch(() => setLoading(false));
+    bootstrap().catch(() => {
+      if (pendingId) {
+        alert('Faça login no Rappidex e abra este link novamente para concluir a integração aiqfome.');
+      }
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {

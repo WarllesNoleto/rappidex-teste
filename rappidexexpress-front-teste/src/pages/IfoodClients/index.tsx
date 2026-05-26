@@ -48,6 +48,7 @@ export function IfoodClients() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [pendingAuthorizationId, setPendingAuthorizationId] = useState('');
   const isShopkeeperView = permission === 'shopkeeper' || permission === 'shopkeeperadmin';
 
   const filteredShopkeepers = useMemo(() => {
@@ -262,6 +263,10 @@ export function IfoodClients() {
   }
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const pendingId = String(query.get('aiqfomePending') || '').trim();
+    if (pendingId) setPendingAuthorizationId(pendingId);
+
     async function bootstrap() {
       const meResponse = await api.get('/user/myself');
       const me = meResponse.data as User;
@@ -335,6 +340,41 @@ export function IfoodClients() {
     }
   }
 
+
+
+  async function handleCompletePendingAuthorization(shopkeeper?: User) {
+    if (!pendingAuthorizationId) return;
+    try {
+      const isAdmin = permission === 'admin' || permission === 'superadmin';
+      const companyId = isAdmin ? (shopkeeper?.id || currentUser?.id || '') : (currentUser?.id || '');
+      const payload = isAdmin ? { companyId } : {};
+
+      if (isAdmin && !companyId) {
+        alert('Selecione uma empresa para concluir a integração aiqfome.');
+        return;
+      }
+
+      await api.post(`/aiqfome/oauth/complete-pending/${pendingAuthorizationId}`, payload);
+      alert('Integração aiqfome concluída com sucesso.');
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete('aiqfomePending');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+      setPendingAuthorizationId('');
+
+      if (companyId) {
+        const statusResponse = await api.get(`/aiqfome/status/${companyId}`);
+        updateLocalUser(companyId, {
+          hasAiqfomeAccessToken: Boolean(statusResponse.data?.hasAiqfomeAccessToken),
+          aiqfomeIntegrationStatus: statusResponse.data?.aiqfomeIntegrationStatus,
+          aiqfomeTokenExpiresAt: statusResponse.data?.aiqfomeTokenExpiresAt,
+        });
+      }
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Não foi possível concluir a integração aiqfome.');
+    }
+  }
+
   async function handleLoadMoreShopkeepers() {
     if (loading || loadingMore || !hasMoreShopkeepers) {
       return;
@@ -352,6 +392,9 @@ export function IfoodClients() {
             ? 'Conecte sua loja ao aiqfome para liberar a integração de pedidos.'
             : 'Vincule cada lojista ao Merchant ID do iFood para permitir a importação dos pedidos corretamente.'}
         </Subtitle>
+        {pendingAuthorizationId && (
+          <Subtitle>Encontramos uma autorização aiqfome pendente. Deseja concluir a integração com esta loja?</Subtitle>
+        )}
 
         {!isShopkeeperView && (
           <Input
@@ -386,6 +429,11 @@ export function IfoodClients() {
                   >
                     {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </SaveButton>
+                  {pendingAuthorizationId && (
+                    <SaveButton onClick={() => handleCompletePendingAuthorization(shopkeeper)} type="button">
+                      Concluir integração aiqfome
+                    </SaveButton>
+                  )}
                 </Actions>
               ) : (
               <>
@@ -483,6 +531,11 @@ export function IfoodClients() {
                     >
                       {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                     </SaveButton>
+                    {pendingAuthorizationId && (
+                      <SaveButton onClick={() => handleCompletePendingAuthorization(shopkeeper)} type="button">
+                        Concluir integração aiqfome
+                      </SaveButton>
+                    )}
                   </Actions>
                 </div>
 

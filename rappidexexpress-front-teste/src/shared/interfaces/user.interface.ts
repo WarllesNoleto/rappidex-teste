@@ -15,4 +15,11 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
+  aiqfomeEnabled?: boolean;
+  aiqfomeStoreId?: string;
+  aiqfomeIntegrationStatus?: string;
+  aiqfomeTokenExpiresAt?: string;
+  aiqfomeConnected?: boolean;
+  hasAiqfomeAccessToken?: boolean;
 }
+

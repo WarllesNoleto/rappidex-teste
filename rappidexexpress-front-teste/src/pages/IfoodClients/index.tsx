@@ -47,6 +47,7 @@ export function IfoodClients() {
   const [isSearching, setIsSearching] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -226,7 +227,19 @@ export function IfoodClients() {
   }
 
   useEffect(() => {
-    loadShopkeepers();
+    async function bootstrap() {
+      const meResponse = await api.get('/user/myself');
+      const me = meResponse.data as User;
+      setCurrentUser(me);
+      if (me.type === 'shopkeeper' || me.type === 'shopkeeperadmin') {
+        setShopkeepers([me]);
+        setLoading(false);
+        return;
+      }
+      await loadShopkeepers();
+    }
+
+    bootstrap().catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -238,6 +251,19 @@ export function IfoodClients() {
       loadAllShopkeepers();
     }
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
+
+  function getAiqfomeStatus(shopkeeper: User) {
+    if (shopkeeper.aiqfomeIntegrationStatus === 'error') return 'Erro na integração';
+    const expiresAt = shopkeeper.aiqfomeTokenExpiresAt ? new Date(shopkeeper.aiqfomeTokenExpiresAt).getTime() : 0;
+    const connected = Boolean(shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken);
+    if (connected && expiresAt && expiresAt <= Date.now()) return 'Token expirado';
+    if (connected) return 'Conectado';
+    return 'Não conectado';
+  }
+
+  function handleAiqfomeConnect(companyId: string) {
+    window.location.href = `${api.defaults.baseURL}/aiqfome/oauth/start/${companyId}`;
+  }
 
   async function handleLoadMoreShopkeepers() {
     if (loading || loadingMore || !hasMoreShopkeepers) {
@@ -252,15 +278,18 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Vincule cada lojista ao Merchant ID do iFood para permitir a importação
-          dos pedidos corretamente.
+          {(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin')
+            ? 'Visualização da sua empresa e status da integração aiqfome.'
+            : 'Vincule cada lojista ao Merchant ID do iFood para permitir a importação dos pedidos corretamente.'}
         </Subtitle>
 
-        <Input
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Pesquisar empresa por nome"
-          value={searchTerm}
-        />
+        {!(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') && (
+          <Input
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Pesquisar empresa por nome"
+            value={searchTerm}
+          />
+        )}
 
         {loading || isSearching ? (
           <LoadingContainer>
@@ -274,6 +303,16 @@ export function IfoodClients() {
             <Card key={shopkeeper.id}>
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
+              {(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') ? (
+                <Actions>
+                  <p>Store ID aiqfome: {shopkeeper.aiqfomeStoreId || 'Não informado'}</p>
+                  <p>Status: {getAiqfomeStatus(shopkeeper)}</p>
+                  <SaveButton onClick={() => handleAiqfomeConnect(shopkeeper.id)} type="button">
+                    {shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
+                  </SaveButton>
+                </Actions>
+              ) : (
+              <>
               <Actions>
                 <Checkbox>
                   <input
@@ -395,12 +434,14 @@ export function IfoodClients() {
                     ))}
                   </HistoryList>
                 )}
+              </>
+              )}
             </Card>
             ))
           )
         )}
 
-        {!loading && !searchTerm.trim() && hasMoreShopkeepers && (
+        {!loading && !(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') && !searchTerm.trim() && hasMoreShopkeepers && (
           <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
             {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
           </LoadMoreButton>

@@ -124,13 +124,11 @@ export function NewUser() {
       if (useIfoodIntegration && ifoodMerchantId) {
         const createdCompanyId = response?.data?.id;
         if (createdCompanyId) {
-          alert("Integração salva. Buscando pedidos pendentes...");
-          const result = await api
-            .post(`/ifood/import-pending/${createdCompanyId}`)
-            .catch(() => undefined);
-          const imported = Number(result?.data?.imported || 0);
-          alert(`Integração iFood salva. ${imported} pedidos pendentes importados.`);
+          await api.post(`/ifood/sync-company/${createdCompanyId}`).catch(() => undefined);
         }
+        alert(
+          "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
+        );
       }
       reset();
       setLoading(false);
@@ -189,12 +187,10 @@ export function NewUser() {
         ifoodMerchantId: (ifoodMerchantId || "").trim(),
       });
       if (useIfoodIntegration && (ifoodMerchantId || "").trim()) {
-        alert("Integração salva. Buscando pedidos pendentes...");
-        const result = await api
-          .post(`/ifood/import-pending/${userId}`)
-          .catch(() => undefined);
-        const imported = Number(result?.data?.imported || 0);
-        alert(`Integração iFood salva. ${imported} pedidos pendentes importados.`);
+        await api.post(`/ifood/sync-company/${userId}`).catch(() => undefined);
+        alert(
+          "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
+        );
       }
       setLoading(false);
       alert("Usuário editado com sucesso!");

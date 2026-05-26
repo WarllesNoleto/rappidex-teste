@@ -32,7 +32,7 @@ export function Header() {
             <UserPlus  size={24} />
           </NavLink>
         }
-        {(permission === 'admin' || permission === 'superadmin') && 
+        {(permission === 'admin' || permission === 'superadmin' || permission === 'shopkeeper' || permission === 'shopkeeperadmin') && 
           <NavLink to="/clientes-ifood" title="Empresas Cadastradas">
             <Storefront size={24} />
           </NavLink>

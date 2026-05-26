@@ -135,17 +135,12 @@ export function IfoodClients() {
     );
   }
 
-  async function handleSave(shopkeeper: User) {
+  async function handleSaveIfoodConfig(shopkeeper: User) {
     if (savingUser) {
       return;
     }
 
     const merchantId = (shopkeeper.ifoodMerchantId || '').trim();
-    const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
-    if (Boolean(shopkeeper.aiqfomeEnabled) && !aiqfomeStoreId) {
-      alert('Informe o ID da loja aiqfome para ativar a integração.');
-      return;
-    }
     if (shopkeeper.useIfoodIntegration && !merchantId) {
       alert('Informe o Merchant ID para ativar a integração iFood.');
       return;
@@ -160,8 +155,6 @@ export function IfoodClients() {
           Boolean(shopkeeper.useIfoodIntegration) &&
           Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
-        aiqfomeEnabled: Boolean(shopkeeper.aiqfomeEnabled),
-        aiqfomeStoreId,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
         await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
@@ -173,6 +166,39 @@ export function IfoodClients() {
       }
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
+    } finally {
+      setSavingUser('');
+    }
+  }
+
+  async function handleSaveAiqfomeConfig(shopkeeper: User) {
+    if (savingUser) {
+      return;
+    }
+
+    const aiqfomeEnabled = Boolean(shopkeeper.aiqfomeEnabled);
+    const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
+
+    if (aiqfomeEnabled && !aiqfomeStoreId) {
+      alert('Informe o ID da loja aiqfome.');
+      return;
+    }
+
+    setSavingUser(shopkeeper.user);
+
+    try {
+      await api.put(`/aiqfome/config/${shopkeeper.id}`, {
+        aiqfomeEnabled,
+        aiqfomeStoreId,
+      });
+
+      updateLocalUser(shopkeeper.id, {
+        aiqfomeEnabled,
+        aiqfomeStoreId,
+      });
+      alert('Configuração aiqfome salva com sucesso.');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
     } finally {
       setSavingUser('');
     }
@@ -261,6 +287,13 @@ export function IfoodClients() {
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
 
   async function handleAiqfomeConnect(companyId: string) {
+    const shopkeeper = shopkeepers.find((user) => user.id === companyId);
+    const isConfigured = Boolean(shopkeeper?.aiqfomeEnabled) && Boolean((shopkeeper?.aiqfomeStoreId || '').trim());
+    if (!isConfigured) {
+      alert('Salve o ID da loja aiqfome antes de conectar.');
+      return;
+    }
+
     try {
       const response = await api.get(`/aiqfome/oauth/url/${companyId}`);
       const authUrl = response.data?.authUrl;
@@ -317,7 +350,11 @@ export function IfoodClients() {
 
               {isShopkeeperView ? (
                 <Actions>
-                  <SaveButton onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)} type="button">
+                  <SaveButton
+                    disabled={!shopkeeper.aiqfomeEnabled || !(shopkeeper.aiqfomeStoreId || '').trim()}
+                    onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)}
+                    type="button"
+                  >
                     {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </SaveButton>
                 </Actions>
@@ -406,7 +443,11 @@ export function IfoodClients() {
                     value={shopkeeper.aiqfomeStoreId || ''}
                   />
                   <Actions>
-                    <SaveButton onClick={() => handleAiqfomeConnect(shopkeeper.id)} type="button">
+                    <SaveButton
+                      disabled={!shopkeeper.aiqfomeEnabled || !(shopkeeper.aiqfomeStoreId || '').trim()}
+                      onClick={() => handleAiqfomeConnect(shopkeeper.id)}
+                      type="button"
+                    >
                       {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                     </SaveButton>
                   </Actions>
@@ -452,7 +493,18 @@ export function IfoodClients() {
 
               <SaveButton
                 disabled={savingUser === shopkeeper.user}
-                onClick={() => handleSave(shopkeeper)}
+                onClick={() => handleSaveIfoodConfig(shopkeeper)}
+                type="button"
+              >
+                {savingUser === shopkeeper.user ? (
+                  <Loader size={20} biggestColor="gray" smallestColor="gray" />
+                ) : (
+                  'Salvar configuração iFood'
+                )}
+              </SaveButton>
+              <SaveButton
+                disabled={savingUser === shopkeeper.user}
+                onClick={() => handleSaveAiqfomeConfig(shopkeeper)}
                 type="button"
               >
                 {savingUser === shopkeeper.user ? (

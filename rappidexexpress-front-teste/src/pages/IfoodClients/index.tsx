@@ -49,6 +49,7 @@ export function IfoodClients() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [pendingAuthorizationId, setPendingAuthorizationId] = useState('');
+  const [syncOrderIdByUser, setSyncOrderIdByUser] = useState<Record<string, string>>({});
   const isShopkeeperView = permission === 'shopkeeper' || permission === 'shopkeeperadmin';
 
   const filteredShopkeepers = useMemo(() => {
@@ -380,6 +381,28 @@ export function IfoodClients() {
     }
   }
 
+
+  async function handleSyncAiqfomeOrder(shopkeeper: User) {
+    const orderId = String(syncOrderIdByUser[shopkeeper.id] || '').trim();
+    if (!orderId) {
+      alert('Informe o orderId real para sincronizar.');
+      return;
+    }
+    setSavingUser(shopkeeper.user);
+    try {
+      const response = await api.post(`/aiqfome/sync-order/${shopkeeper.id}/${encodeURIComponent(orderId)}`);
+      if (response.data?.success) {
+        alert('Pedido sincronizado com sucesso no Rappidex.');
+      } else {
+        alert(response.data?.message || 'Não foi possível sincronizar o pedido.');
+      }
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Erro ao sincronizar pedido aiqfome.');
+    } finally {
+      setSavingUser('');
+    }
+  }
+
   async function handleLoadMoreShopkeepers() {
     if (loading || loadingMore || !hasMoreShopkeepers) {
       return;
@@ -524,6 +547,19 @@ export function IfoodClients() {
                     placeholder="Ex.: 140703"
                     value={shopkeeper.aiqfomeStoreId || ''}
                   />
+                  <Subtitle>
+                    Webhook: https://rappidex-api2-91dbcacd3915.herokuapp.com/api/aiqfome/webhook. Caso o cadastro automático falhe, cadastre esta URL manualmente no portal/developer aiqfome.
+                  </Subtitle>
+                  <Actions>
+                    <Input
+                      onChange={(event) => setSyncOrderIdByUser((current) => ({ ...current, [shopkeeper.id]: event.target.value }))}
+                      placeholder="OrderId real aiqfome"
+                      value={syncOrderIdByUser[shopkeeper.id] || ''}
+                    />
+                    <SaveButton disabled={savingUser === shopkeeper.user} onClick={() => handleSyncAiqfomeOrder(shopkeeper)} type="button">
+                      Sincronizar pedido por orderId
+                    </SaveButton>
+                  </Actions>
                   <Actions>
                     <SaveButton
                       disabled={

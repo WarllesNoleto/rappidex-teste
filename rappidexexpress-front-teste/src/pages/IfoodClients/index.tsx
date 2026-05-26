@@ -253,8 +253,21 @@ export function IfoodClients() {
     }
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
 
-  function handleAiqfomeConnect(companyId: string) {
-    window.location.href = `${api.defaults.baseURL}/aiqfome/oauth/start/${companyId}`;
+  async function handleAiqfomeConnect(companyId: string) {
+    try {
+      const response = await api.get(`/aiqfome/oauth/url/${companyId}`);
+      const authUrl = response.data?.authUrl;
+
+      if (!authUrl) {
+        alert('Não foi possível gerar o link de autorização do aiqfome.');
+        return;
+      }
+
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('[aiqfome] erro ao gerar URL OAuth', error);
+      alert('Não foi possível iniciar a integração com o aiqfome.');
+    }
   }
 
   async function handleLoadMoreShopkeepers() {
@@ -297,7 +310,7 @@ export function IfoodClients() {
 
               {isShopkeeperView ? (
                 <Actions>
-                  <SaveButton onClick={() => handleAiqfomeConnect(currentUser?.id || shopkeeper.id)} type="button">
+                  <SaveButton onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)} type="button">
                     {shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </SaveButton>
                 </Actions>

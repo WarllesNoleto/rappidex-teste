@@ -1,7 +1,8 @@
-import { useContext } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { useContext, useEffect, useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 import { DeliveryContext } from './context/DeliveryContext'
+import api from './services/api'
 
 import { Login } from './pages/Login'
 
@@ -22,6 +23,15 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy'
 
 export function Router() {
   const { token, permission } = useContext(DeliveryContext)
+  const [aiqfomeEnabled, setAiqfomeEnabled] = useState(false)
+
+  useEffect(() => {
+    if (!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') || !token) return
+    api.defaults.headers.Authorization = `Bearer ${token}`
+    api.get('/user/myself')
+      .then((res) => setAiqfomeEnabled(Boolean(res.data?.aiqfomeEnabled)))
+      .catch(() => setAiqfomeEnabled(false))
+  }, [permission, token])
   return (
     <Routes>
       <Route path="/termos-de-uso" element={<TermsOfUse />} />
@@ -39,8 +49,14 @@ export function Router() {
           <Route path="/editar-entrega" element={<EditDelivery />} />
           <Route path="/configuracao" element={<Config />} />
           <Route path="/usuarios" element={<Users />} />
-          {(permission === 'admin' || permission === 'superadmin' || permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (
+          {(permission === 'admin' || permission === 'superadmin') && (
             <Route path="/clientes-ifood" element={<IfoodClients />} />
+          )}
+          {(permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (
+            <Route
+              path="/clientes-ifood"
+              element={aiqfomeEnabled ? <IfoodClients /> : <Navigate to="/" replace />}
+            />
           )}
           {permission === 'superadmin' && (
             <Route path="/cidades" element={<Cities />} />

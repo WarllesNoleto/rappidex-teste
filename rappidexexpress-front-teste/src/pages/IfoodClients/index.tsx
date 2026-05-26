@@ -141,6 +141,11 @@ export function IfoodClients() {
     }
 
     const merchantId = (shopkeeper.ifoodMerchantId || '').trim();
+    const aiqfomeStoreId = (shopkeeper.aiqfomeStoreId || '').trim();
+    if (Boolean(shopkeeper.aiqfomeEnabled) && !aiqfomeStoreId) {
+      alert('Informe o ID da loja aiqfome para ativar a integração.');
+      return;
+    }
     if (shopkeeper.useIfoodIntegration && !merchantId) {
       alert('Informe o Merchant ID para ativar a integração iFood.');
       return;
@@ -155,6 +160,8 @@ export function IfoodClients() {
           Boolean(shopkeeper.useIfoodIntegration) &&
           Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
+        aiqfomeEnabled: Boolean(shopkeeper.aiqfomeEnabled),
+        aiqfomeStoreId,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
         await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
@@ -266,7 +273,7 @@ export function IfoodClients() {
       window.location.href = authUrl;
     } catch (error) {
       console.error('[aiqfome] erro ao gerar URL OAuth', error);
-      alert('Não foi possível iniciar a integração com o aiqfome.');
+      alert((error as any)?.response?.data?.message || 'Não foi possível iniciar a integração com o aiqfome.');
     }
   }
 
@@ -311,7 +318,7 @@ export function IfoodClients() {
               {isShopkeeperView ? (
                 <Actions>
                   <SaveButton onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)} type="button">
-                    {shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
+                    {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </SaveButton>
                 </Actions>
               ) : (
@@ -368,6 +375,43 @@ export function IfoodClients() {
                   />
                 </div>
                 
+
+                <div>
+                  <MerchantIdLabel>Integração aiqfome</MerchantIdLabel>
+                  <Checkbox>
+                    <input
+                      checked={Boolean(shopkeeper.aiqfomeEnabled)}
+                      onChange={(event) =>
+                        updateLocalUser(shopkeeper.id, {
+                          aiqfomeEnabled: event.target.checked,
+                          aiqfomeStoreId: event.target.checked ? shopkeeper.aiqfomeStoreId : '',
+                        })
+                      }
+                      type="checkbox"
+                    />
+                    Usar integração aiqfome
+                  </Checkbox>
+                  <MerchantIdLabel htmlFor={`aiqfome-store-${shopkeeper.id}`}>
+                    ID da loja aiqfome
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.aiqfomeEnabled}
+                    id={`aiqfome-store-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, {
+                        aiqfomeStoreId: event.target.value,
+                      })
+                    }
+                    placeholder="Ex.: 140703"
+                    value={shopkeeper.aiqfomeStoreId || ''}
+                  />
+                  <Actions>
+                    <SaveButton onClick={() => handleAiqfomeConnect(shopkeeper.id)} type="button">
+                      {shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
+                    </SaveButton>
+                  </Actions>
+                </div>
+
                 <CreditSummary>
                   <CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine>
                   <CreditLine>Utilizados: {shopkeeper.ifoodOrdersUsed || 0}</CreditLine>
@@ -414,7 +458,7 @@ export function IfoodClients() {
                 {savingUser === shopkeeper.user ? (
                   <Loader size={20} biggestColor="gray" smallestColor="gray" />
                 ) : (
-                  'Salvar'
+                  'Salvar configuração aiqfome'
                 )}
               </SaveButton>
               

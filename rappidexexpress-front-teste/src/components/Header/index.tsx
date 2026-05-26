@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Hamburger,
@@ -13,9 +13,19 @@ import {
 
 import { HeaderContainer, RappidexLogo } from './styles'
 import { DeliveryContext } from '../../context/DeliveryContext'
+import api from '../../services/api'
 
 export function Header() {
-  const { logout, permission } = useContext(DeliveryContext)
+  const { logout, permission, token } = useContext(DeliveryContext)
+  const [aiqfomeEnabled, setAiqfomeEnabled] = useState(false)
+
+  useEffect(() => {
+    if (!(permission === 'shopkeeper' || permission === 'shopkeeperadmin') || !token) return
+    api.defaults.headers.Authorization = `Bearer ${token}`
+    api.get('/user/myself')
+      .then((res) => setAiqfomeEnabled(Boolean(res.data?.aiqfomeEnabled)))
+      .catch(() => setAiqfomeEnabled(false))
+  }, [permission, token])
 
   function handleLogout(){
     logout()
@@ -32,7 +42,8 @@ export function Header() {
             <UserPlus  size={24} />
           </NavLink>
         }
-        {(permission === 'admin' || permission === 'superadmin' || permission === 'shopkeeper' || permission === 'shopkeeperadmin') && 
+        {((permission === 'admin' || permission === 'superadmin') ||
+          ((permission === 'shopkeeper' || permission === 'shopkeeperadmin') && aiqfomeEnabled)) && 
           <NavLink to="/clientes-ifood" title="Empresas Cadastradas">
             <Storefront size={24} />
           </NavLink>

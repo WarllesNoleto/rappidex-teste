@@ -155,10 +155,12 @@ export function IfoodClients() {
         ifoodMerchantId: merchantId,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
-        await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
-        alert(
-          'Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.',
-        );
+        alert('Integração salva. Buscando pedidos pendentes...');
+        const result = await api
+          .post(`/ifood/import-pending/${shopkeeper.id}`)
+          .catch(() => undefined);
+        const imported = Number(result?.data?.imported || 0);
+        alert(`Integração iFood salva. ${imported} pedidos pendentes importados.`);
       } else {
         alert('Configuração iFood salva com sucesso.');
       }

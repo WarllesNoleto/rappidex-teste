@@ -432,6 +432,9 @@ export function Dashboard() {
     Record<string, string>
   >({});
   const [currentCityId, setCurrentCityId] = useState<string>("");
+  const [canViewReleaseTab, setCanViewReleaseTab] = useState<boolean>(
+    permission === UserType.ADMIN || permission === UserType.SUPERADMIN,
+  );
   const reloadTimeoutRef = useRef<number | null>(null);
   const refreshRequestIdRef = useRef(0);
   const didFirstLoadRef = useRef(false);
@@ -685,11 +688,32 @@ export function Dashboard() {
   const getMyself = useCallback(async () => {
     try {
       const response = await api.get("/user/myself");
-      setCurrentCityId(response.data?.cityId ?? "");
+      const currentUser = response.data ?? {};
+
+      setCurrentCityId(currentUser.cityId ?? "");
+
+      const isAdminOrSuperadmin =
+        permission === UserType.ADMIN || permission === UserType.SUPERADMIN;
+
+      const hasIfoodIntegration =
+        Boolean(currentUser.ifoodEnabled) &&
+        Boolean(String(currentUser.ifoodMerchantId || "").trim());
+
+      const hasAiqfomeIntegration =
+        Boolean(currentUser.aiqfomeEnabled) &&
+        Boolean(String(currentUser.aiqfomeStoreId || "").trim());
+
+      const hasActiveIntegration = hasIfoodIntegration || hasAiqfomeIntegration;
+
+      setCanViewReleaseTab(
+        isAdminOrSuperadmin ||
+          ((permission === UserType.SHOPKEEPER || permission === UserType.SHOPKEEPERADMIN) &&
+            hasActiveIntegration),
+      );
     } catch (error) {
       console.error("Erro ao carregar usuário atual:", error);
     }
-  }, []);
+  }, [permission]);
 
 
 
@@ -1074,6 +1098,12 @@ export function Dashboard() {
   }, [getMyself]);
 
   useEffect(() => {
+    if (!canViewReleaseTab && status === StatusDelivery.AWAITING_RELEASE) {
+      setStatus(StatusDelivery.PENDING);
+    }
+  }, [canViewReleaseTab, status]);
+
+  useEffect(() => {
     if (!currentCityId) return;
 
     const socket = io(SOCKET_URL, {
@@ -1130,7 +1160,7 @@ export function Dashboard() {
       />
 
       <ContainerButtons>
-        {permission !== UserType.MOTOBOY && (
+        {canViewReleaseTab && (
           <BaseButton
             typeReport={status === StatusDelivery.AWAITING_RELEASE}
             onClick={() => setStatus(StatusDelivery.AWAITING_RELEASE)}

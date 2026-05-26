@@ -187,14 +187,15 @@ export function IfoodClients() {
     setSavingUser(shopkeeper.user);
 
     try {
-      await api.put(`/aiqfome/config/${shopkeeper.id}`, {
+      const response = await api.put(`/aiqfome/config/${shopkeeper.id}`, {
         aiqfomeEnabled,
         aiqfomeStoreId,
       });
 
       updateLocalUser(shopkeeper.id, {
-        aiqfomeEnabled,
-        aiqfomeStoreId,
+        aiqfomeEnabled: Boolean(response.data?.aiqfomeEnabled),
+        aiqfomeStoreId: String(response.data?.aiqfomeStoreId || '').trim(),
+        hasAiqfomeAccessToken: Boolean(response.data?.hasAiqfomeAccessToken),
       });
       alert('Configuração aiqfome salva com sucesso.');
     } catch (error: any) {
@@ -288,13 +289,37 @@ export function IfoodClients() {
 
   async function handleAiqfomeConnect(companyId: string) {
     const shopkeeper = shopkeepers.find((user) => user.id === companyId);
-    const isConfigured = Boolean(shopkeeper?.aiqfomeEnabled) && Boolean((shopkeeper?.aiqfomeStoreId || '').trim());
-    if (!isConfigured) {
-      alert('Salve o ID da loja aiqfome antes de conectar.');
+    if (!shopkeeper?.aiqfomeEnabled) {
+      alert('Ative e salve a integração aiqfome antes de conectar.');
+      return;
+    }
+
+    if (!String(shopkeeper?.aiqfomeStoreId || '').trim()) {
+      alert('Informe e salve o ID da loja aiqfome antes de conectar.');
       return;
     }
 
     try {
+      const statusResponse = await api.get(`/aiqfome/status/${companyId}`);
+      const backendEnabled = Boolean(statusResponse.data?.aiqfomeEnabled);
+      const backendStoreId = String(statusResponse.data?.aiqfomeStoreId || '').trim();
+
+      if (!backendEnabled) {
+        alert('Ative e salve a integração aiqfome antes de conectar.');
+        return;
+      }
+
+      if (!backendStoreId) {
+        alert('Informe e salve o ID da loja aiqfome antes de conectar.');
+        return;
+      }
+
+      updateLocalUser(companyId, {
+        aiqfomeEnabled: backendEnabled,
+        aiqfomeStoreId: backendStoreId,
+        hasAiqfomeAccessToken: Boolean(statusResponse.data?.hasAiqfomeAccessToken),
+      });
+
       const response = await api.get(`/aiqfome/oauth/url/${companyId}`);
       const authUrl = response.data?.authUrl;
 
@@ -351,7 +376,11 @@ export function IfoodClients() {
               {isShopkeeperView ? (
                 <Actions>
                   <SaveButton
-                    disabled={!shopkeeper.aiqfomeEnabled || !(shopkeeper.aiqfomeStoreId || '').trim()}
+                    disabled={
+                      savingUser === shopkeeper.user ||
+                      !shopkeeper.aiqfomeEnabled ||
+                      !String(shopkeeper.aiqfomeStoreId || '').trim()
+                    }
                     onClick={() => currentUser?.id && handleAiqfomeConnect(currentUser.id)}
                     type="button"
                   >
@@ -444,7 +473,11 @@ export function IfoodClients() {
                   />
                   <Actions>
                     <SaveButton
-                      disabled={!shopkeeper.aiqfomeEnabled || !(shopkeeper.aiqfomeStoreId || '').trim()}
+                      disabled={
+                      savingUser === shopkeeper.user ||
+                      !shopkeeper.aiqfomeEnabled ||
+                      !String(shopkeeper.aiqfomeStoreId || '').trim()
+                    }
                       onClick={() => handleAiqfomeConnect(shopkeeper.id)}
                       type="button"
                     >

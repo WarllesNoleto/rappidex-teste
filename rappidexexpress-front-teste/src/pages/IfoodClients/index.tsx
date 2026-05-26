@@ -32,7 +32,7 @@ import {
 } from './styles.ts';
 
 export function IfoodClients() {
-  const { token } = useContext(DeliveryContext);
+  const { token, permission } = useContext(DeliveryContext);
   api.defaults.headers.Authorization = `Bearer ${token}`;
 
   const [loading, setLoading] = useState(true);
@@ -48,18 +48,19 @@ export function IfoodClients() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const isShopkeeperView = permission === 'shopkeeper' || permission === 'shopkeeperadmin';
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    if (!normalizedSearch) {
+    if (!normalizedSearch || isShopkeeperView) {
       return shopkeepers;
     }
 
     return shopkeepers.filter((shopkeeper) =>
       (shopkeeper.name || '').toLowerCase().includes(normalizedSearch),
     );
-  }, [shopkeepers, searchTerm]);
+  }, [isShopkeeperView, shopkeepers, searchTerm]);
 
   const ITEMS_PER_PAGE = 200;
 
@@ -252,15 +253,6 @@ export function IfoodClients() {
     }
   }, [searchTerm, hasMoreShopkeepers, isSearching]);
 
-  function getAiqfomeStatus(shopkeeper: User) {
-    if (shopkeeper.aiqfomeIntegrationStatus === 'error') return 'Erro na integração';
-    const expiresAt = shopkeeper.aiqfomeTokenExpiresAt ? new Date(shopkeeper.aiqfomeTokenExpiresAt).getTime() : 0;
-    const connected = Boolean(shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken);
-    if (connected && expiresAt && expiresAt <= Date.now()) return 'Token expirado';
-    if (connected) return 'Conectado';
-    return 'Não conectado';
-  }
-
   function handleAiqfomeConnect(companyId: string) {
     window.location.href = `${api.defaults.baseURL}/aiqfome/oauth/start/${companyId}`;
   }
@@ -276,14 +268,14 @@ export function IfoodClients() {
   return (
     <Container>
       <Content>
-        <Title>Empresas Cadastradas</Title>
+        <Title>{isShopkeeperView ? 'Integração aiqfome' : 'Empresas Cadastradas'}</Title>
         <Subtitle>
-          {(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin')
-            ? 'Visualização da sua empresa e status da integração aiqfome.'
+          {isShopkeeperView
+            ? 'Conecte sua loja ao aiqfome para liberar a integração de pedidos.'
             : 'Vincule cada lojista ao Merchant ID do iFood para permitir a importação dos pedidos corretamente.'}
         </Subtitle>
 
-        {!(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') && (
+        {!isShopkeeperView && (
           <Input
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Pesquisar empresa por nome"
@@ -303,11 +295,9 @@ export function IfoodClients() {
             <Card key={shopkeeper.id}>
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
-              {(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') ? (
+              {isShopkeeperView ? (
                 <Actions>
-                  <p>Store ID aiqfome: {shopkeeper.aiqfomeStoreId || 'Não informado'}</p>
-                  <p>Status: {getAiqfomeStatus(shopkeeper)}</p>
-                  <SaveButton onClick={() => handleAiqfomeConnect(shopkeeper.id)} type="button">
+                  <SaveButton onClick={() => handleAiqfomeConnect(currentUser?.id || shopkeeper.id)} type="button">
                     {shopkeeper.aiqfomeConnected || shopkeeper.hasAiqfomeAccessToken ? 'Reconectar aiqfome' : 'Conectar aiqfome'}
                   </SaveButton>
                 </Actions>
@@ -441,7 +431,7 @@ export function IfoodClients() {
           )
         )}
 
-        {!loading && !(currentUser?.type === 'shopkeeper' || currentUser?.type === 'shopkeeperadmin') && !searchTerm.trim() && hasMoreShopkeepers && (
+        {!loading && !isShopkeeperView && !searchTerm.trim() && hasMoreShopkeepers && (
           <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
             {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
           </LoadMoreButton>

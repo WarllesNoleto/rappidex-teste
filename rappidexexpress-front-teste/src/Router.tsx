@@ -39,7 +39,7 @@ export function Router() {
           <Route path="/editar-entrega" element={<EditDelivery />} />
           <Route path="/configuracao" element={<Config />} />
           <Route path="/usuarios" element={<Users />} />
-          {(permission === 'admin' || permission === 'superadmin') && (
+          {(permission === 'admin' || permission === 'superadmin' || permission === 'shopkeeper' || permission === 'shopkeeperadmin') && (
             <Route path="/clientes-ifood" element={<IfoodClients />} />
           )}
           {permission === 'superadmin' && (

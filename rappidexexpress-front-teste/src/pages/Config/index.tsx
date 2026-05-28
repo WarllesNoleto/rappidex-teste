@@ -34,6 +34,22 @@ export function Config() {
     const [formValues, setFormValues] = useState({
         amount: '0',
     })
+    const [aiqfomeStatus, setAiqfomeStatus] = useState<'conectado' | 'desconectado'>('desconectado')
+    const [aiqfomeStore, setAiqfomeStore] = useState('Nenhuma loja vinculada')
+    const [aiqfomeLogs, setAiqfomeLogs] = useState<string[]>([])
+
+    async function connectAiqfome() {
+        try {
+            const response = await api.get('/api/aiqfome/connect-url')
+            setAiqfomeLogs((prev) => [`Conexão iniciada em ${new Date().toLocaleString()}`, ...prev].slice(0,5))
+            if (response?.data?.url) window.open(response.data.url, '_blank')
+        } catch {
+            setAiqfomeLogs((prev) => [`Erro ao conectar em ${new Date().toLocaleString()}`, ...prev].slice(0,5))
+        }
+    }
+
+    function disableAiqfome(){ setAiqfomeStatus('desconectado'); setAiqfomeStore('Nenhuma loja vinculada') }
+
 
     const amountFormData = useForm<AmountFormData>({
         resolver: zodResolver(AmountFormValidationSchema),
@@ -132,6 +148,14 @@ export function Config() {
                             blockType ? "Desbloquear entregas" : "Bloquear entregas"
                         }
                     </BlockDeliveriesButton>
+                                    <div style={{ marginTop: 24, borderTop: '1px solid #ddd', paddingTop: 16 }}>
+                        <h3>Integração aiqfome</h3>
+                        <p>Status: <b>{aiqfomeStatus}</b></p>
+                        <p>Loja vinculada: {aiqfomeStore}</p>
+                        <button onClick={connectAiqfome}>Conectar aiqfome</button>
+                        <button onClick={disableAiqfome} style={{ marginLeft: 8 }}>Desativar integração</button>
+                        <ul>{aiqfomeLogs.map((log) => <li key={log}>{log}</li>)}</ul>
+                    </div>
                 </>
             }
         </Container>

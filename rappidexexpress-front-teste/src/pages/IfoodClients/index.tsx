@@ -323,6 +323,12 @@ export function IfoodClients() {
       return;
     }
 
+    const shopkeeperId = String(shopkeeper.id || '').trim();
+    if (!shopkeeperId) {
+      alert('Não foi possível identificar o lojista para conectar aiqfome.');
+      return;
+    }
+
     const storeId = String(shopkeeper.aiqfomeStoreId || '').trim();
     if (!storeId) {
       alert('Informe o ID da loja aiqfome.');
@@ -333,7 +339,7 @@ export function IfoodClients() {
       return;
     }
     try {
-      const response = await api.get(`/aiqfome/connect-url?shopkeeperId=${shopkeeper.id}&storeId=${encodeURIComponent(storeId)}`);
+      const response = await api.get(`/aiqfome/connect-url?shopkeeperId=${shopkeeperId}&storeId=${encodeURIComponent(storeId)}`);
       if (response?.data?.url) window.open(response.data.url, '_blank');
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao conectar aiqfome.');

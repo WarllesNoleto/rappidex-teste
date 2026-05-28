@@ -46,6 +46,7 @@ export function IfoodClients() {
   const [page, setPage] = useState(1);
   const [hasMoreShopkeepers, setHasMoreShopkeepers] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [savedAiqfomeByUser, setSavedAiqfomeByUser] = useState<Record<string, Partial<User>>>({});
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -62,6 +63,52 @@ export function IfoodClients() {
   }, [shopkeepers, searchTerm]);
 
   const ITEMS_PER_PAGE = 200;
+
+  function normalizeAiqfomeConfig(shopkeeper: User): Partial<User> {
+    const stores = Array.isArray(shopkeeper.aiqfomeStores)
+      ? shopkeeper.aiqfomeStores
+          .map((store) => ({
+            ...store,
+            storeId: String(store.storeId || '').trim(),
+            name: String(store.name || '').trim(),
+            pickupAddress: String(store.pickupAddress || '').trim(),
+            enabled: store.enabled !== false,
+          }))
+          .filter((store) => store.storeId)
+      : [];
+    const aiqfomeStoreId = shopkeeper.useAiqfomeIntegration
+      ? String(shopkeeper.aiqfomeStoreId || stores.find((store) => store.enabled !== false)?.storeId || '').trim()
+      : '';
+
+    return {
+      useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration),
+      aiqfomeStoreId,
+      aiqfomeStores: shopkeeper.useAiqfomeIntegration ? stores : [],
+      aiqfomeConnectionStatus: shopkeeper.useAiqfomeIntegration
+        ? shopkeeper.aiqfomeConnectionStatus || 'Configuração salva'
+        : 'Não conectado',
+    };
+  }
+
+  function rememberSavedAiqfome(users: User[]) {
+    setSavedAiqfomeByUser((current) => ({
+      ...current,
+      ...users.reduce<Record<string, Partial<User>>>((acc, user) => {
+        acc[user.id] = normalizeAiqfomeConfig(user);
+        return acc;
+      }, {}),
+    }));
+  }
+
+  function hasUnsavedAiqfomeChanges(shopkeeper: User) {
+    const savedConfig = savedAiqfomeByUser[shopkeeper.id];
+
+    if (!savedConfig) {
+      return false;
+    }
+
+    return JSON.stringify(normalizeAiqfomeConfig(shopkeeper)) !== JSON.stringify(savedConfig);
+  }
 
   async function loadShopkeepers(targetPage = 1, shouldAppend = false) {
     if (shouldAppend) {
@@ -81,6 +128,7 @@ export function IfoodClients() {
       setShopkeepers((currentUsers) =>
         shouldAppend ? [...currentUsers, ...users] : users,
       );
+      rememberSavedAiqfome(users);
       setPage(targetPage);
       setHasMoreShopkeepers(users.length === ITEMS_PER_PAGE);
     } catch (error: any) {
@@ -117,6 +165,7 @@ export function IfoodClients() {
       }
 
       setShopkeepers(allUsers);
+      rememberSavedAiqfome(allUsers);
       setPage(1);
       setHasMoreShopkeepers(false);
     } catch (error: any) {
@@ -198,32 +247,19 @@ export function IfoodClients() {
 
   async function handleSaveAiqfome(shopkeeper: User) {
     if (savingAiqfomeUser) return;
-    const stores = Array.isArray(shopkeeper.aiqfomeStores)
-      ? shopkeeper.aiqfomeStores
-          .map((store) => ({
-            ...store,
-            storeId: String(store.storeId || '').trim(),
-            name: String(store.name || '').trim(),
-            pickupAddress: String(store.pickupAddress || '').trim(),
-            enabled: store.enabled !== false,
-          }))
-          .filter((store) => store.storeId)
-      : [];
-    const aiqfomeStoreId = shopkeeper.useAiqfomeIntegration
-      ? String(shopkeeper.aiqfomeStoreId || stores.find((s) => s.enabled !== false)?.storeId || '').trim()
-      : '';
-    const normalizedAiqfome = {
-      useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration),
-      aiqfomeStoreId,
-      aiqfomeStores: shopkeeper.useAiqfomeIntegration ? stores : [],
-      aiqfomeConnectionStatus: shopkeeper.useAiqfomeIntegration
-        ? shopkeeper.aiqfomeConnectionStatus || 'Configuração salva'
-        : 'Não conectado',
-    };
+    const normalizedAiqfome = normalizeAiqfomeConfig(shopkeeper);
     setSavingAiqfomeUser(shopkeeper.user);
     try {
-      await api.put(`/user/${shopkeeper.id}`, normalizedAiqfome);
-      updateLocalUser(shopkeeper.id, normalizedAiqfome);
+      const response = await api.put(`/user/${shopkeeper.id}`, normalizedAiqfome);
+      const savedAiqfome = {
+        ...normalizedAiqfome,
+        ...(response.data || {}),
+      };
+      updateLocalUser(shopkeeper.id, savedAiqfome);
+      setSavedAiqfomeByUser((current) => ({
+        ...current,
+        [shopkeeper.id]: normalizeAiqfomeConfig({ ...shopkeeper, ...savedAiqfome }),
+      }));
       alert('Configuração aiqfome salva com sucesso.');
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
@@ -233,10 +269,17 @@ export function IfoodClients() {
   }
 
   async function handleConnectAiqfome(shopkeeper: User) {
-    if (!shopkeeper.useAiqfomeIntegration) return;
+    if (!shopkeeper.useAiqfomeIntegration) {
+      alert('Ative a integração aiqfome antes de conectar.');
+      return;
+    }
     const storeId = String(shopkeeper.aiqfomeStoreId || shopkeeper.aiqfomeStores?.find((store) => store.enabled !== false)?.storeId || shopkeeper.aiqfomeStores?.[0]?.storeId || '').trim();
     if (!storeId) {
-      alert('Informe e salve o Store ID antes de conectar.');
+      alert('Informe o Store ID antes de conectar.');
+      return;
+    }
+    if (hasUnsavedAiqfomeChanges(shopkeeper)) {
+      alert('Salve a configuração aiqfome antes de conectar.');
       return;
     }
     try {

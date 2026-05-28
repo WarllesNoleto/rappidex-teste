@@ -38,6 +38,7 @@ export function IfoodClients() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [savingUser, setSavingUser] = useState('');
+  const [savingAiqfomeUser, setSavingAiqfomeUser] = useState('');
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
   const [creditAmountByUser, setCreditAmountByUser] = useState<Record<string, number>>({});
   const [historyByUser, setHistoryByUser] = useState<Record<string, any[]>>({});
@@ -190,6 +191,33 @@ export function IfoodClients() {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
     } finally {
       setSavingUser('');
+    }
+  }
+
+
+
+  async function handleSaveAiqfome(shopkeeper: User) {
+    if (savingAiqfomeUser) return;
+    const stores = Array.isArray(shopkeeper.aiqfomeStores) ? shopkeeper.aiqfomeStores.map((store) => ({ ...store, storeId: String(store.storeId || '').trim(), name: String(store.name || '').trim(), pickupAddress: String(store.pickupAddress || '').trim() })).filter((store) => store.storeId) : [];
+    const aiqfomeStoreId = shopkeeper.useAiqfomeIntegration ? String(shopkeeper.aiqfomeStoreId || stores.find((s) => s.enabled !== false)?.storeId || '').trim() : '';
+    setSavingAiqfomeUser(shopkeeper.user);
+    try {
+      await api.put(`/user/${shopkeeper.id}`, { useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration), aiqfomeStoreId, aiqfomeStores: shopkeeper.useAiqfomeIntegration ? stores : [] });
+      alert('Configuração aiqfome salva com sucesso.');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
+    } finally {
+      setSavingAiqfomeUser('');
+    }
+  }
+
+  async function handleConnectAiqfome(shopkeeper: User) {
+    const storeId = String(shopkeeper.aiqfomeStoreId || shopkeeper.aiqfomeStores?.[0]?.storeId || '').trim();
+    try {
+      const response = await api.get(`/aiqfome/connect-url?shopkeeperId=${shopkeeper.id}&storeId=${encodeURIComponent(storeId)}`);
+      if (response?.data?.url) window.open(response.data.url, '_blank');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Erro ao conectar aiqfome.');
     }
   }
 
@@ -400,6 +428,24 @@ export function IfoodClients() {
                       ifoodMerchantId: resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', updatedMerchants),
                     });
                   }}>Adicionar loja iFood</CreditButton>
+                </div>
+
+                <div>
+                  <MerchantIdLabel>aiqfome</MerchantIdLabel>
+                  <Checkbox><input type="checkbox" checked={Boolean(shopkeeper.useAiqfomeIntegration)} onChange={(event) => updateLocalUser(shopkeeper.id, { useAiqfomeIntegration: event.target.checked, aiqfomeStoreId: event.target.checked ? shopkeeper.aiqfomeStoreId : '', aiqfomeStores: event.target.checked ? (shopkeeper.aiqfomeStores || []) : [] })} />Usar integração aiqfome</Checkbox>
+                  <small>Status: {shopkeeper.aiqfomeConnectionStatus || 'Não conectado'}</small>
+                  {(shopkeeper.aiqfomeStores || []).map((store, index) => (<div key={`aiq-${shopkeeper.id}-${index}`} style={{ border: '1px solid #555', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                    <Input disabled={!shopkeeper.useAiqfomeIntegration} placeholder="Nome da loja aiqfome" value={store.name || ''} onChange={(event) => updateLocalUser(shopkeeper.id, { aiqfomeStores: (shopkeeper.aiqfomeStores || []).map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item) })} />
+                    <Input disabled={!shopkeeper.useAiqfomeIntegration} placeholder="Store ID / Código da loja aiqfome" value={store.storeId || ''} onChange={(event) => updateLocalUser(shopkeeper.id, { aiqfomeStores: (shopkeeper.aiqfomeStores || []).map((item, itemIndex) => itemIndex === index ? { ...item, storeId: event.target.value } : item), aiqfomeStoreId: event.target.value })} />
+                    <Input disabled={!shopkeeper.useAiqfomeIntegration} placeholder="Endereço de coleta (opcional)" value={store.pickupAddress || ''} onChange={(event) => updateLocalUser(shopkeeper.id, { aiqfomeStores: (shopkeeper.aiqfomeStores || []).map((item, itemIndex) => itemIndex === index ? { ...item, pickupAddress: event.target.value } : item) })} />
+                    <Checkbox><input disabled={!shopkeeper.useAiqfomeIntegration} type="checkbox" checked={store.enabled !== false} onChange={(event) => updateLocalUser(shopkeeper.id, { aiqfomeStores: (shopkeeper.aiqfomeStores || []).map((item, itemIndex) => itemIndex === index ? { ...item, enabled: event.target.checked } : item) })} /> Ativa</Checkbox>
+                    <CreditButton type="button" onClick={() => updateLocalUser(shopkeeper.id, { aiqfomeStores: (shopkeeper.aiqfomeStores || []).filter((_, i) => i !== index) })}>Remover loja</CreditButton>
+                  </div>))}
+                  <CreditButtons>
+                    <CreditButton type="button" disabled={!shopkeeper.useAiqfomeIntegration} onClick={() => updateLocalUser(shopkeeper.id, { aiqfomeStores: [...(shopkeeper.aiqfomeStores || []), { storeId: '', name: '', enabled: true, pickupAddress: '' }] })}>Adicionar loja aiqfome</CreditButton>
+                    <CreditButton type="button" onClick={() => handleConnectAiqfome(shopkeeper)}>Conectar aiqfome</CreditButton>
+                    <CreditButton type="button" disabled={savingAiqfomeUser === shopkeeper.user} onClick={() => handleSaveAiqfome(shopkeeper)}>{savingAiqfomeUser === shopkeeper.user ? 'Salvando...' : 'Salvar aiqfome'}</CreditButton>
+                  </CreditButtons>
                 </div>
 
                 <CreditSummary>

@@ -21,4 +21,13 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
+  useAiqfomeIntegration?: boolean;
+  aiqfomeStoreId?: string;
+  aiqfomeStores?: Array<{
+    storeId: string;
+    name: string;
+    enabled: boolean;
+    pickupAddress?: string;
+  }>;
+  aiqfomeConnectionStatus?: string;
 }

@@ -573,7 +573,7 @@ export function IfoodClients() {
                       aiqfomeStoreId: event.target.value,
                     })}
                   />
-                  <small>Status: {getAiqfomeStatus(shopkeeper)}</small>
+                  <small>Informe o ID da loja aiqfome para ativar a integração logística. Status: {getAiqfomeStatus(shopkeeper)}</small>
                   <CreditButtons>
                     <CreditButton
                       type="button"

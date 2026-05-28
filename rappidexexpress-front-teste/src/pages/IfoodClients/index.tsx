@@ -64,11 +64,10 @@ export function IfoodClients() {
 
   const ITEMS_PER_PAGE = 200;
 
-  function normalizeAiqfomeConfig(shopkeeper: User): Partial<User> {
-    const stores = Array.isArray(shopkeeper.aiqfomeStores)
-      ? shopkeeper.aiqfomeStores
+  function normalizeAiqfomeStores(stores: User['aiqfomeStores'] = []) {
+    return Array.isArray(stores)
+      ? stores
           .map((store) => ({
-            ...store,
             storeId: String(store.storeId || '').trim(),
             name: String(store.name || '').trim(),
             pickupAddress: String(store.pickupAddress || '').trim(),
@@ -76,17 +75,15 @@ export function IfoodClients() {
           }))
           .filter((store) => store.storeId)
       : [];
-    const aiqfomeStoreId = shopkeeper.useAiqfomeIntegration
-      ? String(shopkeeper.aiqfomeStoreId || stores.find((store) => store.enabled !== false)?.storeId || '').trim()
-      : '';
+  }
+
+  function normalizeAiqfomeConfig(shopkeeper: User): Pick<User, 'useAiqfomeIntegration' | 'aiqfomeStoreId' | 'aiqfomeStores'> {
+    const normalizedStores = normalizeAiqfomeStores(shopkeeper.aiqfomeStores || []);
 
     return {
       useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration),
-      aiqfomeStoreId,
-      aiqfomeStores: shopkeeper.useAiqfomeIntegration ? stores : [],
-      aiqfomeConnectionStatus: shopkeeper.useAiqfomeIntegration
-        ? shopkeeper.aiqfomeConnectionStatus || 'Configuração salva'
-        : 'Não conectado',
+      aiqfomeStoreId: normalizedStores.find((store) => store.enabled)?.storeId || '',
+      aiqfomeStores: normalizedStores,
     };
   }
 
@@ -247,20 +244,25 @@ export function IfoodClients() {
 
   async function handleSaveAiqfome(shopkeeper: User) {
     if (savingAiqfomeUser) return;
-    const normalizedAiqfome = normalizeAiqfomeConfig(shopkeeper);
+
+    const normalizedStores = normalizeAiqfomeStores(shopkeeper.aiqfomeStores || []);
+    const payload = {
+      useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration),
+      aiqfomeStoreId: normalizedStores.find((store) => store.enabled)?.storeId || '',
+      aiqfomeStores: normalizedStores,
+    };
+
     setSavingAiqfomeUser(shopkeeper.user);
     try {
-      const response = await api.put(`/user/${shopkeeper.id}`, normalizedAiqfome);
-      const savedAiqfome = {
-        ...normalizedAiqfome,
-        ...(response.data || {}),
-      };
-      updateLocalUser(shopkeeper.id, savedAiqfome);
+      const response = await api.put(`/user/${shopkeeper.id}`, payload);
+      const updatedUser = response.data || payload;
+
+      updateLocalUser(shopkeeper.id, updatedUser);
       setSavedAiqfomeByUser((current) => ({
         ...current,
-        [shopkeeper.id]: normalizeAiqfomeConfig({ ...shopkeeper, ...savedAiqfome }),
+        [shopkeeper.id]: normalizeAiqfomeConfig({ ...shopkeeper, ...updatedUser }),
       }));
-      alert('Configuração aiqfome salva com sucesso.');
+      alert('Configuração salva');
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
     } finally {

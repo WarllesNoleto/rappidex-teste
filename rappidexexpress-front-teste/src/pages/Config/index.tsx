@@ -132,7 +132,6 @@ export function Config() {
                             blockType ? "Desbloquear entregas" : "Bloquear entregas"
                         }
                     </BlockDeliveriesButton>
-                                    
                 </>
             }
         </Container>

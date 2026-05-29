@@ -38,7 +38,6 @@ export function IfoodClients() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [savingUser, setSavingUser] = useState('');
-  const [savingAiqfomeUser, setSavingAiqfomeUser] = useState('');
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
   const [creditAmountByUser, setCreditAmountByUser] = useState<Record<string, number>>({});
   const [historyByUser, setHistoryByUser] = useState<Record<string, any[]>>({});
@@ -46,7 +45,6 @@ export function IfoodClients() {
   const [page, setPage] = useState(1);
   const [hasMoreShopkeepers, setHasMoreShopkeepers] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [savedAiqfomeByUser, setSavedAiqfomeByUser] = useState<Record<string, Partial<User>>>({});
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -64,95 +62,6 @@ export function IfoodClients() {
 
   const ITEMS_PER_PAGE = 200;
 
-  function resolveAiqfomeStoreId(shopkeeper: User) {
-    return String(
-      shopkeeper.aiqfomeStoreId ||
-        shopkeeper.aiqfomeStores?.find((store) => store.enabled !== false)?.storeId ||
-        shopkeeper.aiqfomeStores?.[0]?.storeId ||
-        '',
-    ).trim();
-  }
-
-  function buildAiqfomePayload(shopkeeper: User) {
-    const useAiqfomeIntegration = Boolean(shopkeeper.useAiqfomeIntegration);
-    const aiqfomeStoreId = useAiqfomeIntegration
-      ? String(shopkeeper.aiqfomeStoreId || '').trim()
-      : '';
-
-    return {
-      useAiqfomeIntegration,
-      aiqfomeStoreId,
-      aiqfomeStores:
-        useAiqfomeIntegration && aiqfomeStoreId
-          ? [
-              {
-                storeId: aiqfomeStoreId,
-                name: shopkeeper.name || 'Loja aiqfome',
-                enabled: true,
-              },
-            ]
-          : [],
-    };
-  }
-
-  function normalizeAiqfomeConfig(shopkeeper: User): Pick<User, 'useAiqfomeIntegration' | 'aiqfomeStoreId' | 'aiqfomeStores'> {
-    const aiqfomeStoreId = resolveAiqfomeStoreId(shopkeeper);
-
-    return {
-      useAiqfomeIntegration: Boolean(shopkeeper.useAiqfomeIntegration),
-      aiqfomeStoreId,
-      aiqfomeStores:
-        Boolean(shopkeeper.useAiqfomeIntegration) && aiqfomeStoreId
-          ? [
-              {
-                storeId: aiqfomeStoreId,
-                name: shopkeeper.name || 'Loja aiqfome',
-                enabled: true,
-              },
-            ]
-          : [],
-    };
-  }
-
-  function getAiqfomeStatus(shopkeeper: User) {
-    if (shopkeeper.aiqfomeConnectionStatus) {
-      return shopkeeper.aiqfomeConnectionStatus;
-    }
-
-    if (!shopkeeper.useAiqfomeIntegration || !resolveAiqfomeStoreId(shopkeeper)) {
-      return 'Não configurado';
-    }
-
-    return 'Configuração salva';
-  }
-
-  function withAiqfomeStoreId(shopkeeper: User): User {
-    return {
-      ...shopkeeper,
-      aiqfomeStoreId: resolveAiqfomeStoreId(shopkeeper),
-    };
-  }
-
-  function rememberSavedAiqfome(users: User[]) {
-    setSavedAiqfomeByUser((current) => ({
-      ...current,
-      ...users.reduce<Record<string, Partial<User>>>((acc, user) => {
-        acc[user.id] = normalizeAiqfomeConfig(user);
-        return acc;
-      }, {}),
-    }));
-  }
-
-  function hasUnsavedAiqfomeChanges(shopkeeper: User) {
-    const savedConfig = savedAiqfomeByUser[shopkeeper.id];
-
-    if (!savedConfig) {
-      return false;
-    }
-
-    return JSON.stringify(normalizeAiqfomeConfig(shopkeeper)) !== JSON.stringify(savedConfig);
-  }
-
   async function loadShopkeepers(targetPage = 1, shouldAppend = false) {
     if (shouldAppend) {
       setLoadingMore(true);
@@ -164,14 +73,13 @@ export function IfoodClients() {
       const usersResponse = await api.get(
         `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
       );
-      const users = (Array.isArray(usersResponse.data?.data)
+      const users = Array.isArray(usersResponse.data?.data)
         ? usersResponse.data.data
-        : []).map(withAiqfomeStoreId);
+        : [];
 
       setShopkeepers((currentUsers) =>
         shouldAppend ? [...currentUsers, ...users] : users,
       );
-      rememberSavedAiqfome(users);
       setPage(targetPage);
       setHasMoreShopkeepers(users.length === ITEMS_PER_PAGE);
     } catch (error: any) {
@@ -198,9 +106,9 @@ export function IfoodClients() {
           `/user?type=shopkeeper&page=${targetPage}&itemsPerPage=${ITEMS_PER_PAGE}`,
         );
 
-        const users = (Array.isArray(usersResponse.data?.data)
+        const users = Array.isArray(usersResponse.data?.data)
           ? usersResponse.data.data
-          : []).map(withAiqfomeStoreId);
+          : [];
 
         allUsers.push(...users);
         hasMore = users.length === ITEMS_PER_PAGE;
@@ -208,7 +116,6 @@ export function IfoodClients() {
       }
 
       setShopkeepers(allUsers);
-      rememberSavedAiqfome(allUsers);
       setPage(1);
       setHasMoreShopkeepers(false);
     } catch (error: any) {
@@ -283,66 +190,6 @@ export function IfoodClients() {
       alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
     } finally {
       setSavingUser('');
-    }
-  }
-
-
-
-  async function handleSaveAiqfome(shopkeeper: User) {
-    if (savingAiqfomeUser) return;
-
-    const payload = buildAiqfomePayload(shopkeeper);
-
-    setSavingAiqfomeUser(shopkeeper.user);
-    try {
-      const response = await api.put(`/user/${shopkeeper.id}`, payload);
-      const updatedUser = {
-        ...(response.data || {}),
-        aiqfomeStoreId: payload.aiqfomeStoreId,
-        aiqfomeStores: payload.aiqfomeStores,
-        aiqfomeConnectionStatus: 'Configuração salva',
-      };
-      const updatedAiqfomeConfig = normalizeAiqfomeConfig({ ...shopkeeper, ...updatedUser });
-
-      updateLocalUser(shopkeeper.id, updatedUser);
-      setSavedAiqfomeByUser((current) => ({
-        ...current,
-        [shopkeeper.id]: updatedAiqfomeConfig,
-      }));
-      alert('Configuração salva');
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao salvar configuração aiqfome.');
-    } finally {
-      setSavingAiqfomeUser('');
-    }
-  }
-
-  async function handleConnectAiqfome(shopkeeper: User) {
-    if (!shopkeeper.useAiqfomeIntegration) {
-      alert('Ative a integração aiqfome antes de conectar.');
-      return;
-    }
-
-    const shopkeeperId = String(shopkeeper.id || '').trim();
-    if (!shopkeeperId) {
-      alert('Não foi possível identificar o lojista para conectar aiqfome.');
-      return;
-    }
-
-    const storeId = String(shopkeeper.aiqfomeStoreId || '').trim();
-    if (!storeId) {
-      alert('Informe o ID da loja aiqfome.');
-      return;
-    }
-    if (hasUnsavedAiqfomeChanges(shopkeeper)) {
-      alert('Salve a configuração aiqfome antes de conectar.');
-      return;
-    }
-    try {
-      const response = await api.get(`/aiqfome/connect-url?shopkeeperId=${shopkeeperId}&storeId=${encodeURIComponent(storeId)}`);
-      if (response?.data?.url) window.open(response.data.url, '_blank');
-    } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao conectar aiqfome.');
     }
   }
 
@@ -553,49 +400,6 @@ export function IfoodClients() {
                       ifoodMerchantId: resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', updatedMerchants),
                     });
                   }}>Adicionar loja iFood</CreditButton>
-                </div>
-
-                <div>
-                  <MerchantIdLabel>aiqfome</MerchantIdLabel>
-                  <Checkbox>
-                    <input
-                      type="checkbox"
-                      checked={Boolean(shopkeeper.useAiqfomeIntegration)}
-                      onChange={(event) => {
-                        const checked = event.target.checked;
-                        updateLocalUser(shopkeeper.id, {
-                          useAiqfomeIntegration: checked,
-                          aiqfomeStoreId: checked ? resolveAiqfomeStoreId(shopkeeper) : '',
-                        });
-                      }}
-                    />
-                    Usar integração aiqfome
-                  </Checkbox>
-                  <Input
-                    disabled={!shopkeeper.useAiqfomeIntegration}
-                    placeholder="ID da loja aiqfome"
-                    value={shopkeeper.aiqfomeStoreId || ''}
-                    onChange={(event) => updateLocalUser(shopkeeper.id, {
-                      aiqfomeStoreId: event.target.value,
-                    })}
-                  />
-                  <small>Informe o ID da loja aiqfome para ativar a integração logística. Status: {getAiqfomeStatus(shopkeeper)}</small>
-                  <CreditButtons>
-                    <CreditButton
-                      type="button"
-                      disabled={savingAiqfomeUser === shopkeeper.user}
-                      onClick={() => handleSaveAiqfome(shopkeeper)}
-                    >
-                      {savingAiqfomeUser === shopkeeper.user ? 'Salvando...' : 'Salvar aiqfome'}
-                    </CreditButton>
-                    <CreditButton
-                      type="button"
-                      disabled={!shopkeeper.useAiqfomeIntegration}
-                      onClick={() => handleConnectAiqfome(shopkeeper)}
-                    >
-                      Conectar aiqfome
-                    </CreditButton>
-                  </CreditButtons>
                 </div>
 
                 <CreditSummary>

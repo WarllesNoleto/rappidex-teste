@@ -195,17 +195,6 @@ export function NewUser() {
       return;
     }
 
-    if (
-      Boolean(data.anotaAiEnabled) &&
-      !String(data.anotaAiStoreId || "").trim()
-    ) {
-      alert(
-        "Para ativar a integração Anota AI, preencha o Root / ID interno da loja Anota AI.",
-      );
-      setLoading(false);
-      return;
-    }
-
     if (!cityIdToSubmit) {
       alert("Não foi possível identificar a cidade para vincular ao usuário.");
       setLoading(false);
@@ -288,14 +277,6 @@ export function NewUser() {
       normalizedMerchants.length === 0
     ) {
       alert("Para integração iFood, preencha o merchantId.");
-      setLoading(false);
-      return;
-    }
-
-    if (Boolean(anotaAiEnabled) && !String(anotaAiStoreId || "").trim()) {
-      alert(
-        "Para ativar a integração Anota AI, preencha o Root / ID interno da loja Anota AI.",
-      );
       setLoading(false);
       return;
     }
@@ -486,7 +467,7 @@ export function NewUser() {
     : !loggedUserCityId;
   const ifoodIntegrationMissingFields =
     Boolean(useIfoodIntegration) && !watch("ifoodMerchantId");
-  const anotaAiIntegrationMissingFields =
+  const shouldWarnAnotaAiLink =
     Boolean(anotaAiEnabled) && !String(watch("anotaAiStoreId") || "").trim();
   const isSubmitDisabled =
     !name ||
@@ -495,8 +476,7 @@ export function NewUser() {
     !profileImage ||
     phone.includes("_") ||
     citySelectionMissing ||
-    ifoodIntegrationMissingFields ||
-    anotaAiIntegrationMissingFields;
+    ifoodIntegrationMissingFields;
   const isShopkeeperType =
     selectedType === "shopkeeper" || selectedType === "shopkeeperadmin";
 
@@ -806,6 +786,27 @@ export function NewUser() {
                   Ativar integração Anota AI para esta empresa
                 </label>
 
+                {userId ? (
+                  <>
+                    <InlineInfo>
+                      <span>ID da empresa no Rappidex: {userId}</span>
+                      <CopyButton type="button" onClick={handleCopyCompanyId}>
+                        Copiar ID
+                      </CopyButton>
+                    </InlineInfo>
+                    <HelpText>
+                      Cole este ID no campo ID Externo do Restaurante no portal
+                      da Anota AI.
+                    </HelpText>
+                  </>
+                ) : (
+                  <HelpText>
+                    Salve a empresa primeiro para gerar o ID da empresa no
+                    Rappidex. Depois cole esse ID no campo ID Externo do
+                    Restaurante no portal da Anota AI.
+                  </HelpText>
+                )}
+
                 <label htmlFor="anotaAiStoreId">
                   Root / ID interno da loja Anota AI
                 </label>
@@ -817,27 +818,16 @@ export function NewUser() {
                   {...register("anotaAiStoreId")}
                 />
                 <HelpText>
-                  Cole aqui o Root gerado automaticamente no portal da Anota AI.
+                  Opcional. Cole aqui o Root gerado automaticamente no portal da
+                  Anota AI caso o webhook envie o Root.
                 </HelpText>
-                {anotaAiIntegrationMissingFields && (
+                {shouldWarnAnotaAiLink && (
                   <HelpText role="alert">
-                    Para ativar a integração, é necessário vincular o Root da
-                    Anota AI.
+                    Recomendado preencher o Root ou garantir que o ID Externo do
+                    Restaurante no portal da Anota AI seja o ID desta empresa no
+                    Rappidex.
                   </HelpText>
                 )}
-
-                {userId && (
-                  <InlineInfo>
-                    <span>ID da empresa no Rappidex: {userId}</span>
-                    <CopyButton type="button" onClick={handleCopyCompanyId}>
-                      Copiar ID
-                    </CopyButton>
-                  </InlineInfo>
-                )}
-                <HelpText>
-                  Cole este ID no campo ID Externo do Restaurante no portal da
-                  Anota AI.
-                </HelpText>
 
                 <label htmlFor="anotaAiToken">Token da Anota AI</label>
                 <BaseInput
@@ -874,7 +864,7 @@ export function NewUser() {
                   </CopyButton>
                 </InlineInfo>
                 <HelpText>
-                  Cadastre esta URL nos campos Pedidos Realizados, Pedidos
+                  Cadastre este caminho nos campos Pedidos Realizados, Pedidos
                   Atualizados e Pedidos Cancelados no portal da Anota AI, usando
                   método POST.
                 </HelpText>

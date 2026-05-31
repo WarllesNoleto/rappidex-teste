@@ -168,7 +168,7 @@ export function IfoodClients() {
     }
 
     if (shopkeeper.anotaAiEnabled && !String(shopkeeper.anotaAiStoreId || '').trim()) {
-      alert('Informe o ID da loja Anota AI para ativar a integração.');
+      alert('Informe o Root/ID interno da loja Anota AI para ativar a integração.');
       return;
     }
 
@@ -428,7 +428,7 @@ export function IfoodClients() {
                   </Checkbox>
 
                   <MerchantIdLabel htmlFor={`anota-store-${shopkeeper.id}`}>
-                    ID da loja Anota AI
+                    Root / ID interno da loja Anota AI
                   </MerchantIdLabel>
                   <Input
                     disabled={!shopkeeper.anotaAiEnabled}
@@ -436,7 +436,7 @@ export function IfoodClients() {
                     onChange={(event) =>
                       updateLocalUser(shopkeeper.id, { anotaAiStoreId: event.target.value })
                     }
-                    placeholder="Ex.: storeId informado pela Anota AI"
+                    placeholder="Ex.: Root informado pela Anota AI"
                     value={shopkeeper.anotaAiStoreId || ''}
                   />
 
@@ -472,9 +472,12 @@ export function IfoodClients() {
                       Status: {shopkeeper.anotaAiEnabled ? 'Ativa' : 'Inativa'}
                     </CreditLine>
                     <CreditLine>Webhook: {`${API_URL}/anota-ai/webhook`}</CreditLine>
+                    <CreditLine>
+                      Root: usado somente para vincular a loja Anota AI ao lojista Rappidex.
+                    </CreditLine>
                   </CreditSummary>
                   <Subtitle>
-                    Cadastre esta URL no portal da Anota AI em Webhooks: {`${API_URL}/anota-ai/webhook`}
+                    Cadastre esta URL nos campos Pedidos Realizados, Pedidos Atualizados e Pedidos Cancelados do portal da Anota AI: {`${API_URL}/anota-ai/webhook`}
                   </Subtitle>
                 </div>
 

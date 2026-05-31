@@ -2,7 +2,7 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 
 import { DeliveryContext } from '../../context/DeliveryContext';
-import api from '../../services/api';
+import api, { API_URL } from '../../services/api';
 import { Loader } from '../../components/Loader';
 import { User } from '../../shared/interfaces';
 import { formatIfoodHistoryDateTime, translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
@@ -167,6 +167,11 @@ export function IfoodClients() {
       return;
     }
 
+    if (shopkeeper.anotaAiEnabled && !String(shopkeeper.anotaAiStoreId || '').trim()) {
+      alert('Informe o ID da loja Anota AI para ativar a integração.');
+      return;
+    }
+
     setSavingUser(shopkeeper.user);
 
     try {
@@ -177,6 +182,10 @@ export function IfoodClients() {
           Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
         ifoodMerchants: merchants,
+        anotaAiEnabled: Boolean(shopkeeper.anotaAiEnabled),
+        anotaAiStoreId: String(shopkeeper.anotaAiStoreId || '').trim(),
+        anotaAiToken: String(shopkeeper.anotaAiToken || '').trim(),
+        anotaAiIgnoreIfoodOrders: shopkeeper.anotaAiIgnoreIfoodOrders !== false,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
         await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
@@ -184,10 +193,10 @@ export function IfoodClients() {
           'Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.',
         );
       } else {
-        alert('Configuração iFood salva com sucesso.');
+        alert('Configurações de integração salvas com sucesso.');
       }
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao salvar configuração iFood.');
+      alert(error?.response?.data?.message || 'Erro ao salvar configurações de integração.');
     } finally {
       setSavingUser('');
     }
@@ -276,8 +285,7 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Vincule cada lojista ao Merchant ID do iFood para permitir a importação
-          dos pedidos corretamente.
+          Configure as integrações iFood e Anota AI de cada lojista sem alterar o fluxo atual de entregas.
         </Subtitle>
 
         <Input
@@ -401,6 +409,75 @@ export function IfoodClients() {
                     });
                   }}>Adicionar loja iFood</CreditButton>
                 </div>
+
+                <div style={{ border: '1px solid #2f855a', borderRadius: 8, padding: 12 }}>
+                  <ShopkeeperName>Anota AI</ShopkeeperName>
+                  <Checkbox>
+                    <input
+                      checked={Boolean(shopkeeper.anotaAiEnabled)}
+                      onChange={(event) =>
+                        updateLocalUser(shopkeeper.id, {
+                          anotaAiEnabled: event.target.checked,
+                          anotaAiIgnoreIfoodOrders:
+                            shopkeeper.anotaAiIgnoreIfoodOrders !== false,
+                        })
+                      }
+                      type="checkbox"
+                    />
+                    Ativar integração Anota AI
+                  </Checkbox>
+
+                  <MerchantIdLabel htmlFor={`anota-store-${shopkeeper.id}`}>
+                    ID da loja Anota AI
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.anotaAiEnabled}
+                    id={`anota-store-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, { anotaAiStoreId: event.target.value })
+                    }
+                    placeholder="Ex.: storeId informado pela Anota AI"
+                    value={shopkeeper.anotaAiStoreId || ''}
+                  />
+
+                  <MerchantIdLabel htmlFor={`anota-token-${shopkeeper.id}`}>
+                    Token da Anota AI (opcional)
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.anotaAiEnabled}
+                    id={`anota-token-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, { anotaAiToken: event.target.value })
+                    }
+                    placeholder="Token, se a loja usar credencial própria"
+                    value={shopkeeper.anotaAiToken || ''}
+                  />
+
+                  <Checkbox>
+                    <input
+                      checked={shopkeeper.anotaAiIgnoreIfoodOrders !== false}
+                      disabled={!shopkeeper.anotaAiEnabled}
+                      onChange={(event) =>
+                        updateLocalUser(shopkeeper.id, {
+                          anotaAiIgnoreIfoodOrders: event.target.checked,
+                        })
+                      }
+                      type="checkbox"
+                    />
+                    Ignorar pedidos iFood vindos da Anota AI
+                  </Checkbox>
+
+                  <CreditSummary>
+                    <CreditLine>
+                      Status: {shopkeeper.anotaAiEnabled ? 'Ativa' : 'Inativa'}
+                    </CreditLine>
+                    <CreditLine>Webhook: {`${API_URL}/anota-ai/webhook`}</CreditLine>
+                  </CreditSummary>
+                  <Subtitle>
+                    Cadastre esta URL no portal da Anota AI em Webhooks: {`${API_URL}/anota-ai/webhook`}
+                  </Subtitle>
+                </div>
+
 
                 <CreditSummary>
                   <CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine>

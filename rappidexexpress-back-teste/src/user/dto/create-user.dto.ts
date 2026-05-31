@@ -64,7 +64,7 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   ifoodMerchantId?: string;
-  
+
   @IsString()
   @IsOptional()
   ifoodClientId?: string;
@@ -84,6 +84,26 @@ export class CreateUserDto {
   @IsOptional()
   @IsNumber()
   ifoodOrdersAvailable?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  anotaAiEnabled?: boolean;
+
+  @IsString()
+  @IsOptional()
+  anotaAiStoreId?: string;
+
+  @IsString()
+  @IsOptional()
+  anotaAiClientId?: string;
+
+  @IsString()
+  @IsOptional()
+  anotaAiClientSecret?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  anotaAiIgnoreIfoodOrders?: boolean;
 }
 
 class IfoodMerchantDto {

@@ -92,6 +92,7 @@ export function NewUser() {
 
   const allowCitySelection = permission === "superadmin";
   const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
+  const anotaAiWebhookPath = "/api/anota-ai/webhook";
 
   function resetAnotaAiFields() {
     setValue("anotaAiEnabled", false);
@@ -131,6 +132,15 @@ export function NewUser() {
       alert("ID da empresa copiado!");
     } catch {
       alert(`ID da empresa no Rappidex: ${userId}`);
+    }
+  }
+
+  async function handleCopyAnotaAiWebhook(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      alert(`${label} copiado!`);
+    } catch {
+      alert(`${label}: ${value}`);
     }
   }
 
@@ -853,18 +863,37 @@ export function NewUser() {
                 </label>
 
                 <InlineInfo>
-                  <span>Webhook Anota AI: {anotaAiWebhookUrl}</span>
+                  <span>URL completa: {anotaAiWebhookUrl}</span>
                   <CopyButton
                     type="button"
                     onClick={() =>
-                      navigator.clipboard.writeText(anotaAiWebhookUrl)
+                      handleCopyAnotaAiWebhook(
+                        anotaAiWebhookUrl,
+                        "URL completa",
+                      )
                     }
                   >
-                    Copiar URL
+                    Copiar URL completa
+                  </CopyButton>
+                </InlineInfo>
+                <InlineInfo>
+                  <span>Caminho/path: {anotaAiWebhookPath}</span>
+                  <CopyButton
+                    type="button"
+                    onClick={() =>
+                      handleCopyAnotaAiWebhook(anotaAiWebhookPath, "Caminho")
+                    }
+                  >
+                    Copiar caminho
                   </CopyButton>
                 </InlineInfo>
                 <HelpText>
-                  Cadastre este caminho nos campos Pedidos Realizados, Pedidos
+                  Se o portal da Anota AI pedir URL completa, use a URL
+                  completa. Se pedir apenas o caminho, use
+                  /api/anota-ai/webhook.
+                </HelpText>
+                <HelpText>
+                  Cadastre este webhook nos campos Pedidos Realizados, Pedidos
                   Atualizados e Pedidos Cancelados no portal da Anota AI, usando
                   método POST.
                 </HelpText>

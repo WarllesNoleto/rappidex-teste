@@ -48,6 +48,9 @@ export function IfoodClients() {
 
   const [searchTerm, setSearchTerm] = useState('');
 
+  const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
+  const anotaAiWebhookPath = '/api/anota-ai/webhook';
+
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -131,6 +134,18 @@ export function IfoodClients() {
         shopkeeper.id === userId ? { ...shopkeeper, ...changes } : shopkeeper,
       ),
     );
+  }
+
+  function handleCopyWebhookInfo(value: string, label: string) {
+    if (!navigator.clipboard) {
+      alert('Não foi possível copiar automaticamente neste navegador.');
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(value)
+      .then(() => alert(`${label} copiado.`))
+      .catch(() => alert(`Não foi possível copiar ${label.toLowerCase()}.`));
   }
 
   function resolveLegacyMerchantId(merchantId: string, merchants: User['ifoodMerchants'] = []) {
@@ -471,13 +486,30 @@ export function IfoodClients() {
                     <CreditLine>
                       Status: {shopkeeper.anotaAiEnabled ? 'Ativa' : 'Inativa'}
                     </CreditLine>
-                    <CreditLine>Webhook: {`${API_URL}/anota-ai/webhook`}</CreditLine>
+                    <CreditLine>URL completa do webhook: {anotaAiWebhookUrl}</CreditLine>
+                    <CreditLine>
+                      Caminho/path para o portal da Anota AI: {anotaAiWebhookPath}
+                    </CreditLine>
                     <CreditLine>
                       Root: usado somente para vincular a loja Anota AI ao lojista Rappidex.
                     </CreditLine>
                   </CreditSummary>
+                  <CreditButtons>
+                    <CreditButton
+                      onClick={() => handleCopyWebhookInfo(anotaAiWebhookUrl, 'URL completa')}
+                      type="button"
+                    >
+                      Copiar URL completa
+                    </CreditButton>
+                    <CreditButton
+                      onClick={() => handleCopyWebhookInfo(anotaAiWebhookPath, 'Caminho')}
+                      type="button"
+                    >
+                      Copiar caminho
+                    </CreditButton>
+                  </CreditButtons>
                   <Subtitle>
-                    Cadastre esta URL nos campos Pedidos Realizados, Pedidos Atualizados e Pedidos Cancelados do portal da Anota AI: {`${API_URL}/anota-ai/webhook`}
+                    Se o portal da Anota AI pedir URL completa, use a URL completa. Se pedir apenas o caminho do webhook, use /api/anota-ai/webhook. Cadastre a informação correta nos campos Pedidos Realizados, Pedidos Atualizados e Pedidos Cancelados do portal da Anota AI.
                   </Subtitle>
                 </div>
 

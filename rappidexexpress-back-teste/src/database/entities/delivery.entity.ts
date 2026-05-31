@@ -129,6 +129,21 @@ export class DeliveryEntity {
 
   @Column({ nullable: true })
   ifoodImportedAt?: Date;
+
+  @Column({ nullable: true })
+  source?: string;
+
+  @Column({ nullable: true })
+  externalOrderId?: string;
+
+  @Column({ nullable: true })
+  anotaAiOrderId?: string;
+
+  @Column({ nullable: true })
+  integrationOrigin?: string;
+
+  @Column({ nullable: true })
+  rawIntegrationPayload?: any;
   @Column({ nullable: true })
   ifoodLastEventCode?: string;
   @Column({ nullable: true })

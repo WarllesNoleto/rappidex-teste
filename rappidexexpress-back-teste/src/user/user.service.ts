@@ -82,6 +82,11 @@ export class UserService {
     const ifoodMerchantId = useIfoodIntegration
       ? (data.ifoodMerchantId?.trim() ?? ifoodMerchants[0]?.merchantId ?? '')
       : '';
+    const anotaAiEnabled = Boolean(data.anotaAiEnabled);
+    const anotaAiStoreId = anotaAiEnabled
+      ? String(data.anotaAiStoreId || '').trim()
+      : '';
+    const anotaAiIgnoreIfoodOrders = data.anotaAiIgnoreIfoodOrders !== false;
 
     try {
       const newUser = await this.userRepository.save({
@@ -99,6 +104,11 @@ export class UserService {
         ifoodOrdersReleased: Number(data.ifoodOrdersReleased || 0),
         ifoodOrdersUsed: Number(data.ifoodOrdersUsed || 0),
         ifoodOrdersAvailable: Number(data.ifoodOrdersAvailable || 0),
+        anotaAiEnabled,
+        anotaAiStoreId,
+        anotaAiClientId: String(data.anotaAiClientId || '').trim(),
+        anotaAiClientSecret: String(data.anotaAiClientSecret || '').trim(),
+        anotaAiIgnoreIfoodOrders,
         isActive: true,
         createdAt: addHours(new Date(), -3),
         updatedAt: addHours(new Date(), -3),
@@ -209,7 +219,9 @@ export class UserService {
       const useIfoodIntegration =
         data.useIfoodIntegration ?? userToUpdate.useIfoodIntegration ?? false;
       const usesExternalIfoodPdv = useIfoodIntegration
-        ? (data.usesExternalIfoodPdv ?? userToUpdate.usesExternalIfoodPdv ?? false)
+        ? (data.usesExternalIfoodPdv ??
+          userToUpdate.usesExternalIfoodPdv ??
+          false)
         : false;
 
       const ifoodMerchantId = useIfoodIntegration
@@ -224,6 +236,17 @@ export class UserService {
       const ifoodMerchants = this.normalizeIfoodMerchants(
         data.ifoodMerchants ?? userToUpdate.ifoodMerchants,
       );
+      const anotaAiEnabled =
+        data.anotaAiEnabled ?? userToUpdate.anotaAiEnabled ?? false;
+      const anotaAiStoreId = anotaAiEnabled
+        ? String(
+            data.anotaAiStoreId ?? userToUpdate.anotaAiStoreId ?? '',
+          ).trim()
+        : '';
+      const anotaAiIgnoreIfoodOrders =
+        data.anotaAiIgnoreIfoodOrders ??
+        userToUpdate.anotaAiIgnoreIfoodOrders ??
+        true;
 
       const changedUser = await this.userRepository.save({
         ...userToUpdate,
@@ -241,6 +264,15 @@ export class UserService {
           data.ifoodOrdersUsed ?? userToUpdate.ifoodOrdersUsed ?? 0,
         ifoodOrdersAvailable:
           data.ifoodOrdersAvailable ?? userToUpdate.ifoodOrdersAvailable ?? 0,
+        anotaAiEnabled,
+        anotaAiStoreId,
+        anotaAiClientId: String(
+          data.anotaAiClientId ?? userToUpdate.anotaAiClientId ?? '',
+        ).trim(),
+        anotaAiClientSecret: String(
+          data.anotaAiClientSecret ?? userToUpdate.anotaAiClientSecret ?? '',
+        ).trim(),
+        anotaAiIgnoreIfoodOrders,
         updatedAt: addHours(new Date(), -3),
       });
 
@@ -251,7 +283,9 @@ export class UserService {
           ifoodMerchantId !== String(userToUpdate.ifoodMerchantId || '').trim(),
         ifoodMerchantsChanged:
           JSON.stringify(ifoodMerchants) !==
-          JSON.stringify(this.normalizeIfoodMerchants(userToUpdate.ifoodMerchants)),
+          JSON.stringify(
+            this.normalizeIfoodMerchants(userToUpdate.ifoodMerchants),
+          ),
         isActiveChanged:
           Boolean(changedUser.isActive) !== Boolean(userToUpdate.isActive),
         usesExternalIfoodPdvChanged:
@@ -297,12 +331,20 @@ export class UserService {
       .retryPendingImportsForCompany(company.id)
       .then(() =>
         this.logger.log(
-          `ifood_initial_sync_triggered companyId=${company.id} merchants=${this.getActiveMerchantIds(company).map((merchantId) => this.maskMerchantId(merchantId)).join(',')}`,
+          `ifood_initial_sync_triggered companyId=${company.id} merchants=${this.getActiveMerchantIds(
+            company,
+          )
+            .map((merchantId) => this.maskMerchantId(merchantId))
+            .join(',')}`,
         ),
       )
       .catch((error) =>
         this.logger.error(
-          `ifood_initial_sync_failed companyId=${company.id} merchants=${this.getActiveMerchantIds(company).map((merchantId) => this.maskMerchantId(merchantId)).join(',')} error=${error?.message || error}`,
+          `ifood_initial_sync_failed companyId=${company.id} merchants=${this.getActiveMerchantIds(
+            company,
+          )
+            .map((merchantId) => this.maskMerchantId(merchantId))
+            .join(',')} error=${error?.message || error}`,
         ),
       );
   }
@@ -324,7 +366,8 @@ export class UserService {
         merchantId: String(merchant?.merchantId || '').trim(),
         name: String(merchant?.name || '').trim(),
         enabled: merchant?.enabled !== false,
-        pickupAddress: String(merchant?.pickupAddress || '').trim() || undefined,
+        pickupAddress:
+          String(merchant?.pickupAddress || '').trim() || undefined,
       }))
       .filter((merchant) => merchant.merchantId);
   }

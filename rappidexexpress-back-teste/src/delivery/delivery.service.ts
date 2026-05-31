@@ -1119,6 +1119,11 @@ export class DeliveryService implements OnModuleInit {
       ifoodDisplayId,
       ifoodMerchantId,
       ifoodMerchantName,
+      source,
+      externalOrderId,
+      anotaAiOrderId,
+      integrationOrigin,
+      rawIntegrationPayload,
     } = deliveryData;
 
     let deliveryStatus = status;
@@ -1200,6 +1205,11 @@ export class DeliveryService implements OnModuleInit {
         ifoodDisplayId,
         ifoodMerchantId,
         ifoodMerchantName,
+        source,
+        externalOrderId,
+        anotaAiOrderId,
+        integrationOrigin,
+        rawIntegrationPayload,
         ifoodImportedAt: ifoodOrderId ? addHours(new Date(), -3) : undefined,
         isActive: true,
         createdBy: user.id,

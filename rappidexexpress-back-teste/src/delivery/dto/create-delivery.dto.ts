@@ -93,4 +93,23 @@ export class CreateDeliveryDto {
   @IsString()
   @IsOptional()
   ifoodMerchantName?: string;
+
+  @IsString()
+  @IsOptional()
+  source?: string;
+
+  @IsString()
+  @IsOptional()
+  externalOrderId?: string;
+
+  @IsString()
+  @IsOptional()
+  anotaAiOrderId?: string;
+
+  @IsString()
+  @IsOptional()
+  integrationOrigin?: string;
+
+  @IsOptional()
+  rawIntegrationPayload?: any;
 }

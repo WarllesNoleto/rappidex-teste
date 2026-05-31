@@ -18,7 +18,6 @@ export class DeliveryResult {
   @Expose()
   clientLocation?: string;
 
-
   @Expose()
   clientAddress?: string;
 
@@ -147,6 +146,18 @@ export class DeliveryResult {
   @Expose()
   ifoodMerchantName?: string;
 
+  @Expose()
+  source?: string;
+
+  @Expose()
+  externalOrderId?: string;
+
+  @Expose()
+  anotaAiOrderId?: string;
+
+  @Expose()
+  integrationOrigin?: string;
+
   public static fromEntity(delivery: DeliveryEntity) {
     return plainToClass<DeliveryResult, DeliveryResult>(
       DeliveryResult,
@@ -157,6 +168,10 @@ export class DeliveryResult {
         ifoodDisplayId: (delivery as any).ifoodDisplayId ?? null,
         ifoodMerchantId: (delivery as any).ifoodMerchantId ?? null,
         ifoodMerchantName: (delivery as any).ifoodMerchantName ?? null,
+        source: (delivery as any).source ?? null,
+        externalOrderId: (delivery as any).externalOrderId ?? null,
+        anotaAiOrderId: (delivery as any).anotaAiOrderId ?? null,
+        integrationOrigin: (delivery as any).integrationOrigin ?? null,
         establishmentId: delivery.establishment
           ? delivery.establishment.id
           : null,

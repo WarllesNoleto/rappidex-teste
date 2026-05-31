@@ -21,4 +21,8 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
+  anotaAiEnabled?: boolean;
+  anotaAiStoreId?: string;
+  anotaAiClientId?: string;
+  anotaAiIgnoreIfoodOrders?: boolean;
 }

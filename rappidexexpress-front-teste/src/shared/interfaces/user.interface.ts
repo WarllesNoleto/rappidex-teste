@@ -24,7 +24,6 @@ export interface User {
   anotaAiEnabled?: boolean;
   anotaAiStoreId?: string;
   anotaAiClientId?: string;
-  anotaAiClientSecret?: string;
   anotaAiToken?: string;
   anotaAiIgnoreIfoodOrders?: boolean;
 }

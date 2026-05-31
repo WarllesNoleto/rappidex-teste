@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled from "styled-components";
 
 export const Container = styled.main`
   flex: 1;
@@ -7,38 +7,38 @@ export const Container = styled.main`
   align-items: center;
   justify-content: center;
   margin-top: 2rem;
-`
+`;
 
 export const Content = styled.div``;
 
 export const HeaderFilter = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 interface FilterProps {
-    isSelected: boolean
+  isSelected: boolean;
 }
 export const Filter = styled.div<FilterProps>`
-    width: 100%;
-    border: solid;
-    border-color:  ${(props) => props.theme['gray-500']};
-    padding: 1rem;
-    margin: 0rem 0rem 1rem 0rem;
-    border-radius: 8px;
+  width: 100%;
+  border: solid;
+  border-color: ${(props) => props.theme["gray-500"]};
+  padding: 1rem;
+  margin: 0rem 0rem 1rem 0rem;
+  border-radius: 8px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    gap: 0.5rem;
-    font-weight: bold;
-    cursor: pointer;
+  gap: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
 
-    background-color: ${(props) => props.isSelected && props.theme['gray-500']};
-    color: ${(props) => props.isSelected && props.theme['gray-900']};
+  background-color: ${(props) => props.isSelected && props.theme["gray-500"]};
+  color: ${(props) => props.isSelected && props.theme["gray-900"]};
 `;
 
 export const ContainerLoading = styled.div`
@@ -50,16 +50,16 @@ export const ContainerLoading = styled.div`
 export const UsersContainer = styled.div``;
 
 export const UserContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 0rem 0rem 1rem 0rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0rem 0rem 1rem 0rem;
 
-    cursor: pointer;
-    background-color: ${(props) => props.theme['gray-600']};
+  cursor: pointer;
+  background-color: ${(props) => props.theme["gray-600"]};
 `;
 
 export const ContainerProfileImage = styled.div`
@@ -80,21 +80,43 @@ export const ProfileImage = styled.img`
 `;
 
 export const Username = styled.p`
-    font-weight: bold;
+  font-weight: bold;
 `;
 
 export const LoadMoreButton = styled.button`
-    width: 100%;
-    border: 0;
-    padding: 1rem;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    color: ${(props) => props.theme['gray-100']};
-    background-color: ${(props) => props.theme['green-700']};
+  width: 100%;
+  border: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  color: ${(props) => props.theme["gray-100"]};
+  background-color: ${(props) => props.theme["green-700"]};
 
-    &:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-    }
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+export const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+export const IntegrationStatus = styled.span`
+  color: ${(props) => props.theme["gray-100"]};
+  font-size: 0.875rem;
+  font-weight: bold;
+`;
+
+export const ConfigureButton = styled.button`
+  border: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  color: ${(props) => props.theme["gray-100"]};
+  background-color: ${(props) => props.theme["green-700"]};
 `;

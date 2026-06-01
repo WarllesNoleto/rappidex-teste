@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from "react";
 
-import { DeliveryContext } from '../../context/DeliveryContext';
-import api, { API_URL } from '../../services/api';
-import { Loader } from '../../components/Loader';
-import { User } from '../../shared/interfaces';
-import { formatIfoodHistoryDateTime, translateIfoodOperationType } from '../../shared/utils/ifoodHistory.ts';
+import { DeliveryContext } from "../../context/DeliveryContext";
+import api, { API_URL } from "../../services/api";
+import { Loader } from "../../components/Loader";
+import { User } from "../../shared/interfaces";
+import {
+  formatIfoodHistoryDateTime,
+  translateIfoodOperationType,
+} from "../../shared/utils/ifoodHistory.ts";
 import {
   Actions,
   CreditButton,
@@ -29,7 +32,8 @@ import {
   HistoryList,
   LoadMoreButton,
   EmptyState,
-} from './styles.ts';
+  HelpText,
+} from "./styles.ts";
 
 export function IfoodClients() {
   const { token } = useContext(DeliveryContext);
@@ -37,19 +41,21 @@ export function IfoodClients() {
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [savingUser, setSavingUser] = useState('');
+  const [savingUser, setSavingUser] = useState("");
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
-  const [creditAmountByUser, setCreditAmountByUser] = useState<Record<string, number>>({});
+  const [creditAmountByUser, setCreditAmountByUser] = useState<
+    Record<string, number>
+  >({});
   const [historyByUser, setHistoryByUser] = useState<Record<string, any[]>>({});
-  const [loadingHistoryUser, setLoadingHistoryUser] = useState('');
+  const [loadingHistoryUser, setLoadingHistoryUser] = useState("");
   const [page, setPage] = useState(1);
   const [hasMoreShopkeepers, setHasMoreShopkeepers] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
-  const anotaAiWebhookPath = '/api/anota-ai/webhook';
+  const anotaAiWebhookPath = "/api/anota-ai/webhook";
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -59,7 +65,7 @@ export function IfoodClients() {
     }
 
     return shopkeepers.filter((shopkeeper) =>
-      (shopkeeper.name || '').toLowerCase().includes(normalizedSearch),
+      (shopkeeper.name || "").toLowerCase().includes(normalizedSearch),
     );
   }, [shopkeepers, searchTerm]);
 
@@ -86,7 +92,7 @@ export function IfoodClients() {
       setPage(targetPage);
       setHasMoreShopkeepers(users.length === ITEMS_PER_PAGE);
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
+      alert(error?.response?.data?.message || "Erro ao buscar lojistas.");
     } finally {
       if (shouldAppend) {
         setLoadingMore(false);
@@ -122,7 +128,7 @@ export function IfoodClients() {
       setPage(1);
       setHasMoreShopkeepers(false);
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao buscar lojistas.');
+      alert(error?.response?.data?.message || "Erro ao buscar lojistas.");
     } finally {
       setIsSearching(false);
     }
@@ -138,7 +144,7 @@ export function IfoodClients() {
 
   function handleCopyWebhookInfo(value: string, label: string) {
     if (!navigator.clipboard) {
-      alert('Não foi possível copiar automaticamente neste navegador.');
+      alert("Não foi possível copiar automaticamente neste navegador.");
       return;
     }
 
@@ -148,17 +154,24 @@ export function IfoodClients() {
       .catch(() => alert(`Não foi possível copiar ${label.toLowerCase()}.`));
   }
 
-  function resolveLegacyMerchantId(merchantId: string, merchants: User['ifoodMerchants'] = []) {
-    const normalizedLegacyMerchantId = String(merchantId || '').trim();
+  function resolveLegacyMerchantId(
+    merchantId: string,
+    merchants: User["ifoodMerchants"] = [],
+  ) {
+    const normalizedLegacyMerchantId = String(merchantId || "").trim();
     if (normalizedLegacyMerchantId) {
       return normalizedLegacyMerchantId;
     }
 
-    const firstActiveMerchantId = (Array.isArray(merchants) ? merchants : [])
-      .find((merchant) => merchant?.enabled !== false && String(merchant?.merchantId || '').trim())
-      ?.merchantId;
+    const firstActiveMerchantId = (
+      Array.isArray(merchants) ? merchants : []
+    ).find(
+      (merchant) =>
+        merchant?.enabled !== false &&
+        String(merchant?.merchantId || "").trim(),
+    )?.merchantId;
 
-    return String(firstActiveMerchantId || '').trim();
+    return String(firstActiveMerchantId || "").trim();
   }
 
   async function handleSave(shopkeeper: User) {
@@ -170,15 +183,22 @@ export function IfoodClients() {
       ? shopkeeper.ifoodMerchants
           .map((merchant) => ({
             ...merchant,
-            merchantId: String(merchant.merchantId || '').trim(),
-            name: String(merchant.name || '').trim(),
-            pickupAddress: String(merchant.pickupAddress || '').trim(),
+            merchantId: String(merchant.merchantId || "").trim(),
+            name: String(merchant.name || "").trim(),
+            pickupAddress: String(merchant.pickupAddress || "").trim(),
           }))
           .filter((merchant) => merchant.merchantId)
       : [];
-    const merchantId = resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', merchants);
-    if (shopkeeper.useIfoodIntegration && !merchantId && merchants.length === 0) {
-      alert('Informe o Merchant ID para ativar a integração iFood.');
+    const merchantId = resolveLegacyMerchantId(
+      shopkeeper.ifoodMerchantId || "",
+      merchants,
+    );
+    if (
+      shopkeeper.useIfoodIntegration &&
+      !merchantId &&
+      merchants.length === 0
+    ) {
+      alert("Informe o Merchant ID para ativar a integração iFood.");
       return;
     }
 
@@ -193,22 +213,27 @@ export function IfoodClients() {
         ifoodMerchantId: merchantId,
         ifoodMerchants: merchants,
         anotaAiEnabled: Boolean(shopkeeper.anotaAiEnabled),
-        anotaAiStoreId: String(shopkeeper.anotaAiStoreId || '').trim(),
-        anotaAiToken: String(shopkeeper.anotaAiToken || '').trim(),
+        anotaAiStoreId: String(shopkeeper.anotaAiStoreId || "").trim(),
+        anotaAiToken: String(shopkeeper.anotaAiToken || "").trim(),
         anotaAiIgnoreIfoodOrders: shopkeeper.anotaAiIgnoreIfoodOrders !== false,
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
-        await api.post(`/ifood/sync-company/${shopkeeper.id}`).catch(() => undefined);
+        await api
+          .post(`/ifood/sync-company/${shopkeeper.id}`)
+          .catch(() => undefined);
         alert(
-          'Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.',
+          "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
         );
       } else {
-        alert('Configurações de integração salvas com sucesso.');
+        alert("Configurações de integração salvas com sucesso.");
       }
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao salvar configurações de integração.');
+      alert(
+        error?.response?.data?.message ||
+          "Erro ao salvar configurações de integração.",
+      );
     } finally {
-      setSavingUser('');
+      setSavingUser("");
     }
   }
 
@@ -221,50 +246,66 @@ export function IfoodClients() {
     }));
   }
 
-  async function handleCreditAdjustment(shopkeeper: User, action: 'add' | 'remove') {
+  async function handleCreditAdjustment(
+    shopkeeper: User,
+    action: "add" | "remove",
+  ) {
     if (savingUser) {
       return;
     }
 
     const amount = Number(creditAmountByUser[shopkeeper.id] || 0);
     if (!amount || amount < 1) {
-      alert('Informe uma quantidade válida de créditos.');
+      alert("Informe uma quantidade válida de créditos.");
       return;
     }
 
     setSavingUser(shopkeeper.user);
 
     try {
-      const response = await api.post(`/ifood/credits/company/${shopkeeper.id}/${action}`, {
-        amount,
-      });
+      const response = await api.post(
+        `/ifood/credits/company/${shopkeeper.id}/${action}`,
+        {
+          amount,
+        },
+      );
 
       updateLocalUser(shopkeeper.id, {
-        ifoodOrdersReleased: response.data?.ifoodOrdersReleased ?? shopkeeper.ifoodOrdersReleased,
-        ifoodOrdersUsed: response.data?.ifoodOrdersUsed ?? shopkeeper.ifoodOrdersUsed,
-        ifoodOrdersAvailable: response.data?.ifoodOrdersAvailable ?? shopkeeper.ifoodOrdersAvailable,
+        ifoodOrdersReleased:
+          response.data?.ifoodOrdersReleased ?? shopkeeper.ifoodOrdersReleased,
+        ifoodOrdersUsed:
+          response.data?.ifoodOrdersUsed ?? shopkeeper.ifoodOrdersUsed,
+        ifoodOrdersAvailable:
+          response.data?.ifoodOrdersAvailable ??
+          shopkeeper.ifoodOrdersAvailable,
       });
 
-      alert(`Créditos ${action === 'add' ? 'adicionados' : 'removidos'} com sucesso.`);
+      alert(
+        `Créditos ${action === "add" ? "adicionados" : "removidos"} com sucesso.`,
+      );
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao ajustar créditos.');
+      alert(error?.response?.data?.message || "Erro ao ajustar créditos.");
     } finally {
-      setSavingUser('');
+      setSavingUser("");
     }
   }
 
   async function handleLoadHistory(shopkeeper: User) {
     setLoadingHistoryUser(shopkeeper.id);
     try {
-      const response = await api.get(`/ifood/credits/company/${shopkeeper.id}/history`);
+      const response = await api.get(
+        `/ifood/credits/company/${shopkeeper.id}/history`,
+      );
       setHistoryByUser((current) => ({
         ...current,
-        [shopkeeper.id]: Array.isArray(response.data?.history) ? response.data.history : [],
+        [shopkeeper.id]: Array.isArray(response.data?.history)
+          ? response.data.history
+          : [],
       }));
     } catch (error: any) {
-      alert(error?.response?.data?.message || 'Erro ao carregar histórico.');
+      alert(error?.response?.data?.message || "Erro ao carregar histórico.");
     } finally {
-      setLoadingHistoryUser('');
+      setLoadingHistoryUser("");
     }
   }
 
@@ -295,7 +336,8 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Configure as integrações iFood e Anota AI de cada lojista sem alterar o fluxo atual de entregas.
+          Configure as integrações iFood e Anota AI de cada lojista sem alterar
+          o fluxo atual de entregas.
         </Subtitle>
 
         <Input
@@ -308,11 +350,10 @@ export function IfoodClients() {
           <LoadingContainer>
             <Loader size={40} biggestColor="green" smallestColor="gray" />
           </LoadingContainer>
+        ) : filteredShopkeepers.length === 0 ? (
+          <EmptyState>Nenhuma empresa encontrada para este nome.</EmptyState>
         ) : (
-          filteredShopkeepers.length === 0 ? (
-            <EmptyState>Nenhuma empresa encontrada para este nome.</EmptyState>
-          ) : (
-            filteredShopkeepers.map((shopkeeper) => (
+          filteredShopkeepers.map((shopkeeper) => (
             <Card key={shopkeeper.id}>
               <ShopkeeperName>{shopkeeper.name}</ShopkeeperName>
 
@@ -328,7 +369,7 @@ export function IfoodClients() {
                           : false,
                         ifoodMerchantId: event.target.checked
                           ? shopkeeper.ifoodMerchantId
-                          : '',
+                          : "",
                       })
                     }
                     type="checkbox"
@@ -364,63 +405,135 @@ export function IfoodClients() {
                       })
                     }
                     placeholder="Compatibilidade com cadastro antigo"
-                    value={shopkeeper.ifoodMerchantId || ''}
+                    value={shopkeeper.ifoodMerchantId || ""}
                   />
                 </div>
                 <div>
                   <MerchantIdLabel>Lojas iFood vinculadas</MerchantIdLabel>
                   {(shopkeeper.ifoodMerchants || []).map((merchant, index) => (
-                    <div key={`${shopkeeper.id}-${index}`} style={{ border: '1px solid #555', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                    <div
+                      key={`${shopkeeper.id}-${index}`}
+                      style={{
+                        border: "1px solid #555",
+                        borderRadius: 8,
+                        padding: 10,
+                        marginBottom: 8,
+                      }}
+                    >
                       <Input
                         disabled={!shopkeeper.useIfoodIntegration}
                         placeholder="Nome da loja"
-                        value={merchant.name || ''}
-                        onChange={(event) => updateLocalUser(shopkeeper.id, {
-                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item),
-                        })}
+                        value={merchant.name || ""}
+                        onChange={(event) =>
+                          updateLocalUser(shopkeeper.id, {
+                            ifoodMerchants: (
+                              shopkeeper.ifoodMerchants || []
+                            ).map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, name: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
                       />
                       <Input
                         disabled={!shopkeeper.useIfoodIntegration}
                         placeholder="Merchant ID"
-                        value={merchant.merchantId || ''}
-                        onChange={(event) => updateLocalUser(shopkeeper.id, {
-                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, merchantId: event.target.value } : item),
-                        })}
+                        value={merchant.merchantId || ""}
+                        onChange={(event) =>
+                          updateLocalUser(shopkeeper.id, {
+                            ifoodMerchants: (
+                              shopkeeper.ifoodMerchants || []
+                            ).map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, merchantId: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
                       />
                       <Input
                         disabled={!shopkeeper.useIfoodIntegration}
                         placeholder="Endereço de coleta (opcional)"
-                        value={merchant.pickupAddress || ''}
-                        onChange={(event) => updateLocalUser(shopkeeper.id, {
-                          ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, pickupAddress: event.target.value } : item),
-                        })}
+                        value={merchant.pickupAddress || ""}
+                        onChange={(event) =>
+                          updateLocalUser(shopkeeper.id, {
+                            ifoodMerchants: (
+                              shopkeeper.ifoodMerchants || []
+                            ).map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, pickupAddress: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
                       />
                       <Checkbox>
                         <input
                           disabled={!shopkeeper.useIfoodIntegration}
                           type="checkbox"
                           checked={merchant.enabled !== false}
-                          onChange={(event) => updateLocalUser(shopkeeper.id, {
-                            ifoodMerchants: (shopkeeper.ifoodMerchants || []).map((item, itemIndex) => itemIndex === index ? { ...item, enabled: event.target.checked } : item),
-                          })}
-                        /> Ativa
+                          onChange={(event) =>
+                            updateLocalUser(shopkeeper.id, {
+                              ifoodMerchants: (
+                                shopkeeper.ifoodMerchants || []
+                              ).map((item, itemIndex) =>
+                                itemIndex === index
+                                  ? { ...item, enabled: event.target.checked }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />{" "}
+                        Ativa
                       </Checkbox>
-                      <CreditButton type="button" onClick={() => updateLocalUser(shopkeeper.id, { ifoodMerchants: (shopkeeper.ifoodMerchants || []).filter((_, itemIndex) => itemIndex !== index) })}>Remover loja</CreditButton>
+                      <CreditButton
+                        type="button"
+                        onClick={() =>
+                          updateLocalUser(shopkeeper.id, {
+                            ifoodMerchants: (
+                              shopkeeper.ifoodMerchants || []
+                            ).filter((_, itemIndex) => itemIndex !== index),
+                          })
+                        }
+                      >
+                        Remover loja
+                      </CreditButton>
                     </div>
                   ))}
-                  <CreditButton type="button" disabled={!shopkeeper.useIfoodIntegration} onClick={() => {
-                    const updatedMerchants = [
-                      ...(shopkeeper.ifoodMerchants || []),
-                      { merchantId: '', name: '', enabled: true, pickupAddress: '' },
-                    ];
-                    updateLocalUser(shopkeeper.id, {
-                      ifoodMerchants: updatedMerchants,
-                      ifoodMerchantId: resolveLegacyMerchantId(shopkeeper.ifoodMerchantId || '', updatedMerchants),
-                    });
-                  }}>Adicionar loja iFood</CreditButton>
+                  <CreditButton
+                    type="button"
+                    disabled={!shopkeeper.useIfoodIntegration}
+                    onClick={() => {
+                      const updatedMerchants = [
+                        ...(shopkeeper.ifoodMerchants || []),
+                        {
+                          merchantId: "",
+                          name: "",
+                          enabled: true,
+                          pickupAddress: "",
+                        },
+                      ];
+                      updateLocalUser(shopkeeper.id, {
+                        ifoodMerchants: updatedMerchants,
+                        ifoodMerchantId: resolveLegacyMerchantId(
+                          shopkeeper.ifoodMerchantId || "",
+                          updatedMerchants,
+                        ),
+                      });
+                    }}
+                  >
+                    Adicionar loja iFood
+                  </CreditButton>
                 </div>
 
-                <div style={{ border: '1px solid #2f855a', borderRadius: 8, padding: 12 }}>
+                <div
+                  style={{
+                    border: "1px solid #2f855a",
+                    borderRadius: 8,
+                    padding: 12,
+                  }}
+                >
                   <ShopkeeperName>Anota AI</ShopkeeperName>
                   <Checkbox>
                     <input
@@ -444,24 +557,36 @@ export function IfoodClients() {
                     disabled={!shopkeeper.anotaAiEnabled}
                     id={`anota-store-${shopkeeper.id}`}
                     onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, { anotaAiStoreId: event.target.value })
+                      updateLocalUser(shopkeeper.id, {
+                        anotaAiStoreId: event.target.value,
+                      })
                     }
                     placeholder="Ex.: Root informado pela Anota AI"
-                    value={shopkeeper.anotaAiStoreId || ''}
+                    value={shopkeeper.anotaAiStoreId || ""}
                   />
 
                   <MerchantIdLabel htmlFor={`anota-token-${shopkeeper.id}`}>
-                    Token da Anota AI (opcional)
+                    Token da Anota AI
                   </MerchantIdLabel>
                   <Input
                     disabled={!shopkeeper.anotaAiEnabled}
                     id={`anota-token-${shopkeeper.id}`}
                     onChange={(event) =>
-                      updateLocalUser(shopkeeper.id, { anotaAiToken: event.target.value })
+                      updateLocalUser(shopkeeper.id, {
+                        anotaAiToken: event.target.value,
+                      })
                     }
-                    placeholder="Token, se a loja usar credencial própria"
-                    value={shopkeeper.anotaAiToken || ''}
+                    placeholder="Token da loja Anota AI"
+                    value={shopkeeper.anotaAiToken || ""}
                   />
+                  {shopkeeper.anotaAiEnabled &&
+                    !String(shopkeeper.anotaAiToken || "").trim() && (
+                      <HelpText role="alert">
+                        Esta loja está com Anota AI ativa, mas sem token próprio
+                        salvo. Cadastre o token da loja; o ANOTA_AI_TOKEN global
+                        é apenas fallback opcional.
+                      </HelpText>
+                    )}
 
                   <Checkbox>
                     <input
@@ -479,60 +604,79 @@ export function IfoodClients() {
 
                   <CreditSummary>
                     <CreditLine>
-                      Status: {shopkeeper.anotaAiEnabled ? 'Ativa' : 'Inativa'}
-                    </CreditLine>
-                    <CreditLine>URL completa do webhook: {anotaAiWebhookUrl}</CreditLine>
-                    <CreditLine>
-                      Caminho/path para o portal da Anota AI: {anotaAiWebhookPath}
+                      Status: {shopkeeper.anotaAiEnabled ? "Ativa" : "Inativa"}
                     </CreditLine>
                     <CreditLine>
-                      Root: usado somente para vincular a loja Anota AI ao lojista Rappidex.
+                      URL completa do webhook: {anotaAiWebhookUrl}
+                    </CreditLine>
+                    <CreditLine>
+                      Caminho/path para o portal da Anota AI:{" "}
+                      {anotaAiWebhookPath}
+                    </CreditLine>
+                    <CreditLine>
+                      Root: usado somente para vincular a loja Anota AI ao
+                      lojista Rappidex.
                     </CreditLine>
                   </CreditSummary>
                   <CreditButtons>
                     <CreditButton
-                      onClick={() => handleCopyWebhookInfo(anotaAiWebhookUrl, 'URL completa')}
+                      onClick={() =>
+                        handleCopyWebhookInfo(anotaAiWebhookUrl, "URL completa")
+                      }
                       type="button"
                     >
                       Copiar URL completa
                     </CreditButton>
                     <CreditButton
-                      onClick={() => handleCopyWebhookInfo(anotaAiWebhookPath, 'Caminho')}
+                      onClick={() =>
+                        handleCopyWebhookInfo(anotaAiWebhookPath, "Caminho")
+                      }
                       type="button"
                     >
                       Copiar caminho
                     </CreditButton>
                   </CreditButtons>
                   <Subtitle>
-                    Se o portal da Anota AI pedir URL completa, use a URL completa. Se pedir apenas o caminho do webhook, use /api/anota-ai/webhook. Cadastre a informação correta nos campos Pedidos Realizados, Pedidos Atualizados e Pedidos Cancelados do portal da Anota AI.
+                    Se o portal da Anota AI pedir URL completa, use a URL
+                    completa. Se pedir apenas o caminho do webhook, use
+                    /api/anota-ai/webhook. Cadastre a informação correta nos
+                    campos Pedidos Realizados, Pedidos Atualizados e Pedidos
+                    Cancelados do portal da Anota AI.
                   </Subtitle>
                 </div>
 
-
                 <CreditSummary>
-                  <CreditLine>Liberados: {shopkeeper.ifoodOrdersReleased || 0}</CreditLine>
-                  <CreditLine>Utilizados: {shopkeeper.ifoodOrdersUsed || 0}</CreditLine>
-                  <CreditLine>Disponíveis: {shopkeeper.ifoodOrdersAvailable || 0}</CreditLine>
+                  <CreditLine>
+                    Liberados: {shopkeeper.ifoodOrdersReleased || 0}
+                  </CreditLine>
+                  <CreditLine>
+                    Utilizados: {shopkeeper.ifoodOrdersUsed || 0}
+                  </CreditLine>
+                  <CreditLine>
+                    Disponíveis: {shopkeeper.ifoodOrdersAvailable || 0}
+                  </CreditLine>
                 </CreditSummary>
 
                 <CreditButtons>
                   <CreditInput
                     min={1}
-                    onChange={(event) => updateCreditAmount(shopkeeper.id, event.target.value)}
+                    onChange={(event) =>
+                      updateCreditAmount(shopkeeper.id, event.target.value)
+                    }
                     placeholder="Qtd. créditos"
                     type="number"
-                    value={creditAmountByUser[shopkeeper.id] || ''}
+                    value={creditAmountByUser[shopkeeper.id] || ""}
                   />
                   <CreditButton
                     disabled={savingUser === shopkeeper.user}
-                    onClick={() => handleCreditAdjustment(shopkeeper, 'add')}
+                    onClick={() => handleCreditAdjustment(shopkeeper, "add")}
                     type="button"
                   >
                     + Créditos
                   </CreditButton>
                   <CreditButton
                     disabled={savingUser === shopkeeper.user}
-                    onClick={() => handleCreditAdjustment(shopkeeper, 'remove')}
+                    onClick={() => handleCreditAdjustment(shopkeeper, "remove")}
                     type="button"
                   >
                     - Créditos
@@ -542,7 +686,9 @@ export function IfoodClients() {
                     onClick={() => handleLoadHistory(shopkeeper)}
                     type="button"
                   >
-                    {loadingHistoryUser === shopkeeper.id ? 'Carregando...' : 'Ver histórico'}
+                    {loadingHistoryUser === shopkeeper.id
+                      ? "Carregando..."
+                      : "Ver histórico"}
                   </HistoryButton>
                 </CreditButtons>
               </Actions>
@@ -555,37 +701,46 @@ export function IfoodClients() {
                 {savingUser === shopkeeper.user ? (
                   <Loader size={20} biggestColor="gray" smallestColor="gray" />
                 ) : (
-                  'Salvar'
+                  "Salvar"
                 )}
               </SaveButton>
-              
+
               {Array.isArray(historyByUser[shopkeeper.id]) &&
                 historyByUser[shopkeeper.id]?.length > 0 && (
                   <HistoryList>
-                    {historyByUser[shopkeeper.id].slice(0, 5).map((entry: any) => (
-                      <HistoryItem key={entry.id}>
-                        {(() => {
-                          const formattedDateTime = formatIfoodHistoryDateTime(entry.createdAt);
+                    {historyByUser[shopkeeper.id]
+                      .slice(0, 5)
+                      .map((entry: any) => (
+                        <HistoryItem key={entry.id}>
+                          {(() => {
+                            const formattedDateTime =
+                              formatIfoodHistoryDateTime(entry.createdAt);
 
-                          return (
-                            <>
-                        {translateIfoodOperationType(entry.operationType)} {entry.amount} crédito(s) em{' '}
-                        {`${formattedDateTime.date} ${formattedDateTime.time}`}
-                            </>
-                          );
-                        })()}
-                      </HistoryItem>
-                    ))}
+                            return (
+                              <>
+                                {translateIfoodOperationType(
+                                  entry.operationType,
+                                )}{" "}
+                                {entry.amount} crédito(s) em{" "}
+                                {`${formattedDateTime.date} ${formattedDateTime.time}`}
+                              </>
+                            );
+                          })()}
+                        </HistoryItem>
+                      ))}
                   </HistoryList>
                 )}
             </Card>
-            ))
-          )
+          ))
         )}
 
         {!loading && !searchTerm.trim() && hasMoreShopkeepers && (
-          <LoadMoreButton disabled={loadingMore} onClick={handleLoadMoreShopkeepers} type="button">
-            {loadingMore ? 'Carregando...' : 'Mostrar mais empresas'}
+          <LoadMoreButton
+            disabled={loadingMore}
+            onClick={handleLoadMoreShopkeepers}
+            type="button"
+          >
+            {loadingMore ? "Carregando..." : "Mostrar mais empresas"}
           </LoadMoreButton>
         )}
       </Content>

@@ -471,6 +471,7 @@ export function NewUser() {
   const profileImage = watch("profileImage");
   const useIfoodIntegration = watch("useIfoodIntegration");
   const anotaAiEnabled = watch("anotaAiEnabled");
+  const anotaAiToken = watch("anotaAiToken");
   // const location = watch('location')
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
@@ -479,6 +480,8 @@ export function NewUser() {
     Boolean(useIfoodIntegration) && !watch("ifoodMerchantId");
   const shouldWarnAnotaAiLink =
     Boolean(anotaAiEnabled) && !String(watch("anotaAiStoreId") || "").trim();
+  const shouldWarnAnotaAiToken =
+    Boolean(anotaAiEnabled) && !String(anotaAiToken || "").trim();
   const isSubmitDisabled =
     !name ||
     !phone ||
@@ -848,9 +851,16 @@ export function NewUser() {
                   {...register("anotaAiToken")}
                 />
                 <HelpText>
-                  Cole aqui o token da loja gerado no portal da Anota AI, se a
-                  loja usar token próprio.
+                  Cole aqui o token da loja gerado no portal da Anota AI. Após
+                  salvar, o token será exibido mascarado por segurança.
                 </HelpText>
+                {shouldWarnAnotaAiToken && (
+                  <HelpText role="alert">
+                    Esta empresa está com Anota AI ativa, mas não possui token
+                    próprio salvo. Cadastre o token da loja; o token global do
+                    Heroku é apenas fallback opcional.
+                  </HelpText>
+                )}
 
                 <label htmlFor="anotaAiIgnoreIfoodOrders">
                   <input

@@ -182,11 +182,6 @@ export function IfoodClients() {
       return;
     }
 
-    if (shopkeeper.anotaAiEnabled && !String(shopkeeper.anotaAiStoreId || '').trim()) {
-      alert('Informe o Root/ID interno da loja Anota AI para ativar a integração.');
-      return;
-    }
-
     setSavingUser(shopkeeper.user);
 
     try {

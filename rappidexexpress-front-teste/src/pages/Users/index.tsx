@@ -97,6 +97,14 @@ export function Users() {
     navigate(`/novo-usuario/${username}#anota-ai`);
   }
 
+  function handleConfigureSaipos(
+    event: MouseEvent<HTMLButtonElement>,
+    username: string,
+  ) {
+    event.stopPropagation();
+    navigate(`/novo-usuario/${username}#saipos`);
+  }
+
   useEffect(() => {
     async function loadFirstPage() {
       try {
@@ -154,6 +162,17 @@ export function Users() {
                           }
                         >
                           Configurar Anota AI
+                        </ConfigureButton>
+                        <IntegrationStatus>
+                          Saipos: {user.saiposEnabled ? "Ativa" : "Inativa"}
+                        </IntegrationStatus>
+                        <ConfigureButton
+                          type="button"
+                          onClick={(event) =>
+                            handleConfigureSaipos(event, user.user)
+                          }
+                        >
+                          Configurar Saipos
                         </ConfigureButton>
                       </>
                     )}

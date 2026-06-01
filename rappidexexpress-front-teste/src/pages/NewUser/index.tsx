@@ -39,6 +39,10 @@ const ProfileFormValidationSchema = zod.object({
   anotaAiStoreId: zod.string().optional(),
   anotaAiToken: zod.string().optional(),
   anotaAiIgnoreIfoodOrders: zod.boolean().optional(),
+  saiposEnabled: zod.boolean().optional(),
+  saiposStoreId: zod.string().optional(),
+  saiposMerchantId: zod.string().optional(),
+  saiposToken: zod.string().optional(),
 });
 
 type IfoodMerchantForm = {
@@ -72,6 +76,10 @@ export function NewUser() {
     anotaAiStoreId: "",
     anotaAiToken: "",
     anotaAiIgnoreIfoodOrders: true,
+    saiposEnabled: false,
+    saiposStoreId: "",
+    saiposMerchantId: "",
+    saiposToken: "",
   });
   const [ifoodMerchants, setIfoodMerchants] = useState<IfoodMerchantForm[]>([]);
 
@@ -93,12 +101,21 @@ export function NewUser() {
   const allowCitySelection = permission === "superadmin";
   const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
   const anotaAiWebhookPath = "/api/anota-ai/webhook";
+  const saiposWebhookUrl = `${API_URL}/saipos/webhook`;
+  const saiposWebhookPath = "/api/saipos/webhook";
 
   function resetAnotaAiFields() {
     setValue("anotaAiEnabled", false);
     setValue("anotaAiStoreId", "");
     setValue("anotaAiToken", "");
     setValue("anotaAiIgnoreIfoodOrders", true);
+  }
+
+  function resetSaiposFields() {
+    setValue("saiposEnabled", false);
+    setValue("saiposStoreId", "");
+    setValue("saiposMerchantId", "");
+    setValue("saiposToken", "");
   }
 
   function buildAnotaAiPayload(data: Partial<ProfileFormData>) {
@@ -119,6 +136,30 @@ export function NewUser() {
       anotaAiIgnoreIfoodOrders: shouldKeepAnotaAi
         ? data.anotaAiIgnoreIfoodOrders !== false
         : true,
+    };
+  }
+
+  function buildSaiposPayload(data: Partial<ProfileFormData>) {
+    const shouldKeepSaipos =
+      selectedType === "shopkeeper" || selectedType === "shopkeeperadmin";
+    const saiposEnabled = shouldKeepSaipos ? Boolean(data.saiposEnabled) : false;
+    const saiposStoreId = String(data.saiposStoreId || "").trim();
+    const saiposMerchantId = String(data.saiposMerchantId || "").trim();
+
+    if (!saiposEnabled) {
+      return {
+        saiposEnabled: false,
+        saiposStoreId: "",
+        saiposMerchantId: "",
+        saiposToken: "",
+      };
+    }
+
+    return {
+      saiposEnabled,
+      saiposStoreId,
+      saiposMerchantId: saiposMerchantId || saiposStoreId,
+      saiposToken: String(data.saiposToken || "").trim(),
     };
   }
 
@@ -226,6 +267,7 @@ export function NewUser() {
         ifoodMerchantId,
         ifoodMerchants: normalizedMerchants,
         ...buildAnotaAiPayload(data),
+        ...buildSaiposPayload(data),
       });
       if (useIfoodIntegration && ifoodMerchantId) {
         const createdCompanyId = response?.data?.id;
@@ -268,6 +310,10 @@ export function NewUser() {
       anotaAiStoreId,
       anotaAiToken,
       anotaAiIgnoreIfoodOrders,
+      saiposEnabled,
+      saiposStoreId,
+      saiposMerchantId,
+      saiposToken,
     } = watch();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
@@ -319,6 +365,12 @@ export function NewUser() {
           anotaAiStoreId,
           anotaAiToken,
           anotaAiIgnoreIfoodOrders,
+        }),
+        ...buildSaiposPayload({
+          saiposEnabled,
+          saiposStoreId,
+          saiposMerchantId,
+          saiposToken,
         }),
       });
       if (
@@ -439,6 +491,10 @@ export function NewUser() {
         anotaAiToken: userFinded.data?.anotaAiToken || "",
         anotaAiIgnoreIfoodOrders:
           userFinded.data?.anotaAiIgnoreIfoodOrders !== false,
+        saiposEnabled: Boolean(userFinded.data?.saiposEnabled),
+        saiposStoreId: userFinded.data?.saiposStoreId || "",
+        saiposMerchantId: userFinded.data?.saiposMerchantId || "",
+        saiposToken: userFinded.data?.saiposToken || "",
       });
       setIfoodMerchants(
         Array.isArray(userFinded.data?.ifoodMerchants)
@@ -472,6 +528,7 @@ export function NewUser() {
   const useIfoodIntegration = watch("useIfoodIntegration");
   const anotaAiEnabled = watch("anotaAiEnabled");
   const anotaAiToken = watch("anotaAiToken");
+  const saiposEnabled = watch("saiposEnabled");
   // const location = watch('location')
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
@@ -512,6 +569,12 @@ export function NewUser() {
     if (window.location.hash === "#anota-ai" && isShopkeeperType) {
       document
         .getElementById("anota-ai-section")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (window.location.hash === "#saipos" && isShopkeeperType) {
+      document
+        .getElementById("saipos-section")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [isShopkeeperType, userId]);
@@ -611,6 +674,7 @@ export function NewUser() {
                 setValue("useIfoodIntegration", false);
                 setValue("ifoodMerchantId", "");
                 resetAnotaAiFields();
+                resetSaiposFields();
               }
             }}
           >
@@ -775,6 +839,98 @@ export function NewUser() {
                   </div>
                 </>
               )}
+
+              <IntegrationSection id="saipos-section">
+                <h2>Integração Saipos</h2>
+
+                <label htmlFor="saiposEnabled">
+                  <input
+                    type="checkbox"
+                    id="saiposEnabled"
+                    checked={Boolean(saiposEnabled)}
+                    onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setValue("saiposEnabled", enabled);
+
+                      if (!enabled) {
+                        setValue("saiposStoreId", "");
+                        setValue("saiposMerchantId", "");
+                        setValue("saiposToken", "");
+                      }
+                    }}
+                  />{" "}
+                  Ativar integração Saipos para esta empresa
+                </label>
+
+                <label htmlFor="saiposStoreId">ID da Loja Saipos:</label>
+                <BaseInput
+                  type="text"
+                  id="saiposStoreId"
+                  placeholder="Ex: 91080"
+                  disabled={!saiposEnabled}
+                  {...register("saiposStoreId")}
+                />
+
+                <label htmlFor="saiposMerchantId">Merchant ID Saipos:</label>
+                <BaseInput
+                  type="text"
+                  id="saiposMerchantId"
+                  placeholder="Opcional. Se vazio, usa o mesmo ID da loja."
+                  disabled={!saiposEnabled}
+                  {...register("saiposMerchantId")}
+                />
+
+                <label htmlFor="saiposToken">Token Saipos:</label>
+                <BaseInput
+                  type="text"
+                  id="saiposToken"
+                  placeholder="Token opcional para validar webhook"
+                  disabled={!saiposEnabled}
+                  {...register("saiposToken")}
+                />
+
+                <InlineInfo>
+                  <span>URL completa: {saiposWebhookUrl}</span>
+                  <CopyButton
+                    type="button"
+                    onClick={() =>
+                      handleCopyAnotaAiWebhook(
+                        saiposWebhookUrl,
+                        "URL completa",
+                      )
+                    }
+                  >
+                    Copiar URL completa
+                  </CopyButton>
+                </InlineInfo>
+                <InlineInfo>
+                  <span>Caminho/path: {saiposWebhookPath}</span>
+                  <CopyButton
+                    type="button"
+                    onClick={() =>
+                      handleCopyAnotaAiWebhook(saiposWebhookPath, "Caminho")
+                    }
+                  >
+                    Copiar caminho
+                  </CopyButton>
+                </InlineInfo>
+
+                <HelpText>
+                  Cadastre essa URL no painel Saipos Developer em Configuração
+                  de Webhook.
+                </HelpText>
+                <HelpText>
+                  O ID da Loja Saipos deve ser o mesmo exibido na tela de
+                  credenciais da Saipos.
+                </HelpText>
+                <HelpText>
+                  Para a loja teste atual, o ID é 91080.
+                </HelpText>
+                <HelpText>
+                  A URL do webhook é global; quem define para qual empresa vai
+                  o pedido é o campo ID da Loja Saipos cadastrado aqui.
+                </HelpText>
+              </IntegrationSection>
 
               <IntegrationSection id="anota-ai-section">
                 <h2>Integração Anota AI</h2>

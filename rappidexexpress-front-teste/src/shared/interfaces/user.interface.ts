@@ -26,4 +26,8 @@ export interface User {
   anotaAiClientId?: string;
   anotaAiToken?: string;
   anotaAiIgnoreIfoodOrders?: boolean;
+  saiposEnabled?: boolean;
+  saiposStoreId?: string;
+  saiposMerchantId?: string;
+  saiposToken?: string;
 }

@@ -56,6 +56,8 @@ export function IfoodClients() {
 
   const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
   const anotaAiWebhookPath = "/api/anota-ai/webhook";
+  const saiposWebhookUrl = `${API_URL}/saipos/webhook`;
+  const saiposWebhookPath = "/api/saipos/webhook";
 
   const filteredShopkeepers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -216,6 +218,12 @@ export function IfoodClients() {
         anotaAiStoreId: String(shopkeeper.anotaAiStoreId || "").trim(),
         anotaAiToken: String(shopkeeper.anotaAiToken || "").trim(),
         anotaAiIgnoreIfoodOrders: shopkeeper.anotaAiIgnoreIfoodOrders !== false,
+        saiposEnabled: Boolean(shopkeeper.saiposEnabled),
+        saiposStoreId: String(shopkeeper.saiposStoreId || "").trim(),
+        saiposMerchantId:
+          String(shopkeeper.saiposMerchantId || "").trim() ||
+          String(shopkeeper.saiposStoreId || "").trim(),
+        saiposToken: String(shopkeeper.saiposToken || "").trim(),
       });
       if (shopkeeper.useIfoodIntegration && merchantId) {
         await api
@@ -336,8 +344,8 @@ export function IfoodClients() {
       <Content>
         <Title>Empresas Cadastradas</Title>
         <Subtitle>
-          Configure as integrações iFood e Anota AI de cada lojista sem alterar
-          o fluxo atual de entregas.
+          Configure as integrações iFood, Anota AI e Saipos de cada lojista sem
+          alterar o fluxo atual de entregas.
         </Subtitle>
 
         <Input
@@ -642,6 +650,129 @@ export function IfoodClients() {
                     /api/anota-ai/webhook. Cadastre a informação correta nos
                     campos Pedidos Realizados, Pedidos Atualizados e Pedidos
                     Cancelados do portal da Anota AI.
+                  </Subtitle>
+                </div>
+
+                <div
+                  style={{
+                    border: "1px solid #f59e0b",
+                    borderRadius: 8,
+                    padding: 12,
+                  }}
+                >
+                  <ShopkeeperName>Saipos</ShopkeeperName>
+
+                  <Checkbox>
+                    <input
+                      checked={Boolean(shopkeeper.saiposEnabled)}
+                      onChange={(event) =>
+                        updateLocalUser(shopkeeper.id, {
+                          saiposEnabled: event.target.checked,
+                          saiposStoreId: event.target.checked
+                            ? shopkeeper.saiposStoreId
+                            : "",
+                          saiposMerchantId: event.target.checked
+                            ? shopkeeper.saiposMerchantId
+                            : "",
+                          saiposToken: event.target.checked
+                            ? shopkeeper.saiposToken
+                            : "",
+                        })
+                      }
+                      type="checkbox"
+                    />
+                    Ativar integração Saipos
+                  </Checkbox>
+
+                  <MerchantIdLabel htmlFor={`saipos-store-${shopkeeper.id}`}>
+                    ID da Loja Saipos
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.saiposEnabled}
+                    id={`saipos-store-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, {
+                        saiposStoreId: event.target.value,
+                      })
+                    }
+                    placeholder="Ex.: 91080"
+                    value={shopkeeper.saiposStoreId || ""}
+                  />
+
+                  <MerchantIdLabel htmlFor={`saipos-merchant-${shopkeeper.id}`}>
+                    Merchant ID Saipos
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.saiposEnabled}
+                    id={`saipos-merchant-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, {
+                        saiposMerchantId: event.target.value,
+                      })
+                    }
+                    placeholder="Opcional. Se vazio, usa o ID da loja."
+                    value={shopkeeper.saiposMerchantId || ""}
+                  />
+
+                  <MerchantIdLabel htmlFor={`saipos-token-${shopkeeper.id}`}>
+                    Token Saipos
+                  </MerchantIdLabel>
+                  <Input
+                    disabled={!shopkeeper.saiposEnabled}
+                    id={`saipos-token-${shopkeeper.id}`}
+                    onChange={(event) =>
+                      updateLocalUser(shopkeeper.id, {
+                        saiposToken: event.target.value,
+                      })
+                    }
+                    placeholder="Token opcional para validar webhook"
+                    value={shopkeeper.saiposToken || ""}
+                  />
+
+                  <CreditSummary>
+                    <CreditLine>
+                      Status: {shopkeeper.saiposEnabled ? "Ativa" : "Inativa"}
+                    </CreditLine>
+                    <CreditLine>
+                      URL completa do webhook: {saiposWebhookUrl}
+                    </CreditLine>
+                    <CreditLine>Caminho/path: {saiposWebhookPath}</CreditLine>
+                    <CreditLine>
+                      O ID da Loja Saipos é usado para vincular o pedido
+                      recebido ao lojista correto.
+                    </CreditLine>
+                  </CreditSummary>
+
+                  <CreditButtons>
+                    <CreditButton
+                      onClick={() =>
+                        handleCopyWebhookInfo(
+                          saiposWebhookUrl,
+                          "URL completa Saipos",
+                        )
+                      }
+                      type="button"
+                    >
+                      Copiar URL completa
+                    </CreditButton>
+
+                    <CreditButton
+                      onClick={() =>
+                        handleCopyWebhookInfo(
+                          saiposWebhookPath,
+                          "Caminho Saipos",
+                        )
+                      }
+                      type="button"
+                    >
+                      Copiar caminho
+                    </CreditButton>
+                  </CreditButtons>
+
+                  <Subtitle>
+                    No painel Saipos Developer, cadastre a URL completa do
+                    webhook:
+                    {` ${saiposWebhookUrl}`}
                   </Subtitle>
                 </div>
 

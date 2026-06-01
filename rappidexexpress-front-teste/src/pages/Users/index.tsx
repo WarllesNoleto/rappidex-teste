@@ -3,8 +3,6 @@ import {
   useContext,
   useEffect,
   useState,
-  type ChangeEvent,
-  type FormEvent,
   type MouseEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,14 +20,6 @@ import {
   UserInfo,
   IntegrationStatus,
   ConfigureButton,
-  ModalActions,
-  ModalBackdrop,
-  ModalButton,
-  ModalCard,
-  ModalCheckboxLabel,
-  ModalField,
-  ModalInput,
-  WebhookUrlBox,
   ContainerProfileImage,
   ProfileImage,
   ContainerLoading,
@@ -37,16 +27,6 @@ import {
 } from "./styles";
 import { Loader } from "../../components/Loader";
 import { User } from "../../shared/interfaces";
-
-type SaiposFormData = {
-  saiposEnabled: boolean;
-  saiposStoreId: string;
-  saiposMerchantId: string;
-  saiposToken: string;
-};
-
-const SAIPOS_WEBHOOK_URL =
-  "https://rappidex-api2-91dbcacd3915.herokuapp.com/api/saipos/webhook";
 
 export function Users() {
   const USERS_PAGE_SIZE = 100;
@@ -60,14 +40,6 @@ export function Users() {
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
-  const [selectedSaiposUser, setSelectedSaiposUser] = useState<User | null>(null);
-  const [saiposFormData, setSaiposFormData] = useState<SaiposFormData>({
-    saiposEnabled: false,
-    saiposStoreId: "",
-    saiposMerchantId: "",
-    saiposToken: "",
-  });
-  const [savingSaipos, setSavingSaipos] = useState(false);
 
   const getData = useCallback(
     async (requestedPage: number) => {
@@ -123,90 +95,6 @@ export function Users() {
   ) {
     event.stopPropagation();
     navigate(`/novo-usuario/${username}#anota-ai`);
-  }
-
-  function handleConfigureSaipos(
-    event: MouseEvent<HTMLButtonElement>,
-    userToConfigure: User,
-  ) {
-    event.stopPropagation();
-    setSelectedSaiposUser(userToConfigure);
-    setSaiposFormData({
-      saiposEnabled: Boolean(userToConfigure.saiposEnabled),
-      saiposStoreId: userToConfigure.saiposStoreId || "",
-      saiposMerchantId: userToConfigure.saiposMerchantId || "",
-      saiposToken: userToConfigure.saiposToken || "",
-    });
-  }
-
-  function handleSaiposInputChange(event: ChangeEvent<HTMLInputElement>) {
-    const { name, type: inputType, checked, value } = event.target;
-
-    setSaiposFormData((currentFormData) => ({
-      ...currentFormData,
-      [name]: inputType === "checkbox" ? checked : value,
-    }));
-  }
-
-  function handleCloseSaiposModal() {
-    if (savingSaipos) {
-      return;
-    }
-
-    setSelectedSaiposUser(null);
-  }
-
-  async function handleCopySaiposWebhook() {
-    try {
-      await navigator.clipboard.writeText(SAIPOS_WEBHOOK_URL);
-      alert("URL do webhook copiada!");
-    } catch {
-      alert(`URL do webhook: ${SAIPOS_WEBHOOK_URL}`);
-    }
-  }
-
-  async function handleSaveSaiposIntegration(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedSaiposUser || savingSaipos) {
-      return;
-    }
-
-    const saiposStoreId = saiposFormData.saiposStoreId.trim();
-    const payload = {
-      saiposEnabled: saiposFormData.saiposEnabled,
-      saiposStoreId,
-      saiposMerchantId: saiposFormData.saiposMerchantId.trim() || saiposStoreId,
-      saiposToken: saiposFormData.saiposToken.trim(),
-    };
-
-    try {
-      setSavingSaipos(true);
-      await api.put(`/user/${selectedSaiposUser.user}`, payload);
-      setUsers((currentUsers) =>
-        currentUsers.map((currentUser) =>
-          currentUser.user === selectedSaiposUser.user
-            ? {
-                ...currentUser,
-                ...payload,
-              }
-            : currentUser,
-        ),
-      );
-      setSelectedSaiposUser(null);
-      alert("Integração Saipos salva com sucesso.");
-    } catch (error: unknown) {
-      const responseMessage = (
-        error as { response?: { data?: { message?: string } } }
-      )?.response?.data?.message;
-      const message =
-        responseMessage ||
-        (error instanceof Error ? error.message : undefined) ||
-        "Não foi possível salvar a integração Saipos. Tente novamente.";
-      alert(message);
-    } finally {
-      setSavingSaipos(false);
-    }
   }
 
   useEffect(() => {
@@ -267,17 +155,6 @@ export function Users() {
                         >
                           Configurar Anota AI
                         </ConfigureButton>
-                        <IntegrationStatus>
-                          Saipos: {user.saiposEnabled ? "Ativa" : "Inativa"}
-                        </IntegrationStatus>
-                        <ConfigureButton
-                          type="button"
-                          onClick={(event) =>
-                            handleConfigureSaipos(event, user)
-                          }
-                        >
-                          Configurar Saipos
-                        </ConfigureButton>
                       </>
                     )}
                   </UserInfo>
@@ -296,85 +173,6 @@ export function Users() {
             </>
           )}
         </UsersContainer>
-
-        {selectedSaiposUser && (
-          <ModalBackdrop onClick={handleCloseSaiposModal}>
-            <ModalCard onClick={(event) => event.stopPropagation()}>
-              <form onSubmit={handleSaveSaiposIntegration}>
-                <h2>Configurar Saipos</h2>
-
-                <ModalCheckboxLabel htmlFor="saiposEnabled">
-                  <input
-                    id="saiposEnabled"
-                    name="saiposEnabled"
-                    type="checkbox"
-                    checked={saiposFormData.saiposEnabled}
-                    onChange={handleSaiposInputChange}
-                  />
-                  Ativar integração Saipos para esta empresa
-                </ModalCheckboxLabel>
-
-                <ModalField>
-                  <label htmlFor="saiposStoreId">ID da Loja Saipos</label>
-                  <ModalInput
-                    id="saiposStoreId"
-                    name="saiposStoreId"
-                    type="text"
-                    placeholder="Ex: 91080"
-                    value={saiposFormData.saiposStoreId}
-                    onChange={handleSaiposInputChange}
-                  />
-                </ModalField>
-
-                <ModalField>
-                  <label htmlFor="saiposMerchantId">Merchant ID Saipos</label>
-                  <ModalInput
-                    id="saiposMerchantId"
-                    name="saiposMerchantId"
-                    type="text"
-                    placeholder="Opcional. Se vazio, usa o mesmo ID da loja."
-                    value={saiposFormData.saiposMerchantId}
-                    onChange={handleSaiposInputChange}
-                  />
-                </ModalField>
-
-                <ModalField>
-                  <label htmlFor="saiposToken">Token Saipos</label>
-                  <ModalInput
-                    id="saiposToken"
-                    name="saiposToken"
-                    type="text"
-                    placeholder="Token opcional para validar webhook"
-                    value={saiposFormData.saiposToken}
-                    onChange={handleSaiposInputChange}
-                  />
-                </ModalField>
-
-                <ModalField>
-                  <span>URL do webhook</span>
-                  <WebhookUrlBox>{SAIPOS_WEBHOOK_URL}</WebhookUrlBox>
-                </ModalField>
-
-                <ModalActions>
-                  <ModalButton type="button" onClick={handleCopySaiposWebhook}>
-                    Copiar URL do Webhook
-                  </ModalButton>
-                  <ModalButton
-                    type="button"
-                    variant="secondary"
-                    onClick={handleCloseSaiposModal}
-                    disabled={savingSaipos}
-                  >
-                    Cancelar
-                  </ModalButton>
-                  <ModalButton type="submit" disabled={savingSaipos}>
-                    {savingSaipos ? "Salvando..." : "Salvar integração"}
-                  </ModalButton>
-                </ModalActions>
-              </form>
-            </ModalCard>
-          </ModalBackdrop>
-        )}
       </Content>
     </Container>
   );

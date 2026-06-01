@@ -120,3 +120,99 @@ export const ConfigureButton = styled.button`
   color: ${(props) => props.theme["gray-100"]};
   background-color: ${(props) => props.theme["green-700"]};
 `;
+
+export const ModalBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.65);
+`;
+
+export const ModalCard = styled.div`
+  width: min(100%, 34rem);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: 8px;
+  color: ${(props) => props.theme["gray-100"]};
+  background-color: ${(props) => props.theme["gray-700"]};
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  h2 {
+    margin: 0;
+  }
+`;
+
+export const ModalCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+`;
+
+export const ModalField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  label,
+  span {
+    font-weight: bold;
+  }
+`;
+
+export const ModalInput = styled.input`
+  width: 100%;
+  border: solid;
+  border-color: ${(props) => props.theme["gray-500"]};
+  padding: 1rem;
+  border-radius: 8px;
+  color: ${(props) => props.theme["gray-900"]};
+  background-color: ${(props) => props.theme["gray-100"]};
+`;
+
+export const WebhookUrlBox = styled.div`
+  padding: 0.75rem;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+  color: ${(props) => props.theme["gray-900"]};
+  background-color: ${(props) => props.theme["gray-100"]};
+`;
+
+export const ModalActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+`;
+
+interface ModalButtonProps {
+  variant?: "primary" | "secondary";
+}
+
+export const ModalButton = styled.button<ModalButtonProps>`
+  border: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  color: ${(props) => props.theme["gray-100"]};
+  background-color: ${(props) =>
+    props.variant === "secondary"
+      ? props.theme["gray-500"]
+      : props.theme["green-700"]};
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;

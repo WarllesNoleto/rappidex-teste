@@ -71,7 +71,7 @@ export function NewUser() {
     values: formValues,
   });
 
-  const { handleSubmit, watch, register, reset, setValue } = profileFormData;
+  const { handleSubmit, watch, register, reset, setValue, getValues } = profileFormData;
 
   const allowCitySelection = permission === "superadmin";
 
@@ -97,6 +97,14 @@ export function NewUser() {
 
     if (data.phone.includes("_")) {
       alert("Numero de telefone está faltando algum digito!");
+      setLoading(false);
+      return;
+    }
+
+    const normalizedPhone = formatPhone(data.phone);
+
+    if (!normalizedPhone) {
+      alert("Informe o WhatsApp do lojista.");
       setLoading(false);
       return;
     }
@@ -133,7 +141,7 @@ export function NewUser() {
     try {
       const response = await api.post("/user", {
         ...data,
-        phone: formatPhone(data.phone),
+        phone: normalizedPhone,
         type: selectedType,
         permission:
           selectedType === "admin" || selectedType === "superadmin"
@@ -180,7 +188,7 @@ export function NewUser() {
       useIfoodIntegration,
       ifoodMerchantId,
       usesExternalIfoodPdv,
-    } = watch();
+    } = getValues();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
       : loggedUserCityId;
@@ -204,10 +212,19 @@ export function NewUser() {
       setLoading(false);
       return;
     }
+
+    const normalizedPhone = formatPhone(phone);
+
+    if (!normalizedPhone) {
+      alert("Informe o WhatsApp do lojista.");
+      setLoading(false);
+      return;
+    }
+
     try {
       await api.put(`/user/${userId}`, {
         name,
-        phone: formatPhone(phone),
+        phone: normalizedPhone,
         user,
         pix,
         profileImage,
@@ -269,11 +286,17 @@ export function NewUser() {
   }
 
   function formatPhone(phone: string) {
-    return phone
-      .replace("(", "")
-      .replace(")", "")
-      .replace(" ", "")
-      .replace("-", "");
+    return String(phone ?? "").replace(/\D/g, "");
+  }
+
+  function formatPhoneForMask(phone: string) {
+    const digits = formatPhone(phone);
+
+    if (digits.length === 13 && digits.startsWith("55")) {
+      return digits.slice(2);
+    }
+
+    return digits;
   }
 
   async function fetchCities() {
@@ -327,7 +350,10 @@ export function NewUser() {
     let userFinded;
     try {
       userFinded = await api.get(`/user/${user}`);
-      setFormValues(userFinded.data);
+      setFormValues({
+        ...userFinded.data,
+        phone: formatPhoneForMask(userFinded.data?.phone || ""),
+      });
       setIfoodMerchants(Array.isArray(userFinded.data?.ifoodMerchants) ? userFinded.data.ifoodMerchants : []);
       setUserId(userFinded.data.id);
       setSelectedType(userFinded.data.type);

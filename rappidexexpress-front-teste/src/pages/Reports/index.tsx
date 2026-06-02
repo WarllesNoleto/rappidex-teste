@@ -30,7 +30,7 @@ import {
 } from "./styles";
 import api from "../../services/api";
 import { DeliveryContext } from "../../context/DeliveryContext";
-import { City, User, Report } from "../../shared/interfaces";
+import { User, Report } from "../../shared/interfaces";
 import { Loader } from "../../components/Loader";
 
 export function Reports() {
@@ -42,7 +42,6 @@ export function Reports() {
 
   const [motoboys, setMotoboys] = useState([]);
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
 
   const [reports, setReports] = useState<Report[]>([]);
   const [reportsCount, setReportsCount] = useState(0);
@@ -108,15 +107,8 @@ export function Reports() {
     try {
       const motoboysResponse = await api.get("/user?type=motoboy");
       const shopkeepersResponse = await api.get("/user?type=shopkeeper");
-      const citiesResponse = await api.get("/city");
-
       setMotoboys(motoboysResponse.data.data);
       setShopkeepers(shopkeepersResponse.data.data);
-      setCities(
-        Array.isArray(citiesResponse.data?.data)
-          ? citiesResponse.data.data
-          : citiesResponse.data,
-      );
       setLoadingInitial(false);
     } catch (error: any) {
       alert(error.response.data.message);
@@ -233,148 +225,7 @@ export function Reports() {
     return parts.join(" | ");
   }
 
-  function normalizeText(value?: string) {
-    return String(value ?? "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toLowerCase();
-  }
-
-  function sanitizeWhatsapp(phone?: string) {
-    const onlyDigits = String(phone ?? "").replace(/\D/g, "");
-    if (!onlyDigits) return "";
-    return onlyDigits.startsWith("55") ? onlyDigits : `55${onlyDigits}`;
-  }
-
-  function parseCurrency(value?: string) {
-    const sanitized = String(value ?? "").replace(/[^\d,.-]/g, "");
-    const normalized = sanitized.includes(",")
-      ? sanitized.replace(/\./g, "").replace(",", ".")
-      : sanitized;
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function formatCurrency(value: number) {
-    return value.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  }
-
-  function formatDeliveryValueForMessage(value: number) {
-    return value.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
-
-  function escapeHtml(value?: string | number) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function getPeriodLabel() {
-    const start = createdIn
-      ? getDate(`${createdIn}T00:00:00.000Z`)
-      : "início não informado";
-    const end = createdUntil
-      ? getDate(`${createdUntil}T00:00:00.000Z`)
-      : "fim não informado";
-    return `${start} até ${end}`;
-  }
-
-  function resolveCityForReport(report: Report) {
-    const deliveryCityName = normalizeText(report.addressCity);
-    const deliveryCityState = normalizeText(report.addressState);
-
-    if (deliveryCityName) {
-      const cityByDelivery = cities.find((city) => {
-        const sameName = normalizeText(city.name) === deliveryCityName;
-        const sameState =
-          !deliveryCityState || normalizeText(city.state) === deliveryCityState;
-        return sameName && sameState;
-      });
-
-      if (cityByDelivery) return cityByDelivery;
-    }
-
-    if (report.establishmentCityId) {
-      const cityByEstablishment = cities.find(
-        (city) => String(city.id) === String(report.establishmentCityId),
-      );
-      if (cityByEstablishment) return cityByEstablishment;
-    }
-
-    const shopkeeper = shopkeepers.find(
-      (item) => item.id === report.establishmentId,
-    );
-    if (shopkeeper?.cityId) {
-      return cities.find(
-        (city) => String(city.id) === String(shopkeeper.cityId),
-      );
-    }
-
-    return undefined;
-  }
-
-  function getSelectedShopkeeper() {
-    return shopkeepers.find(
-      (shopkeeper) => shopkeeper.id === selectedEstablishment,
-    );
-  }
-
-  function buildDeliveryQuery(pageToFetch?: number, itemsPerPage = 100) {
-    let param = "";
-    if (selectedMotoboy) {
-      param = `${param}&motoboyId=${selectedMotoboy}`;
-    }
-    if (selectedEstablishment) {
-      param = `${param}&establishmentId=${selectedEstablishment}`;
-    }
-    if (createdIn) {
-      param = `${param}&createdIn=${createdIn}T00:00:00.000Z`;
-    }
-    if (createdUntil) {
-      param = `${param}&createdUntil=${createdUntil}T23:59:59.000Z`;
-    }
-    if (pageToFetch) {
-      param = `${param}&page=${pageToFetch}`;
-    }
-
-    return `/delivery?status=${selectedStatus}&itemsPerPage=${itemsPerPage}${param}`;
-  }
-
-  async function fetchAllSettlementReports() {
-    const firstResponse = await api.get(buildDeliveryQuery(1, 100));
-    const firstData = Array.isArray(firstResponse.data?.data)
-      ? firstResponse.data.data
-      : [];
-    const totalCount = Number(firstResponse.data?.count ?? firstData.length);
-    const allReports: Report[] = [...firstData];
-    const totalPages = Math.ceil(totalCount / 100);
-
-    for (let currentPage = 2; currentPage <= totalPages; currentPage += 1) {
-      const response = await api.get(buildDeliveryQuery(currentPage, 100));
-      const pageData = Array.isArray(response.data?.data)
-        ? response.data.data
-        : [];
-      allReports.push(...pageData);
-    }
-
-    setReports(allReports);
-    setReportsCount(totalCount);
-    setPage(totalPages + 1);
-
-    return allReports;
-  }
-
-  function buildSettlement(deliveries: Report[]) {
+  function buildFinancialSettlementParams() {
     if (!selectedEstablishment) {
       throw new Error("Selecione uma empresa/lojista para gerar o fechamento.");
     }
@@ -383,230 +234,72 @@ export function Reports() {
       throw new Error("Informe o período inicial e final do fechamento.");
     }
 
-    if (!deliveries.length) {
-      throw new Error(
-        "Nenhuma entrega encontrada para os filtros selecionados.",
-      );
-    }
-
-    const shopkeeper = getSelectedShopkeeper();
-    const firstReport = deliveries[0];
-    const establishmentName = shopkeeper?.name || firstReport.establishmentName;
-    const establishmentPhone =
-      shopkeeper?.phone || firstReport.establishmentPhone;
-    const whatsapp = sanitizeWhatsapp(establishmentPhone);
-
-    if (!whatsapp) {
-      throw new Error("Este lojista não possui WhatsApp cadastrado no perfil.");
-    }
-
-    const deliveryDetails = deliveries.map((delivery) => {
-      const city = resolveCityForReport(delivery);
-      const deliveryValue = parseCurrency(city?.deliveryValue);
-
-      if (!city || !deliveryValue) {
-        throw new Error("Valor da entrega não configurado para esta cidade.");
-      }
-
-      return {
-        delivery,
-        city,
-        deliveryValue,
-      };
+    const params = new URLSearchParams({
+      establishmentId: selectedEstablishment,
+      createdIn,
+      createdUntil,
     });
 
-    const city = deliveryDetails[0].city;
-    const sameDeliveryValue = deliveryDetails.every(
-      (item) => item.deliveryValue === deliveryDetails[0].deliveryValue,
-    );
-    const total = deliveryDetails.reduce(
-      (sum, item) => sum + item.deliveryValue,
-      0,
-    );
-
-    return {
-      establishmentName,
-      establishmentPhone,
-      whatsapp,
-      cityLabel: `${city.name}${city.state ? ` - ${city.state}` : ""}`,
-      periodLabel: getPeriodLabel(),
-      generatedAt: new Date().toLocaleString("pt-BR"),
-      quantity: deliveries.length,
-      deliveryValueLabel: sameDeliveryValue
-        ? formatCurrency(deliveryDetails[0].deliveryValue)
-        : "Valor variável por cidade",
-      deliveryValueForMessage: sameDeliveryValue
-        ? formatDeliveryValueForMessage(deliveryDetails[0].deliveryValue)
-        : "variável por cidade",
-      total,
-      totalLabel: formatCurrency(total),
-      pix: shopkeeper?.pix || firstReport.establishmentPix || "",
-      deliveries,
-    };
+    return params;
   }
 
-  function buildWhatsappMessage(
-    settlement: ReturnType<typeof buildSettlement>,
-  ) {
-    return `Olá, ${settlement.establishmentName}!\n\nSegue o fechamento das entregas realizadas pela Rappidex Express.\n\nPeríodo: ${settlement.periodLabel}\nQuantidade de entregas: ${settlement.quantity}\nValor por entrega: R$ ${settlement.deliveryValueForMessage}\nTotal a pagar: ${settlement.totalLabel}\n\nO relatório em PDF está em anexo.\n\nObrigado pela parceria!\nRappidex Express`;
-  }
-
-  function openSettlementPdf(settlement: ReturnType<typeof buildSettlement>) {
-    const deliveriesRows = settlement.deliveries
-      .map(
-        (delivery) => `
-            <tr>
-                <td>Pedido #${escapeHtml(delivery.ifoodDisplayId || delivery.ifoodOrderId || delivery.id)}</td>
-                <td>${escapeHtml(delivery.clientName)}</td>
-                <td>${escapeHtml(delivery.value ? `R$ ${delivery.value}` : "Não informado")}</td>
-                <td>${escapeHtml(delivery.status)}</td>
-            </tr>
-        `,
-      )
-      .join("");
-
-    const html = `<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
-<title>Fechamento ${escapeHtml(settlement.establishmentName)}</title>
-<style>
-    body { font-family: Arial, sans-serif; color: #1f2937; margin: 32px; }
-    header { border-bottom: 3px solid #00b37e; margin-bottom: 24px; padding-bottom: 16px; }
-    h1 { margin: 0; color: #00b37e; }
-    h2 { margin: 8px 0 0; }
-    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
-    .card { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; }
-    .label { color: #6b7280; font-size: 12px; text-transform: uppercase; }
-    .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; font-size: 13px; }
-    th { background: #f3f4f6; }
-    @media print { body { margin: 18px; } }
-</style>
-</head>
-<body>
-<header>
-    <h1>Rappidex Express</h1>
-    <h2>Relatório de Fechamento Financeiro</h2>
-</header>
-<section>
-    <p><strong>Empresa:</strong> ${escapeHtml(settlement.establishmentName)}</p>
-    <p><strong>Cidade:</strong> ${escapeHtml(settlement.cityLabel)}</p>
-    <p><strong>WhatsApp:</strong> ${escapeHtml(formatNumber(settlement.whatsapp))}</p>
-    <p><strong>Período:</strong> ${escapeHtml(settlement.periodLabel)}</p>
-    <p><strong>Data de geração:</strong> ${escapeHtml(settlement.generatedAt)}</p>
-    ${settlement.pix ? `<p><strong>Chave PIX:</strong> ${escapeHtml(settlement.pix)}</p>` : ""}
-</section>
-<section class="grid">
-    <div class="card"><div class="label">Quantidade de entregas</div><div class="value">${settlement.quantity}</div></div>
-    <div class="card"><div class="label">Valor por entrega da cidade</div><div class="value">${escapeHtml(settlement.deliveryValueLabel)}</div></div>
-    <div class="card"><div class="label">Total a pagar</div><div class="value">${escapeHtml(settlement.totalLabel)}</div></div>
-</section>
-<h2>Entregas</h2>
-<table>
-    <thead><tr><th>Pedido</th><th>Cliente</th><th>Valor</th><th>Status</th></tr></thead>
-    <tbody>${deliveriesRows}</tbody>
-</table>
-<script>window.onload = () => window.print();</script>
-</body>
-</html>`;
-
-    const pdfWindow = window.open("", "_blank");
-    if (!pdfWindow) {
-      throw new Error(
-        "Não foi possível abrir o PDF. Verifique o bloqueador de pop-ups do navegador.",
-      );
-    }
-
-    pdfWindow.document.write(html);
-    pdfWindow.document.close();
-  }
-
-  function saveSettlementHistory(
-    settlement: ReturnType<typeof buildSettlement>,
-    status: "enviado" | "erro" | "pendente",
-  ) {
-    const history = JSON.parse(
-      localStorage.getItem("rappidex:settlement-history") || "[]",
-    );
-    history.unshift({
-      establishmentName: settlement.establishmentName,
-      period: settlement.periodLabel,
-      quantity: settlement.quantity,
-      total: settlement.total,
-      whatsapp: settlement.whatsapp,
-      sentAt: new Date().toISOString(),
-      status,
-    });
-    localStorage.setItem(
-      "rappidex:settlement-history",
-      JSON.stringify(history.slice(0, 50)),
-    );
-  }
-
-  async function prepareSettlement() {
-    if (settlementLoading) return null;
+  async function handleGeneratePdf() {
+    if (settlementLoading) return;
 
     setSettlementLoading(true);
     try {
-      const allReports = await fetchAllSettlementReports();
-      return buildSettlement(allReports);
+      const params = buildFinancialSettlementParams();
+      const response = await api.get(
+        `/financial-settlement/pdf?${params.toString()}`,
+        { responseType: "blob" },
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const disposition = response.headers?.["content-disposition"] as
+        | string
+        | undefined;
+      const filename =
+        disposition?.match(/filename="?([^";]+)"?/)?.[1] ??
+        "fechamento-rappidex.pdf";
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(
+        error.response?.data?.message ??
+          error?.message ??
+          "Não foi possível gerar o PDF do fechamento.",
+      );
     } finally {
       setSettlementLoading(false);
     }
   }
 
-  async function handleGeneratePdf() {
-    try {
-      const settlement = await prepareSettlement();
-      if (!settlement) return;
-      openSettlementPdf(settlement);
-    } catch (error: any) {
-      alert(error?.message ?? "Não foi possível gerar o PDF do fechamento.");
-    }
-  }
-
   async function handleSendWhatsapp() {
+    if (settlementLoading) return;
+
+    setSettlementLoading(true);
     try {
-      const settlement = await prepareSettlement();
-      if (!settlement) return;
-      const message = buildWhatsappMessage(settlement);
-      window.open(
-        `https://wa.me/${settlement.whatsapp}?text=${encodeURIComponent(message)}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-      saveSettlementHistory(settlement, "pendente");
-      alert(
-        "WhatsApp aberto com a mensagem pronta. Como não há API de WhatsApp configurada, baixe/gerar o PDF e anexe manualmente na conversa.",
-      );
+      const params = buildFinancialSettlementParams();
+      await api.post(`/financial-settlement/send-whatsapp?${params.toString()}`);
+      alert("Relatório enviado com sucesso para o WhatsApp do lojista.");
     } catch (error: any) {
-      alert(error?.message ?? "Não foi possível abrir o WhatsApp do lojista.");
+      alert(
+        error.response?.data?.message ??
+          "Não foi possível enviar o relatório pelo WhatsApp.",
+      );
+    } finally {
+      setSettlementLoading(false);
     }
   }
 
   async function handleGeneratePdfAndSendWhatsapp() {
-    try {
-      const settlement = await prepareSettlement();
-      if (!settlement) return;
-      openSettlementPdf(settlement);
-      const message = buildWhatsappMessage(settlement);
-      window.open(
-        `https://wa.me/${settlement.whatsapp}?text=${encodeURIComponent(message)}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-      saveSettlementHistory(settlement, "pendente");
-      alert(
-        "PDF aberto e WhatsApp preparado. Anexe o PDF manualmente até que uma API de WhatsApp esteja configurada.",
-      );
-    } catch (error: any) {
-      alert(
-        error?.message ??
-          "Não foi possível gerar o fechamento e abrir o WhatsApp.",
-      );
-    }
+    await handleSendWhatsapp();
   }
 
   useEffect(() => {
@@ -708,8 +401,8 @@ export function Reports() {
             <SettlementSummary>
               <strong>Fechamento financeiro</strong>
               <p>
-                Selecione um lojista, período e status para gerar o PDF ou
-                preparar o envio pelo WhatsApp cadastrado no perfil.
+                Selecione um lojista e período para gerar o PDF ou enviar o
+                fechamento com PDF anexado automaticamente pelo WhatsApp cadastrado no perfil.
               </p>
               <ActionBar>
                 <ActionButton
@@ -734,7 +427,11 @@ export function Reports() {
                   disabled={settlementLoading}
                   $variant="whatsapp"
                 >
-                  <WhatsappLogo size={18} />
+                  {settlementLoading ? (
+                    <Loader size={18} biggestColor="gray" smallestColor="gray" />
+                  ) : (
+                    <WhatsappLogo size={18} />
+                  )}
                   Enviar WhatsApp
                 </ActionButton>
                 <ActionButton
@@ -747,6 +444,9 @@ export function Reports() {
                   Gerar PDF e Enviar WhatsApp
                 </ActionButton>
               </ActionBar>
+              {settlementLoading && (
+                <p>Gerando PDF e enviando pelo WhatsApp...</p>
+              )}
             </SettlementSummary>
           )}
         </FiltersContainer>

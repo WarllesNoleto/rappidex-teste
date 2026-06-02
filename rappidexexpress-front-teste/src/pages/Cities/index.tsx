@@ -78,6 +78,7 @@ export function Cities() {
   const [selectedState, setSelectedState] = useState("");
   const [cityWhatsappMessage, setCityWhatsappMessage] = useState("");
   const [deliveryValue, setDeliveryValue] = useState("");
+  const [pixKey, setPixKey] = useState("");
   const [editingCityId, setEditingCityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,6 +143,7 @@ export function Cities() {
     setSelectedState("");
     setCityWhatsappMessage("");
     setDeliveryValue("");
+    setPixKey("");
     setEditingCityId(null);
   }
 
@@ -149,9 +151,20 @@ export function Cities() {
     setCityName(city.name ?? "");
     setSelectedState(city.state ?? "");
     setCityWhatsappMessage(city.clientWhatsappMessage ?? "");
-    setDeliveryValue(city.deliveryValue ?? "");
+    setDeliveryValue(
+      city.deliveryFeeValue !== undefined
+        ? String(city.deliveryFeeValue).replace(".", ",")
+        : city.deliveryValue ?? "",
+    );
+    setPixKey(city.pixKey ?? "");
     setEditingCityId(city.id ? String(city.id) : null);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function parseDeliveryFeeValue(value: string) {
+    const normalized = value.replace(/\./g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   async function handleCreateCity(event: FormEvent<HTMLFormElement>) {
@@ -171,6 +184,8 @@ export function Cities() {
       state: selectedState,
       clientWhatsappMessage: cityWhatsappMessage.trim(),
       deliveryValue: deliveryValue.trim(),
+      deliveryFeeValue: parseDeliveryFeeValue(deliveryValue),
+      pixKey: pixKey.trim(),
     };
 
     setIsSubmitting(true);
@@ -281,9 +296,16 @@ export function Cities() {
           </CitySelect>
 
           <CityInput
-            placeholder="Valor da entrega na cidade. Ex.: 7,00"
+            placeholder="Valor da entrega para fechamento. Ex: 7,00"
             value={deliveryValue}
             onChange={(event) => setDeliveryValue(event.target.value)}
+            disabled={isSubmitting}
+          />
+
+          <CityInput
+            placeholder="Chave PIX da cidade. Ex: financeiro@rappidex.com.br, CPF, CNPJ, telefone ou chave aleatória"
+            value={pixKey}
+            onChange={(event) => setPixKey(event.target.value)}
             disabled={isSubmitting}
           />
 
@@ -339,10 +361,18 @@ export function Cities() {
                     <CityName>{city.name}</CityName>
                     <CityState>{getStateLabel(city.state)}</CityState>
                     <CityState>
-                      Valor da entrega:{" "}
-                      {city.deliveryValue?.trim()
-                        ? `R$ ${city.deliveryValue}`
-                        : "não configurado"}
+                      Valor da entrega para fechamento:{" "}
+                      {city.deliveryFeeValue !== undefined
+                        ? city.deliveryFeeValue.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })
+                        : city.deliveryValue?.trim()
+                          ? `R$ ${city.deliveryValue}`
+                          : "não configurado"}
+                    </CityState>
+                    <CityState>
+                      Chave PIX: {city.pixKey?.trim() || "não configurada"}
                     </CityState>
                     <CityMessage>
                       {city.clientWhatsappMessage?.trim()

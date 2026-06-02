@@ -5,4 +5,6 @@ export interface City {
   state?: string;
   clientWhatsappMessage?: string;
   deliveryValue?: string;
+  deliveryFeeValue?: number;
+  pixKey?: string;
 }

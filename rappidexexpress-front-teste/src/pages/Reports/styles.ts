@@ -354,3 +354,25 @@ export const ActionButton = styled.button<ActionButtonProps>`
     transform: translateY(-1px);
   }
 `;
+
+interface SettlementFeedbackProps {
+  $type: "success" | "error";
+}
+
+export const SettlementFeedback = styled.div<SettlementFeedbackProps>`
+  margin-top: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: ${(props) => props.theme["radius-md"]};
+  border: 1px solid
+    ${(props) =>
+      props.$type === "success"
+        ? "rgba(0, 179, 126, 0.35)"
+        : "rgba(239, 68, 68, 0.45)"};
+  background: ${(props) =>
+    props.$type === "success"
+      ? "rgba(0, 179, 126, 0.12)"
+      : "rgba(239, 68, 68, 0.14)"};
+  color: ${(props) => props.theme["gray-100"]};
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+`;

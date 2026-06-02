@@ -27,6 +27,7 @@ import {
   ActionBar,
   ActionButton,
   SettlementSummary,
+  SettlementFeedback,
 } from "./styles";
 import api from "../../services/api";
 import { DeliveryContext } from "../../context/DeliveryContext";
@@ -48,6 +49,10 @@ export function Reports() {
 
   const [loadingMoreReports, setLoadingMoreReports] = useState(false);
   const [settlementLoading, setSettlementLoading] = useState(false);
+  const [settlementFeedback, setSettlementFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [page, setPage] = useState(2);
 
   const [selectedStatus, setSelectedStatus] = useState("FINALIZADO");
@@ -225,6 +230,20 @@ export function Reports() {
     return parts.join(" | ");
   }
 
+  function getErrorMessage(error: any, fallback: string) {
+    const responseMessage = error.response?.data?.message;
+    const metaMessage = error.response?.data?.metaMessage;
+    const message = Array.isArray(responseMessage)
+      ? responseMessage.join(" ")
+      : (responseMessage ?? error?.message ?? fallback);
+
+    if (metaMessage && metaMessage !== message) {
+      return `${message} Detalhe da Meta: ${metaMessage}`;
+    }
+
+    return message;
+  }
+
   function buildFinancialSettlementParams() {
     if (!selectedEstablishment) {
       throw new Error("Selecione uma empresa/lojista para gerar o fechamento.");
@@ -247,6 +266,7 @@ export function Reports() {
     if (settlementLoading) return;
 
     setSettlementLoading(true);
+    setSettlementFeedback(null);
     try {
       const params = buildFinancialSettlementParams();
       const response = await api.get(
@@ -270,11 +290,13 @@ export function Reports() {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
-      alert(
-        error.response?.data?.message ??
-          error?.message ??
+      setSettlementFeedback({
+        type: "error",
+        message: getErrorMessage(
+          error,
           "Não foi possível gerar o PDF do fechamento.",
-      );
+        ),
+      });
     } finally {
       setSettlementLoading(false);
     }
@@ -284,15 +306,26 @@ export function Reports() {
     if (settlementLoading) return;
 
     setSettlementLoading(true);
+    setSettlementFeedback(null);
     try {
       const params = buildFinancialSettlementParams();
-      await api.post(`/financial-settlement/send-whatsapp?${params.toString()}`);
-      alert("Relatório enviado com sucesso para o WhatsApp do lojista.");
-    } catch (error: any) {
-      alert(
-        error.response?.data?.message ??
-          "Não foi possível enviar o relatório pelo WhatsApp.",
+      const response = await api.post(
+        `/financial-settlement/send-whatsapp?${params.toString()}`,
       );
+      setSettlementFeedback({
+        type: "success",
+        message:
+          response.data?.message ??
+          "Relatório enviado com sucesso para o WhatsApp do lojista.",
+      });
+    } catch (error: any) {
+      setSettlementFeedback({
+        type: "error",
+        message: getErrorMessage(
+          error,
+          "Não foi possível enviar o relatório pelo WhatsApp.",
+        ),
+      });
     } finally {
       setSettlementLoading(false);
     }
@@ -402,7 +435,8 @@ export function Reports() {
               <strong>Fechamento financeiro</strong>
               <p>
                 Selecione um lojista e período para gerar o PDF ou enviar o
-                fechamento com PDF anexado automaticamente pelo WhatsApp cadastrado no perfil.
+                fechamento com PDF anexado automaticamente pelo WhatsApp
+                cadastrado no perfil.
               </p>
               <ActionBar>
                 <ActionButton
@@ -428,7 +462,11 @@ export function Reports() {
                   $variant="whatsapp"
                 >
                   {settlementLoading ? (
-                    <Loader size={18} biggestColor="gray" smallestColor="gray" />
+                    <Loader
+                      size={18}
+                      biggestColor="gray"
+                      smallestColor="gray"
+                    />
                   ) : (
                     <WhatsappLogo size={18} />
                   )}
@@ -446,6 +484,11 @@ export function Reports() {
               </ActionBar>
               {settlementLoading && (
                 <p>Gerando PDF e enviando pelo WhatsApp...</p>
+              )}
+              {settlementFeedback && (
+                <SettlementFeedback $type={settlementFeedback.type}>
+                  {settlementFeedback.message}
+                </SettlementFeedback>
               )}
             </SettlementSummary>
           )}

@@ -14,7 +14,6 @@ import {
   ContainerButtons,
   FormContainer,
   BaseButton,
-  BaseInputMask,
   DeleteButton,
   ResetPassButton,
 } from "./styles";
@@ -59,6 +58,8 @@ export function NewUser() {
   const [ifoodMerchants, setIfoodMerchants] = useState<IfoodMerchantForm[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const [loadingInfo, setLoadingInfo] = useState(false);
+  const [loadingIfood, setLoadingIfood] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingResetPass, setLoadingResetPass] = useState(false);
   const [selectedType, setSelectedType] = useState("");
@@ -172,11 +173,11 @@ export function NewUser() {
   }
 
   async function handleSaveInfo() {
-    if (loading) {
+    if (loadingInfo) {
       return;
     }
 
-    setLoading(true);
+    setLoadingInfo(true);
 
     const {
       name,
@@ -192,7 +193,7 @@ export function NewUser() {
 
     if (!cityIdToSubmit) {
       alert("Não foi possível identificar a cidade para vincular ao usuário.");
-      setLoading(false);
+      setLoadingInfo(false);
       return;
     }
 
@@ -200,12 +201,12 @@ export function NewUser() {
 
     if (!normalizedPhone) {
       alert("Informe o WhatsApp do lojista.");
-      setLoading(false);
+      setLoadingInfo(false);
       return;
     }
 
     try {
-      await api.put(`/user/${userId}`, {
+      const response = await api.put(`/user/${userId}`, {
         name,
         phone: normalizedPhone,
         user,
@@ -215,20 +216,29 @@ export function NewUser() {
         type: selectedType,
         cityId: cityIdToSubmit,
       });
-      setLoading(false);
+
+      const nextValues = {
+        ...getValues(),
+        ...response.data,
+        phone: formatPhoneForMask(response.data?.phone || normalizedPhone),
+      };
+      setFormValues(nextValues);
+      reset(nextValues);
+      setSelectedType(response.data?.type || selectedType);
+      setLoadingInfo(false);
       alert("Informações do usuário salvas com sucesso!");
     } catch (error: any) {
-      setLoading(false);
-      alert(error.response.data.message);
+      setLoadingInfo(false);
+      alert(error.response?.data?.message ?? "Não foi possível salvar as informações do usuário.");
     }
   }
 
   async function handleSaveIfood() {
-    if (loading) {
+    if (loadingIfood) {
       return;
     }
 
-    setLoading(true);
+    setLoadingIfood(true);
 
     const {
       useIfoodIntegration,
@@ -246,14 +256,14 @@ export function NewUser() {
 
     if (useIfoodIntegration && !(ifoodMerchantId || "").trim() && normalizedMerchants.length === 0) {
       alert("Para integração iFood, preencha o merchantId.");
-      setLoading(false);
+      setLoadingIfood(false);
       return;
     }
 
     const resolvedIfoodMerchantId = resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants);
 
     try {
-      await api.put(`/user/${userId}`, {
+      const response = await api.put(`/user/${userId}`, {
         useIfoodIntegration: Boolean(useIfoodIntegration),
         usesExternalIfoodPdv: Boolean(useIfoodIntegration) && Boolean(usesExternalIfoodPdv),
         ifoodMerchantId: resolvedIfoodMerchantId,
@@ -267,10 +277,18 @@ export function NewUser() {
       } else {
         alert("Configurações iFood salvas com sucesso!");
       }
-      setLoading(false);
+      const nextValues = {
+        ...getValues(),
+        ...response.data,
+        phone: formatPhoneForMask(response.data?.phone || getValues("phone") || ""),
+      };
+      setFormValues(nextValues);
+      reset(nextValues);
+      setIfoodMerchants(Array.isArray(response.data?.ifoodMerchants) ? response.data.ifoodMerchants : normalizedMerchants);
+      setLoadingIfood(false);
     } catch (error: any) {
-      setLoading(false);
-      alert(error.response.data.message);
+      setLoadingIfood(false);
+      alert(error.response?.data?.message ?? "Não foi possível salvar as configurações do iFood.");
     }
   }
   
@@ -380,10 +398,13 @@ export function NewUser() {
     let userFinded;
     try {
       userFinded = await api.get(`/user/${user}`);
-      setFormValues({
+      const nextValues = {
         ...userFinded.data,
+        password: "",
         phone: formatPhoneForMask(userFinded.data?.phone || ""),
-      });
+      };
+      setFormValues(nextValues);
+      reset(nextValues);
       setIfoodMerchants(Array.isArray(userFinded.data?.ifoodMerchants) ? userFinded.data.ifoodMerchants : []);
       setUserId(userFinded.data.id);
       setSelectedType(userFinded.data.type);
@@ -420,18 +441,18 @@ export function NewUser() {
   const ifoodIntegrationMissingFields =
     Boolean(useIfoodIntegration) && !hasIfoodMerchant;
   const isInfoSubmitDisabled =
+    loadingInfo ||
     !name ||
     !phone ||
     !pix ||
     !profileImage ||
-    phone.includes("_") ||
     citySelectionMissing;
   const isSubmitDisabled =
+    loading ||
     !name ||
     !phone ||
     !pix ||
     !profileImage ||
-    phone.includes("_") ||
     citySelectionMissing ||
     ifoodIntegrationMissingFields;
   const isShopkeeperType =
@@ -465,11 +486,11 @@ export function NewUser() {
           />
 
           <label htmlFor="phone">Whatsapp:</label>
-          <BaseInputMask
+          <BaseInput
             type="text"
-            mask="(99) 99999-9999"
+            inputMode="numeric"
             id="phone"
-            placeholder="Informe o whatsapp."
+            placeholder="Ex: 5594991220268 ou 94991220268"
             {...register("phone")}
           />
 
@@ -610,7 +631,7 @@ export function NewUser() {
                           value={merchant.merchantId || ""}
                           onChange={(event) => setIfoodMerchants((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, merchantId: event.target.value } : item))}
                         />
-                        <label>Endereço de coleta (opcional):</label>
+                        <label>Link da localização da loja (opcional):</label>
                         <BaseInput
                           type="text"
                           value={merchant.pickupAddress || ""}
@@ -652,20 +673,18 @@ export function NewUser() {
         </FormContainer>
       </form>
       {user && (
-        <>
-          {user && (
-            <BaseButton disabled={isInfoSubmitDisabled} onClick={handleSaveInfo}>
-              {loading ? (
-                <Loader size={20} biggestColor="gray" smallestColor="gray" />
-              ) : (
-                "Salvar informações"
-              )}
-            </BaseButton>
-          )}
+        <ContainerButtons>
+          <BaseButton type="button" disabled={isInfoSubmitDisabled} onClick={handleSaveInfo}>
+            {loadingInfo ? (
+              <Loader size={20} biggestColor="gray" smallestColor="gray" />
+            ) : (
+              "Salvar informações"
+            )}
+          </BaseButton>
 
-          {user && isShopkeeperType && (
-            <BaseButton disabled={ifoodIntegrationMissingFields} onClick={handleSaveIfood}>
-              {loading ? (
+          {isShopkeeperType && (
+            <BaseButton type="button" disabled={loadingIfood || ifoodIntegrationMissingFields} onClick={handleSaveIfood}>
+              {loadingIfood ? (
                 <Loader size={20} biggestColor="gray" smallestColor="gray" />
               ) : (
                 "Salvar iFood"
@@ -673,7 +692,7 @@ export function NewUser() {
             </BaseButton>
           )}
 
-          <ResetPassButton onClick={handleReset}>
+          <ResetPassButton type="button" onClick={handleReset}>
             {loadingResetPass ? (
               <Loader size={20} biggestColor="black" smallestColor="black" />
             ) : (
@@ -681,14 +700,14 @@ export function NewUser() {
             )}
           </ResetPassButton>
 
-          <DeleteButton onClick={handleDelete}>
+          <DeleteButton type="button" onClick={handleDelete}>
             {loadingDelete ? (
               <Loader size={20} biggestColor="gray" smallestColor="gray" />
             ) : (
               "Apagar usuário"
             )}
           </DeleteButton>
-        </>
+        </ContainerButtons>
       )}
     </Container>
   );

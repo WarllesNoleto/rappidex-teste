@@ -103,7 +103,7 @@ export const BaseInputMask = styled(InputMask)`
 `
 
 export const ContainerButtons = styled.div`
-  width: 100%;
+  width: min(100%, 34rem);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;

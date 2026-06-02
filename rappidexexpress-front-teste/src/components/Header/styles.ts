@@ -50,7 +50,7 @@ export const DesktopMenu = styled.nav`
       transform: translateY(-1px);
     }
 
-    &.active {
+    &.active:not([data-ignore-active='true']) {
       background: ${(props) => props.theme['green-700']};
       border-color: ${(props) => props.theme['green-500']};
       color: ${(props) => props.theme.white};
@@ -94,7 +94,7 @@ export const MobileMenuButton = styled.button`
 export const MobileMenuOverlay = styled.div`
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 9998;
   display: flex;
   justify-content: flex-end;
   background: rgba(0, 0, 0, 0.58);
@@ -102,9 +102,12 @@ export const MobileMenuOverlay = styled.div`
 `
 
 export const MobileMenuDrawer = styled.aside`
-  width: min(86vw, 21rem);
-  height: 100%;
+  position: relative;
+  z-index: 9999;
+  width: min(100vw, 20rem);
+  height: 100vh;
   padding: 1.25rem;
+  overflow-y: auto;
   background: linear-gradient(
     180deg,
     ${(props) => props.theme['gray-800']} 0%,
@@ -117,6 +120,11 @@ export const MobileMenuDrawer = styled.aside`
   flex-direction: column;
   gap: 0.55rem;
   animation: slideIn 0.2s ease;
+
+  @media (max-width: 360px) {
+    width: 100vw;
+    border-radius: 0;
+  }
 
   @keyframes slideIn {
     from {
@@ -132,6 +140,9 @@ export const MobileMenuDrawer = styled.aside`
 `
 
 export const MobileMenuHeader = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -139,6 +150,11 @@ export const MobileMenuHeader = styled.div`
   margin-bottom: 0.75rem;
   padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    180deg,
+    ${(props) => props.theme['gray-800']} 0%,
+    rgba(32, 32, 36, 0.96) 100%
+  );
 
   strong {
     color: ${(props) => props.theme['gray-100']};
@@ -148,6 +164,8 @@ export const MobileMenuHeader = styled.div`
 `
 
 export const MobileCloseButton = styled.button`
+  position: relative;
+  z-index: 10000;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -167,27 +185,48 @@ export const MobileCloseButton = styled.button`
   }
 `
 
+export const MobileMenuList = styled.nav`
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+`
+
 export const MobileMenuLink = styled(NavLink)`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-height: 2.85rem;
+  width: 100%;
+  min-height: 3rem;
   padding: 0.75rem 0.85rem;
   border: 1px solid transparent;
   border-radius: 0.85rem;
   color: ${(props) => props.theme['gray-100']};
   text-decoration: none;
   font-weight: 700;
+  line-height: 1.2;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 
   svg {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     color: ${(props) => props.theme['green-500']};
+  }
+
+  span {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
   }
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.active:not([data-ignore-active='true']) {
+    background: rgba(0, 135, 95, 0.22);
+    border-color: ${(props) => props.theme['green-500']};
+    color: ${(props) => props.theme.white};
   }
 
   &:active {

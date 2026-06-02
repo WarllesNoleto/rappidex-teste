@@ -16,9 +16,6 @@ import {
   CityInput,
   CitySelect,
   CityTextarea,
-  FormSection,
-  SectionTitle,
-  SectionDescription,
   FormActions,
   SubmitButton,
   CancelButton,
@@ -82,7 +79,6 @@ export function Cities() {
   const [cityWhatsappMessage, setCityWhatsappMessage] = useState("");
   const [deliveryValue, setDeliveryValue] = useState("");
   const [pixKey, setPixKey] = useState("");
-  const [adminWhatsapp, setAdminWhatsapp] = useState("");
   const [editingCityId, setEditingCityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,7 +144,6 @@ export function Cities() {
     setCityWhatsappMessage("");
     setDeliveryValue("");
     setPixKey("");
-    setAdminWhatsapp("");
     setEditingCityId(null);
   }
 
@@ -162,7 +157,6 @@ export function Cities() {
         : (city.deliveryValue ?? ""),
     );
     setPixKey(city.pixKey ?? "");
-    setAdminWhatsapp(city.adminWhatsapp ?? "");
     setEditingCityId(city.id ? String(city.id) : null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -192,7 +186,6 @@ export function Cities() {
       deliveryValue: deliveryValue.trim(),
       deliveryFeeValue: parseDeliveryFeeValue(deliveryValue),
       pixKey: pixKey.trim(),
-      adminWhatsapp: adminWhatsapp.trim(),
     };
 
     setIsSubmitting(true);
@@ -323,21 +316,6 @@ export function Cities() {
             disabled={isSubmitting}
           />
 
-          <FormSection>
-            <SectionTitle>WhatsApp da cidade</SectionTitle>
-            <SectionDescription>
-              Informe apenas o WhatsApp do admin da cidade. O fechamento usa
-              envio manual: o sistema baixa o PDF e abre o WhatsApp do lojista
-              com a mensagem pronta.
-            </SectionDescription>
-
-            <CityInput
-              placeholder="WhatsApp do admin da cidade"
-              value={adminWhatsapp}
-              onChange={(event) => setAdminWhatsapp(event.target.value)}
-              disabled={isSubmitting}
-            />
-          </FormSection>
 
           <FormActions>
             <SubmitButton
@@ -396,10 +374,6 @@ export function Cities() {
                     </CityState>
                     <CityState>
                       Chave PIX: {city.pixKey?.trim() || "não configurada"}
-                    </CityState>
-                    <CityState>
-                      WhatsApp admin:{" "}
-                      {city.adminWhatsapp?.trim() || "não configurado"}
                     </CityState>
                     <CityMessage>
                       {city.clientWhatsappMessage?.trim()

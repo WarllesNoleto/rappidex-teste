@@ -96,43 +96,6 @@ export const CityTextarea = styled.textarea`
   }
 `
 
-
-export const FormSection = styled.section`
-  padding: 1rem;
-  border-radius: ${(props) => props.theme['radius-lg']};
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`
-
-export const SectionTitle = styled.h2`
-  font-size: 1rem;
-  color: ${(props) => props.theme.white};
-`
-
-export const TokenStatus = styled.span`
-  font-size: 0.875rem;
-  color: ${(props) => props.theme['green-300'] ?? props.theme['green-500']};
-`
-
-export const UpdateTokenButton = styled.button`
-  align-self: flex-start;
-  padding: 0.55rem 0.85rem;
-  border-radius: ${(props) => props.theme['radius-md']};
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: ${(props) => props.theme['gray-600']};
-  color: ${(props) => props.theme.white};
-  font-weight: 700;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`
-
 export const FormActions = styled.div`
   display: flex;
   gap: 0.75rem;

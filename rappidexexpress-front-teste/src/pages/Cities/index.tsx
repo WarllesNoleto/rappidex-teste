@@ -16,10 +16,6 @@ import {
   CityInput,
   CitySelect,
   CityTextarea,
-  FormSection,
-  SectionTitle,
-  TokenStatus,
-  UpdateTokenButton,
   FormActions,
   SubmitButton,
   CancelButton,
@@ -83,11 +79,6 @@ export function Cities() {
   const [cityWhatsappMessage, setCityWhatsappMessage] = useState("");
   const [deliveryValue, setDeliveryValue] = useState("");
   const [pixKey, setPixKey] = useState("");
-  const [adminWhatsapp, setAdminWhatsapp] = useState("");
-  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [whatsappCloudToken, setWhatsappCloudToken] = useState("");
-  const [hasSavedWhatsappCloudToken, setHasSavedWhatsappCloudToken] = useState(false);
-  const [isUpdatingToken, setIsUpdatingToken] = useState(false);
   const [editingCityId, setEditingCityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,11 +144,6 @@ export function Cities() {
     setCityWhatsappMessage("");
     setDeliveryValue("");
     setPixKey("");
-    setAdminWhatsapp("");
-    setWhatsappPhoneNumberId("");
-    setWhatsappCloudToken("");
-    setHasSavedWhatsappCloudToken(false);
-    setIsUpdatingToken(false);
     setEditingCityId(null);
   }
 
@@ -171,11 +157,6 @@ export function Cities() {
         : city.deliveryValue ?? "",
     );
     setPixKey(city.pixKey ?? "");
-    setAdminWhatsapp(city.adminWhatsapp ?? "");
-    setWhatsappPhoneNumberId(city.whatsappPhoneNumberId ?? "");
-    setWhatsappCloudToken("");
-    setHasSavedWhatsappCloudToken(Boolean(city.hasWhatsappCloudToken));
-    setIsUpdatingToken(!city.hasWhatsappCloudToken);
     setEditingCityId(city.id ? String(city.id) : null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -205,11 +186,6 @@ export function Cities() {
       deliveryValue: deliveryValue.trim(),
       deliveryFeeValue: parseDeliveryFeeValue(deliveryValue),
       pixKey: pixKey.trim(),
-      adminWhatsapp: adminWhatsapp.trim(),
-      whatsappPhoneNumberId: whatsappPhoneNumberId.trim(),
-      ...(whatsappCloudToken.trim()
-        ? { whatsappCloudToken: whatsappCloudToken.trim() }
-        : {}),
     };
 
     setIsSubmitting(true);
@@ -319,71 +295,26 @@ export function Cities() {
             ))}
           </CitySelect>
 
-          <FormSection>
-            <SectionTitle>Financeiro da cidade</SectionTitle>
-            <CityInput
-              placeholder="Valor da entrega para fechamento. Ex: 7,00"
-              value={deliveryValue}
-              onChange={(event) => setDeliveryValue(event.target.value)}
-              disabled={isSubmitting}
-            />
+          <CityInput
+            placeholder="Valor da entrega para fechamento. Ex: 7,00"
+            value={deliveryValue}
+            onChange={(event) => setDeliveryValue(event.target.value)}
+            disabled={isSubmitting}
+          />
 
-            <CityInput
-              placeholder="Chave PIX da cidade. Ex: financeiro@rappidex.com.br, CPF, CNPJ, telefone ou chave aleatória"
-              value={pixKey}
-              onChange={(event) => setPixKey(event.target.value)}
-              disabled={isSubmitting}
-            />
-          </FormSection>
+          <CityInput
+            placeholder="Chave PIX da cidade. Ex: financeiro@rappidex.com.br, CPF, CNPJ, telefone ou chave aleatória"
+            value={pixKey}
+            onChange={(event) => setPixKey(event.target.value)}
+            disabled={isSubmitting}
+          />
 
-          <FormSection>
-            <SectionTitle>WhatsApp da cidade</SectionTitle>
-            <CityInput
-              placeholder="WhatsApp do admin da cidade. Ex: 94991220268"
-              value={adminWhatsapp}
-              onChange={(event) => setAdminWhatsapp(event.target.value)}
-              disabled={isSubmitting}
-            />
-
-            <CityInput
-              placeholder="Phone Number ID do WhatsApp Cloud API da cidade. Ex: 123456789012345"
-              value={whatsappPhoneNumberId}
-              onChange={(event) => setWhatsappPhoneNumberId(event.target.value)}
-              disabled={isSubmitting}
-            />
-
-            {editingCityId && hasSavedWhatsappCloudToken && !isUpdatingToken ? (
-              <>
-                <TokenStatus>Token configurado</TokenStatus>
-                <UpdateTokenButton
-                  type="button"
-                  onClick={() => setIsUpdatingToken(true)}
-                  disabled={isSubmitting}
-                >
-                  Atualizar token
-                </UpdateTokenButton>
-              </>
-            ) : (
-              <CityInput
-                type="password"
-                placeholder="Cole o token da Meta para essa cidade/admin"
-                value={whatsappCloudToken}
-                onChange={(event) => setWhatsappCloudToken(event.target.value)}
-                disabled={isSubmitting}
-                autoComplete="new-password"
-              />
-            )}
-          </FormSection>
-
-          <FormSection>
-            <SectionTitle>Mensagem da cidade</SectionTitle>
-            <CityTextarea
-              placeholder="Mensagem personalizada que o motoboy vai mandar ao cliente dessa cidade"
-              value={cityWhatsappMessage}
-              onChange={(event) => setCityWhatsappMessage(event.target.value)}
-              disabled={isSubmitting}
-            />
-          </FormSection>
+          <CityTextarea
+            placeholder="Mensagem personalizada que o motoboy vai mandar ao cliente dessa cidade"
+            value={cityWhatsappMessage}
+            onChange={(event) => setCityWhatsappMessage(event.target.value)}
+            disabled={isSubmitting}
+          />
 
           <FormActions>
             <SubmitButton
@@ -442,15 +373,6 @@ export function Cities() {
                     </CityState>
                     <CityState>
                       Chave PIX: {city.pixKey?.trim() || "não configurada"}
-                    </CityState>
-                    <CityState>
-                      WhatsApp admin: {city.adminWhatsapp?.trim() || "não configurado"}
-                    </CityState>
-                    <CityState>
-                      Phone Number ID: {city.whatsappPhoneNumberId?.trim() || "não configurado"}
-                    </CityState>
-                    <CityState>
-                      Token WhatsApp: {city.hasWhatsappCloudToken ? "Token configurado" : "não configurado"}
                     </CityState>
                     <CityMessage>
                       {city.clientWhatsappMessage?.trim()

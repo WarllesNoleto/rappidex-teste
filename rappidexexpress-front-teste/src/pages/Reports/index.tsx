@@ -238,7 +238,7 @@ export function Reports() {
       : (responseMessage ?? error?.message ?? fallback);
 
     if (metaMessage && metaMessage !== message) {
-      return `${message} Detalhe da Meta: ${metaMessage}`;
+      return `${message} Detalhe: ${metaMessage}`;
     }
 
     return message;
@@ -257,9 +257,35 @@ export function Reports() {
       establishmentId: selectedEstablishment,
       createdIn,
       createdUntil,
+      status: selectedStatus,
     });
 
     return params;
+  }
+
+  async function downloadFinancialSettlementPdf(params: URLSearchParams) {
+    const response = await api.get(
+      `/financial-settlement/pdf?${params.toString()}`,
+      { responseType: "blob" },
+    );
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const disposition = response.headers?.["content-disposition"] as
+      | string
+      | undefined;
+    const filename =
+      disposition?.match(/filename="?([^";]+)"?/)?.[1] ??
+      "fechamento-rappidex.pdf";
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return filename;
   }
 
   async function handleGeneratePdf() {
@@ -269,26 +295,11 @@ export function Reports() {
     setSettlementFeedback(null);
     try {
       const params = buildFinancialSettlementParams();
-      const response = await api.get(
-        `/financial-settlement/pdf?${params.toString()}`,
-        { responseType: "blob" },
-      );
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(blob);
-      const disposition = response.headers?.["content-disposition"] as
-        | string
-        | undefined;
-      const filename =
-        disposition?.match(/filename="?([^";]+)"?/)?.[1] ??
-        "fechamento-rappidex.pdf";
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.target = "_blank";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      await downloadFinancialSettlementPdf(params);
+      setSettlementFeedback({
+        type: "success",
+        message: "PDF do fechamento gerado e baixado com sucesso.",
+      });
     } catch (error: any) {
       setSettlementFeedback({
         type: "error",
@@ -305,25 +316,41 @@ export function Reports() {
   async function handleSendWhatsapp() {
     if (settlementLoading) return;
 
+    const whatsappWindow = window.open("", "_blank");
+
     setSettlementLoading(true);
     setSettlementFeedback(null);
     try {
       const params = buildFinancialSettlementParams();
+      await downloadFinancialSettlementPdf(params);
       const response = await api.post(
         `/financial-settlement/send-whatsapp?${params.toString()}`,
       );
+      const whatsappUrl = response.data?.whatsappUrl;
+
+      if (!whatsappUrl) {
+        throw new Error("Link do WhatsApp não foi gerado.");
+      }
+
+      if (whatsappWindow) {
+        whatsappWindow.location.href = whatsappUrl;
+      } else {
+        window.open(whatsappUrl, "_blank");
+      }
+
       setSettlementFeedback({
         type: "success",
         message:
           response.data?.message ??
-          "Relatório enviado com sucesso para o WhatsApp do lojista.",
+          "PDF gerado e WhatsApp aberto com a mensagem pronta. Anexe o PDF manualmente antes de enviar.",
       });
     } catch (error: any) {
+      whatsappWindow?.close();
       setSettlementFeedback({
         type: "error",
         message: getErrorMessage(
           error,
-          "Não foi possível enviar o relatório pelo WhatsApp.",
+          "Não foi possível preparar o envio manual pelo WhatsApp.",
         ),
       });
     } finally {
@@ -434,9 +461,9 @@ export function Reports() {
             <SettlementSummary>
               <strong>Fechamento financeiro</strong>
               <p>
-                Selecione um lojista e período para gerar o PDF ou enviar o
-                fechamento com PDF anexado automaticamente pelo WhatsApp
-                cadastrado no perfil.
+                Selecione um lojista e período para gerar o PDF. No envio pelo
+                WhatsApp, o PDF será baixado e o WhatsApp será aberto com a
+                mensagem pronta; anexe o PDF manualmente antes de enviar.
               </p>
               <ActionBar>
                 <ActionButton
@@ -482,9 +509,7 @@ export function Reports() {
                   Gerar PDF e Enviar WhatsApp
                 </ActionButton>
               </ActionBar>
-              {settlementLoading && (
-                <p>Gerando PDF e enviando pelo WhatsApp...</p>
-              )}
+              {settlementLoading && <p>Gerando PDF e preparando WhatsApp...</p>}
               {settlementFeedback && (
                 <SettlementFeedback $type={settlementFeedback.type}>
                   {settlementFeedback.message}

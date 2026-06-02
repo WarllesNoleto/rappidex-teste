@@ -9,6 +9,7 @@ export interface User {
     pickupAddress?: string;
   }>;
   ifoodClientId?: string;
+  cityId?: string;
   location: string;
   name: string;
   permission: string;
@@ -16,6 +17,7 @@ export interface User {
   profileImage: string;
   type: string;
   user: string;
+  pix?: string;
   useIfoodIntegration?: boolean;
   usesExternalIfoodPdv?: boolean;
   ifoodOrdersReleased?: number;

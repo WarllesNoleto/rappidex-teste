@@ -212,10 +212,38 @@ export const ContainerImagem = styled.div`
   }
 `;
 
+
+export const IfoodStoreBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
+
 export const ShopkeeperInfo = styled.div`
   min-width: 0;
   flex: 1;
   max-width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  > p:first-of-type {
+    margin: 0 0 0.45rem;
+    color: ${(props) => props.theme['gray-100']};
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
 
   p,
   span,
@@ -223,6 +251,20 @@ export const ShopkeeperInfo = styled.div`
     word-break: break-word;
     overflow-wrap: anywhere;
     white-space: normal;
+  }
+
+  a {
+    align-items: center;
+    margin-top: 0.25rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 999px;
+    background: ${(props) => props.theme['gray-600']};
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+
+  a:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
   }
 `;
 

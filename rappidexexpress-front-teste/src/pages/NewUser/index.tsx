@@ -169,9 +169,9 @@ export function NewUser() {
       setLoading(false);
       alert(error.response.data.message);
     }
-      }
+  }
 
-  async function handleSave() {
+  async function handleSaveInfo() {
     if (loading) {
       return;
     }
@@ -185,27 +185,10 @@ export function NewUser() {
       pix,
       profileImage,
       location,
-      useIfoodIntegration,
-      ifoodMerchantId,
-      usesExternalIfoodPdv,
     } = getValues();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
       : loggedUserCityId;
-    const normalizedMerchants = ifoodMerchants
-      .map((merchant) => ({
-        ...merchant,
-        merchantId: String(merchant.merchantId || "").trim(),
-        name: String(merchant.name || "").trim(),
-        pickupAddress: String(merchant.pickupAddress || "").trim(),
-      }))
-      .filter((merchant) => merchant.merchantId);
-
-    if (useIfoodIntegration && !(ifoodMerchantId || "").trim() && normalizedMerchants.length === 0) {
-      alert("Para integração iFood, preencha o merchantId.");
-      setLoading(false);
-      return;
-    }
 
     if (!cityIdToSubmit) {
       alert("Não foi possível identificar a cidade para vincular ao usuário.");
@@ -231,19 +214,60 @@ export function NewUser() {
         location,
         type: selectedType,
         cityId: cityIdToSubmit,
+      });
+      setLoading(false);
+      alert("Informações do usuário salvas com sucesso!");
+    } catch (error: any) {
+      setLoading(false);
+      alert(error.response.data.message);
+    }
+  }
+
+  async function handleSaveIfood() {
+    if (loading) {
+      return;
+    }
+
+    setLoading(true);
+
+    const {
+      useIfoodIntegration,
+      ifoodMerchantId,
+      usesExternalIfoodPdv,
+    } = getValues();
+    const normalizedMerchants = ifoodMerchants
+      .map((merchant) => ({
+        ...merchant,
+        merchantId: String(merchant.merchantId || "").trim(),
+        name: String(merchant.name || "").trim(),
+        pickupAddress: String(merchant.pickupAddress || "").trim(),
+      }))
+      .filter((merchant) => merchant.merchantId);
+
+    if (useIfoodIntegration && !(ifoodMerchantId || "").trim() && normalizedMerchants.length === 0) {
+      alert("Para integração iFood, preencha o merchantId.");
+      setLoading(false);
+      return;
+    }
+
+    const resolvedIfoodMerchantId = resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants);
+
+    try {
+      await api.put(`/user/${userId}`, {
         useIfoodIntegration: Boolean(useIfoodIntegration),
         usesExternalIfoodPdv: Boolean(useIfoodIntegration) && Boolean(usesExternalIfoodPdv),
-        ifoodMerchantId: resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants),
+        ifoodMerchantId: resolvedIfoodMerchantId,
         ifoodMerchants: normalizedMerchants,
       });
-      if (useIfoodIntegration && resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants)) {
+      if (useIfoodIntegration && resolvedIfoodMerchantId) {
         await api.post(`/ifood/sync-company/${userId}`).catch(() => undefined);
         alert(
           "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
         );
+      } else {
+        alert("Configurações iFood salvas com sucesso!");
       }
       setLoading(false);
-      alert("Usuário editado com sucesso!");
     } catch (error: any) {
       setLoading(false);
       alert(error.response.data.message);
@@ -286,7 +310,13 @@ export function NewUser() {
   }
 
   function formatPhone(phone: string) {
-    return String(phone ?? "").replace(/\D/g, "");
+    const digits = String(phone ?? "").replace(/\D/g, "");
+
+    if (digits.length === 11 && !digits.startsWith("55")) {
+      return `55${digits}`;
+    }
+
+    return digits;
   }
 
   function formatPhoneForMask(phone: string) {
@@ -384,8 +414,18 @@ export function NewUser() {
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
     : !loggedUserCityId;
+  const hasIfoodMerchant =
+    Boolean(watch("ifoodMerchantId")) ||
+    ifoodMerchants.some((merchant) => String(merchant.merchantId || "").trim());
   const ifoodIntegrationMissingFields =
-    Boolean(useIfoodIntegration) && !watch("ifoodMerchantId");
+    Boolean(useIfoodIntegration) && !hasIfoodMerchant;
+  const isInfoSubmitDisabled =
+    !name ||
+    !phone ||
+    !pix ||
+    !profileImage ||
+    phone.includes("_") ||
+    citySelectionMissing;
   const isSubmitDisabled =
     !name ||
     !phone ||
@@ -614,11 +654,21 @@ export function NewUser() {
       {user && (
         <>
           {user && (
-            <BaseButton disabled={isSubmitDisabled} onClick={handleSave}>
+            <BaseButton disabled={isInfoSubmitDisabled} onClick={handleSaveInfo}>
               {loading ? (
                 <Loader size={20} biggestColor="gray" smallestColor="gray" />
               ) : (
-                "Salvar"
+                "Salvar informações"
+              )}
+            </BaseButton>
+          )}
+
+          {user && isShopkeeperType && (
+            <BaseButton disabled={ifoodIntegrationMissingFields} onClick={handleSaveIfood}>
+              {loading ? (
+                <Loader size={20} biggestColor="gray" smallestColor="gray" />
+              ) : (
+                "Salvar iFood"
               )}
             </BaseButton>
           )}

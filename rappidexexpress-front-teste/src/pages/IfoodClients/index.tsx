@@ -534,7 +534,7 @@ export function IfoodClients() {
                       />
                       <Input
                         disabled={!shopkeeper.useIfoodIntegration}
-                        placeholder="Endereço de coleta (opcional)"
+                        placeholder="Link da localização da loja (opcional)"
                         value={merchant.pickupAddress || ""}
                         onChange={(event) =>
                           updateLocalUser(shopkeeper.id, {

@@ -246,7 +246,7 @@ export function Reports() {
 
   function buildFinancialSettlementParams() {
     if (!selectedEstablishment) {
-      throw new Error("Selecione uma empresa/lojista para gerar o fechamento.");
+      throw new Error("Selecione um estabelecimento para gerar o fechamento.");
     }
 
     if (!createdIn || !createdUntil) {

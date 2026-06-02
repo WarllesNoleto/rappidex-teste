@@ -10,12 +10,12 @@ export const Container = styled.main`
   display: grid;
   align-items: start;
   justify-content: center;
-  margin-top: 2rem;
-  padding: 0 1rem 2rem;
+  padding: clamp(1rem, 3vw, 2rem) 1rem 2rem;
 `;
 
 export const Content = styled.div`
   width: min(72rem, 100%);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -53,7 +53,7 @@ export const Card = styled.div`
     ${(props) => props.theme['gray-700']} 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
   display: flex;
   flex-direction: column;
@@ -65,6 +65,10 @@ export const CardHeader = styled.div`
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem 1.25rem 0;
+
+  @media (max-width: 680px) {
+    flex-direction: column;
+  }
 `;
 
 export const CardContent = styled.div`
@@ -135,7 +139,7 @@ export const FieldGroup = styled.div`
 export const Input = styled.input`
   width: 100%;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-md']};
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
   padding: 0.85rem 0.95rem;
@@ -165,7 +169,7 @@ export const SearchInput = styled(Input)`
 export const SaveButton = styled.button`
   align-self: flex-start;
   border: 0;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-md']};
   background: ${(props) => props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
@@ -183,12 +187,16 @@ export const SaveButton = styled.button`
     cursor: wait;
     opacity: 0.8;
   }
+
+  @media (max-width: 520px) {
+    width: 100%;
+  }
 `;
 
 export const StoreSection = styled.section`
   background: rgba(18, 18, 20, 0.34);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  border-radius: ${(props) => props.theme['radius-lg']};
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -214,7 +222,7 @@ export const StoreList = styled.div`
 export const StoreCard = styled.article`
   background: ${(props) => props.theme['gray-700']};
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: ${(props) => props.theme['radius-lg']};
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
@@ -281,13 +289,12 @@ export const StoreFieldsGrid = styled.div`
 `;
 
 export const LocationPreview = styled.span`
+  min-width: 0;
   color: ${(props) => props.theme['gray-300']};
   display: block;
   font-size: 0.84rem;
   line-height: 1.45;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 `;
 
 export const LocationLink = styled.a`
@@ -314,6 +321,11 @@ export const StoreActions = styled.div`
   flex-wrap: wrap;
   gap: 0.65rem;
   justify-content: space-between;
+
+  @media (max-width: 680px) {
+    align-items: stretch;
+    flex-direction: column;
+  }
 `;
 
 export const CreditSummary = styled.div`
@@ -343,7 +355,7 @@ export const CreditInput = styled(Input)`
 
 export const CreditButton = styled.button`
   border: 0;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-md']};
   background: ${(props) => props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
@@ -364,7 +376,7 @@ export const CreditButton = styled.button`
 
 export const HistoryButton = styled.button`
   border: 0;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-md']};
   background: ${(props) => props.theme['gray-500']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
@@ -399,7 +411,7 @@ export const HistoryItem = styled.li`
 export const LoadMoreButton = styled.button`
   width: 100%;
   border: 0;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-md']};
   background: ${(props) => props.theme['gray-500']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;

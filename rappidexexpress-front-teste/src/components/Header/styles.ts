@@ -5,13 +5,28 @@ export const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 20;
+  gap: 1rem;
+  padding: 0.35rem 0 1rem;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(180deg, rgba(32, 32, 36, 0.98), rgba(32, 32, 36, 0.78));
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  @media (max-width: 768px) {
+    padding: 0.35rem 0.15rem 0.85rem;
+  }
 `
 
 export const DesktopMenu = styled.nav`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 
   a {
     width: 3rem;
@@ -23,15 +38,23 @@ export const DesktopMenu = styled.nav`
 
     color: ${(props) => props.theme['gray-100']};
 
-    border-top: 3px solid transparent;
-    border-bottom: 3px solid transparent;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
     &:hover {
-      border-bottom: 3px solid ${(props) => props.theme['green-500']};
+      background: rgba(0, 179, 126, 0.1);
+      border-color: rgba(0, 179, 126, 0.24);
+      color: ${(props) => props.theme['green-300']};
+      transform: translateY(-1px);
     }
 
-    &:active {
-      color: ${(props) => props.theme['green-500']};
+    &.active {
+      background: ${(props) => props.theme['green-700']};
+      border-color: ${(props) => props.theme['green-500']};
+      color: ${(props) => props.theme.white};
+      box-shadow: 0 0.65rem 1.2rem rgba(0, 135, 95, 0.2);
     }
   }
 
@@ -173,7 +196,9 @@ export const MobileMenuLink = styled(NavLink)`
 `
 
 export const RappidexLogo = styled.img`
-  height: 2rem;
-  width: 2rem;
+  height: 2.35rem;
+  width: 2.35rem;
   border-radius: 100%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
 `;

@@ -4,15 +4,14 @@ import { StatusDelivery } from '../../shared/constants/enums.constants';
 export const Container = styled.main`
   flex: 1;
   width: 100%;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  margin-top: 2rem;
-  padding: 0 1rem 2rem;
+  justify-content: flex-start;
+  padding: clamp(1rem, 3vw, 2rem) 1rem 2rem;
 
   @media (max-width: 768px) {
     padding: 0 0.75rem 1.5rem;
-    margin-top: 1rem;
   }
 
   @media (max-width: 480px) {
@@ -24,14 +23,18 @@ export const ContainerButtons = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
+  width: min(100%, 1200px);
+  margin-bottom: 0.85rem;
 `;
 
 export const ShopkeeperCreditsContainer = styled.div`
   width: min(100%, 1200px);
-  background: ${(props) => props.theme['gray-700']};
-  border-radius: 1rem;
+  background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: ${(props) => props.theme['radius-lg']};
+  box-shadow: ${(props) => props.theme['shadow-soft']};
   padding: 1rem;
   margin: 0.5rem 0 1rem;
   display: flex;
@@ -79,13 +82,15 @@ interface ButtonProps {
 }
 
 export const BaseButton = styled.div<ButtonProps>`
+  flex: 1 1 12rem;
+  min-height: 3rem;
   background: ${(props) =>
-    props.typeReport ? props.theme['gray-600'] : props.theme['gray-800']};
+    props.typeReport ? 'rgba(0, 179, 126, 0.18)' : props.theme['gray-700']};
 
-  border: solid;
-  padding: 1rem;
-  border-radius: 1rem 1rem 0rem 0rem;
-  border-color: ${(props) => props.theme['gray-600']};
+  border: 1px solid ${(props) =>
+    props.typeReport ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)'};
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
 
   display: flex;
   align-items: center;
@@ -93,9 +98,15 @@ export const BaseButton = styled.div<ButtonProps>`
 
   font-weight: bold;
   color: ${(props) =>
-    props.typeReport ? props.theme['gray-300'] : props.theme['gray-500']};
+    props.typeReport ? props.theme['green-300'] : props.theme['gray-300']};
 
   cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: ${(props) => props.theme['green-500']};
+    transform: translateY(-1px);
+  }
 
   @media (max-width: 480px) {
     padding: 0.85rem;
@@ -104,9 +115,12 @@ export const BaseButton = styled.div<ButtonProps>`
 `;
 
 export const ContainerDeliveries = styled.div`
-  background: ${(props) => props.theme['gray-600']};
+  background: rgba(50, 50, 56, 0.72);
   width: min(100%, 1200px);
-  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: ${(props) => props.theme['radius-xl']};
+  box-shadow: ${(props) => props.theme['shadow-card']};
+  padding: 0.4rem;
   box-sizing: border-box;
 
   @media (max-width: 1024px) {
@@ -129,11 +143,15 @@ interface DeliveryProps {
 }
 
 export const Delivery = styled.div<DeliveryProps>`
-  background-color: ${(props) =>
-    props.isfree ? props.theme['green-700'] : props.theme['gray-700']};
+  background: ${(props) =>
+    props.isfree
+      ? 'linear-gradient(145deg, rgba(1, 95, 67, 0.98), rgba(0, 135, 95, 0.82))'
+      : `linear-gradient(145deg, ${props.theme['gray-700']}, ${props.theme['gray-800']})`};
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.22);
   padding: 1.125rem;
   margin: 0.45rem auto;
-  border-radius: 10px;
+  border-radius: ${(props) => props.theme['radius-lg']};
   box-sizing: border-box;
   width: calc(100% - 1rem);
   max-width: 620px;
@@ -416,8 +434,10 @@ export const OrderActions = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
+  width: min(100%, 1200px);
+  margin-bottom: 0.85rem;
   padding-top: 0.15rem;
 `;
 
@@ -529,8 +549,10 @@ export const ContainerStatus = styled.div`
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
+  width: min(100%, 1200px);
+  margin-bottom: 0.85rem;
   max-width: 100%;
 `;
 
@@ -561,7 +583,16 @@ export const Status = styled.p<StatusProps>`
 `;
 
 export const Flag = styled.p`
-  background-color: ${(props) => props.theme['green-700']};
-  width: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme.white};
+  font-size: 0.78rem;
+  font-weight: 900;
   text-align: center;
 `;

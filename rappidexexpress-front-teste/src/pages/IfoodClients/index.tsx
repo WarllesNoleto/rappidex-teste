@@ -42,6 +42,7 @@ export function IfoodClients() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [savingUser, setSavingUser] = useState("");
+  const [savingIntegration, setSavingIntegration] = useState("");
   const [shopkeepers, setShopkeepers] = useState<User[]>([]);
   const [creditAmountByUser, setCreditAmountByUser] = useState<
     Record<string, number>
@@ -176,8 +177,13 @@ export function IfoodClients() {
     return String(firstActiveMerchantId || "").trim();
   }
 
-  async function handleSave(shopkeeper: User) {
-    if (savingUser) {
+  function getSavingKey(shopkeeperId: string, integration: string) {
+    return `${shopkeeperId}:${integration}`;
+  }
+
+  async function handleSaveIfoodIntegration(shopkeeper: User) {
+    const savingKey = getSavingKey(shopkeeper.id, "ifood");
+    if (savingIntegration === savingKey) {
       return;
     }
 
@@ -204,44 +210,110 @@ export function IfoodClients() {
       return;
     }
 
-    setSavingUser(shopkeeper.user);
+    setSavingIntegration(savingKey);
 
     try {
-      await api.put(`/user/${shopkeeper.id}`, {
+      const response = await api.put(`/user/${shopkeeper.id}`, {
         useIfoodIntegration: Boolean(shopkeeper.useIfoodIntegration),
         usesExternalIfoodPdv:
           Boolean(shopkeeper.useIfoodIntegration) &&
           Boolean(shopkeeper.usesExternalIfoodPdv),
         ifoodMerchantId: merchantId,
         ifoodMerchants: merchants,
+      });
+
+      if (response.data) {
+        updateLocalUser(shopkeeper.id, response.data);
+      }
+
+      if (shopkeeper.useIfoodIntegration) {
+        await api
+          .post(`/ifood/sync-company/${shopkeeper.id}`)
+          .catch(() => undefined);
+      }
+
+      alert("Integração iFood salva com sucesso.");
+    } catch (error: any) {
+      alert(
+        error?.response?.data?.message || "Erro ao salvar integração iFood.",
+      );
+    } finally {
+      setSavingIntegration((currentSavingIntegration) =>
+        currentSavingIntegration === savingKey ? "" : currentSavingIntegration,
+      );
+    }
+  }
+
+  async function handleSaveAnotaAiIntegration(shopkeeper: User) {
+    const savingKey = getSavingKey(shopkeeper.id, "anota-ai");
+    if (savingIntegration === savingKey) {
+      return;
+    }
+
+    setSavingIntegration(savingKey);
+
+    try {
+      const response = await api.put(`/user/${shopkeeper.id}`, {
         anotaAiEnabled: Boolean(shopkeeper.anotaAiEnabled),
         anotaAiStoreId: String(shopkeeper.anotaAiStoreId || "").trim(),
         anotaAiToken: String(shopkeeper.anotaAiToken || "").trim(),
         anotaAiIgnoreIfoodOrders: shopkeeper.anotaAiIgnoreIfoodOrders !== false,
-        saiposEnabled: Boolean(shopkeeper.saiposEnabled),
-        saiposStoreId: String(shopkeeper.saiposStoreId || "").trim(),
-        saiposMerchantId:
-          String(shopkeeper.saiposMerchantId || "").trim() ||
-          String(shopkeeper.saiposStoreId || "").trim(),
-        saiposToken: String(shopkeeper.saiposToken || "").trim(),
       });
-      if (shopkeeper.useIfoodIntegration && merchantId) {
-        await api
-          .post(`/ifood/sync-company/${shopkeeper.id}`)
-          .catch(() => undefined);
-        alert(
-          "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
-        );
-      } else {
-        alert("Configurações de integração salvas com sucesso.");
+
+      if (response.data) {
+        updateLocalUser(shopkeeper.id, response.data);
       }
+
+      alert("Integração Anota AI salva com sucesso.");
     } catch (error: any) {
       alert(
-        error?.response?.data?.message ||
-          "Erro ao salvar configurações de integração.",
+        error?.response?.data?.message || "Erro ao salvar integração Anota AI.",
       );
     } finally {
-      setSavingUser("");
+      setSavingIntegration((currentSavingIntegration) =>
+        currentSavingIntegration === savingKey ? "" : currentSavingIntegration,
+      );
+    }
+  }
+
+  async function handleSaveSaiposIntegration(shopkeeper: User) {
+    const savingKey = getSavingKey(shopkeeper.id, "saipos");
+    if (savingIntegration === savingKey) {
+      return;
+    }
+
+    const saiposStoreId = String(shopkeeper.saiposStoreId || "").trim();
+    const saiposMerchantId =
+      String(shopkeeper.saiposMerchantId || "").trim() || saiposStoreId;
+
+    if (shopkeeper.saiposEnabled && !saiposStoreId && !saiposMerchantId) {
+      alert("Informe o ID da loja ou Merchant ID da Saipos.");
+      return;
+    }
+
+    setSavingIntegration(savingKey);
+
+    try {
+      const response = await api.put(`/user/${shopkeeper.id}`, {
+        saiposEnabled: Boolean(shopkeeper.saiposEnabled),
+        saiposStoreId,
+        saiposMerchantId,
+        saiposToken: String(shopkeeper.saiposToken || "").trim(),
+      });
+
+      if (response.data) {
+        updateLocalUser(shopkeeper.id, response.data);
+      }
+
+      alert("Integração Saipos salva com sucesso.");
+    } catch (error: any) {
+      alert(
+        error?.response?.data?.message || "Erro ao salvar integração Saipos.",
+      );
+    } finally {
+      setSavingIntegration((currentSavingIntegration) =>
+        currentSavingIntegration === savingKey ? "" : currentSavingIntegration,
+      );
     }
   }
 
@@ -535,6 +607,18 @@ export function IfoodClients() {
                   </CreditButton>
                 </div>
 
+                <SaveButton
+                  disabled={
+                    savingIntegration === getSavingKey(shopkeeper.id, "ifood")
+                  }
+                  onClick={() => handleSaveIfoodIntegration(shopkeeper)}
+                  type="button"
+                >
+                  {savingIntegration === getSavingKey(shopkeeper.id, "ifood")
+                    ? "Salvando iFood..."
+                    : "Salvar iFood"}
+                </SaveButton>
+
                 <div
                   style={{
                     border: "1px solid #2f855a",
@@ -644,6 +728,21 @@ export function IfoodClients() {
                       Copiar caminho
                     </CreditButton>
                   </CreditButtons>
+
+                  <SaveButton
+                    disabled={
+                      savingIntegration ===
+                      getSavingKey(shopkeeper.id, "anota-ai")
+                    }
+                    onClick={() => handleSaveAnotaAiIntegration(shopkeeper)}
+                    type="button"
+                  >
+                    {savingIntegration ===
+                    getSavingKey(shopkeeper.id, "anota-ai")
+                      ? "Salvando Anota AI..."
+                      : "Salvar Anota AI"}
+                  </SaveButton>
+
                   <Subtitle>
                     Se o portal da Anota AI pedir URL completa, use a URL
                     completa. Se pedir apenas o caminho do webhook, use
@@ -769,6 +868,18 @@ export function IfoodClients() {
                     </CreditButton>
                   </CreditButtons>
 
+                  <SaveButton
+                    disabled={
+                      savingIntegration === getSavingKey(shopkeeper.id, "saipos")
+                    }
+                    onClick={() => handleSaveSaiposIntegration(shopkeeper)}
+                    type="button"
+                  >
+                    {savingIntegration === getSavingKey(shopkeeper.id, "saipos")
+                      ? "Salvando Saipos..."
+                      : "Salvar Saipos"}
+                  </SaveButton>
+
                   <Subtitle>
                     No painel Saipos Developer, cadastre a URL completa do
                     webhook:
@@ -824,17 +935,6 @@ export function IfoodClients() {
                 </CreditButtons>
               </Actions>
 
-              <SaveButton
-                disabled={savingUser === shopkeeper.user}
-                onClick={() => handleSave(shopkeeper)}
-                type="button"
-              >
-                {savingUser === shopkeeper.user ? (
-                  <Loader size={20} biggestColor="gray" smallestColor="gray" />
-                ) : (
-                  "Salvar"
-                )}
-              </SaveButton>
 
               {Array.isArray(historyByUser[shopkeeper.id]) &&
                 historyByUser[shopkeeper.id]?.length > 0 && (

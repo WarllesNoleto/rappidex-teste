@@ -42,7 +42,7 @@ export const FiltersContainer = styled.div`
   max-width: 100%;
   padding: clamp(1rem, 3vw, 1.4rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
 
@@ -65,7 +65,7 @@ export const DataContainer = styled.div`
 
   input {
     min-height: 2.75rem;
-    border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: ${(props) => props.theme['radius-md']};
     background: ${(props) => props.theme['gray-800']};
     color: ${(props) => props.theme['gray-100']};
@@ -102,7 +102,7 @@ export const Filter = styled.div`
   select {
     min-height: 2.75rem;
     min-width: 12rem;
-    border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: ${(props) => props.theme['radius-md']};
     background-color: ${(props) => props.theme['gray-800']};
     color: ${(props) => props.theme['gray-100']};
@@ -155,10 +155,10 @@ export const ReportsContainer = styled.div`
   width: 100%;
   max-width: 100%;
   margin-top: 1rem;
-  background: color-mix(in srgb, var(--background-primary) 36%, transparent);
+  background: rgba(18, 18, 20, 0.36);
   padding: 0.75rem;
   border-radius: ${(props) => props.theme['radius-lg']};
-  border: 1px solid color-mix(in srgb, var(--border) 7%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   overflow-x: hidden;
 
   h3 {
@@ -182,7 +182,7 @@ export const Delivery = styled.div`
   padding: 1rem;
   margin: 0.65rem 0;
   border-radius: ${(props) => props.theme['radius-lg']};
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: ${(props) => props.theme['shadow-soft']};
   overflow-x: hidden;
 
@@ -210,7 +210,7 @@ export const ProfileImageContainer = styled.div`
   height: 4.5rem;
   width: 4.5rem;
   border-radius: 100%;
-  border: 2px solid color-mix(in srgb, var(--action-green) 22%, transparent);
+  border: 2px solid rgba(0, 179, 126, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,7 +233,7 @@ export const ContainerOrder = styled.div`
   margin: 0.85rem 0 0;
   padding: 0.85rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: color-mix(in srgb, var(--border) 4%, transparent);
+  background: rgba(255, 255, 255, 0.035);
 
   p {
     line-height: 1.45;

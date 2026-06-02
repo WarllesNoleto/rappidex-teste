@@ -1445,8 +1445,8 @@ export function Dashboard() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: "min(90vw, 420px)",
-            background: "var(--card)",
-            color: "var(--text-primary)",
+            background: "#29292e",
+            color: "#f4f4f5",
             borderRadius: "16px",
             padding: "24px",
             boxShadow: "0 24px 48px rgba(0, 0, 0, 0.35)",
@@ -1469,7 +1469,7 @@ export function Dashboard() {
           {cancelDeliveryIdentifiers.length > 0 && (
             <div
               style={{
-                background: "color-mix(in srgb, var(--border) 6%, transparent)",
+                background: "rgba(255, 255, 255, 0.06)",
                 borderRadius: "12px",
                 padding: "12px",
                 display: "flex",
@@ -1496,10 +1496,10 @@ export function Dashboard() {
               disabled={isCancelingDelivery}
               onClick={closeCancelConfirmation}
               style={{
-                border: "1px solid var(--border)",
+                border: "1px solid #71717a",
                 borderRadius: "8px",
                 background: "transparent",
-                color: "var(--text-primary)",
+                color: "#f4f4f5",
                 cursor: isCancelingDelivery ? "not-allowed" : "pointer",
                 fontWeight: 700,
                 padding: "12px 16px",
@@ -1517,8 +1517,8 @@ export function Dashboard() {
               style={{
                 border: 0,
                 borderRadius: "8px",
-                background: "var(--danger-red)",
-                color: "var(--text-primary)",
+                background: "#b91c1c",
+                color: "#fff",
                 cursor: isCancelingDelivery ? "not-allowed" : "pointer",
                 fontWeight: 700,
                 padding: "12px 16px",

@@ -531,7 +531,7 @@ export function NewUser() {
                   <div>
                     <strong>Lojas iFood vinculadas</strong>
                     {ifoodMerchants.map((merchant, index) => (
-                      <div key={`${merchant.merchantId}-${index}`} style={{ border: "1px solid var(--border)", padding: "0.75rem", marginTop: "0.5rem", borderRadius: 8 }}>
+                      <div key={`${merchant.merchantId}-${index}`} style={{ border: "1px solid #555", padding: "0.75rem", marginTop: "0.5rem", borderRadius: 8 }}>
                         <label>Nome da loja:</label>
                         <BaseInput
                           type="text"

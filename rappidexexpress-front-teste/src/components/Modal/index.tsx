@@ -7,12 +7,12 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 'min(92vw, 28rem)',
-  border: '1px solid var(--border)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
   borderRadius: '1rem',
   boxShadow: '0 1.5rem 4rem rgba(0, 0, 0, 0.45)',
   p: { xs: 2, sm: 3 },
-  background: 'linear-gradient(145deg, var(--card), var(--background-secondary))',
-  color: 'var(--text-primary)',
+  background: 'linear-gradient(145deg, #29292E, #202024)',
+  color: '#E1E1E6',
 }
 
 export interface ModalProps {

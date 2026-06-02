@@ -32,7 +32,7 @@ export const ContainerButtons = styled.div`
 export const ShopkeeperCreditsContainer = styled.div`
   width: min(100%, 1200px);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-lg']};
   box-shadow: ${(props) => props.theme['shadow-soft']};
   padding: 1rem;
@@ -85,10 +85,10 @@ export const BaseButton = styled.div<ButtonProps>`
   flex: 1 1 12rem;
   min-height: 3rem;
   background: ${(props) =>
-    props.typeReport ? 'color-mix(in srgb, var(--action-green) 18%, transparent)' : props.theme['gray-700']};
+    props.typeReport ? 'rgba(0, 179, 126, 0.18)' : props.theme['gray-700']};
 
   border: 1px solid ${(props) =>
-    props.typeReport ? props.theme['green-500'] : 'color-mix(in srgb, var(--border) 8%, transparent)'};
+    props.typeReport ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)'};
   padding: 0.75rem 1rem;
   border-radius: 999px;
 
@@ -115,9 +115,9 @@ export const BaseButton = styled.div<ButtonProps>`
 `;
 
 export const ContainerDeliveries = styled.div`
-  background: color-mix(in srgb, var(--card-light) 72%, transparent);
+  background: rgba(50, 50, 56, 0.72);
   width: min(100%, 1200px);
-  border: 1px solid color-mix(in srgb, var(--border) 7%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
   padding: 0.4rem;
@@ -145,9 +145,9 @@ interface DeliveryProps {
 export const Delivery = styled.div<DeliveryProps>`
   background: ${(props) =>
     props.isfree
-      ? 'linear-gradient(145deg, color-mix(in srgb, var(--action-green-dark) 98%, transparent), color-mix(in srgb, var(--action-green) 82%, transparent))'
+      ? 'linear-gradient(145deg, rgba(1, 95, 67, 0.98), rgba(0, 135, 95, 0.82))'
       : `linear-gradient(145deg, ${props.theme['gray-700']}, ${props.theme['gray-800']})`};
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.22);
   padding: 1.125rem;
   margin: 0.45rem auto;
@@ -248,8 +248,8 @@ export const ShopkeeperInfo = styled.div`
   max-width: 100%;
   padding: 0.6rem 0.7rem;
   border-radius: 0.8rem;
-  background: color-mix(in srgb, var(--border) 4%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   > p:first-of-type {
     margin: 0 0 0.35rem;
@@ -294,11 +294,11 @@ export const ContainerOrder = styled.div`
   border-radius: 0.8rem;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--border) 6%, transparent),
-    color-mix(in srgb, var(--border) 3%, transparent)
+    rgba(255, 255, 255, 0.055),
+    rgba(255, 255, 255, 0.028)
   );
-  border: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--border) 4%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 
   @media (max-width: 480px) {
     margin: 0.55rem 0 0;
@@ -315,9 +315,9 @@ export const ContainerInfo = styled.div`
   min-width: 0;
   padding: 0.7rem;
   border-radius: 0.8rem;
-  background: color-mix(in srgb, var(--border) 4%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--border) 4%, transparent);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   p {
     margin: 0;
@@ -361,7 +361,7 @@ export const InfoSection = styled.div<InfoSectionProps>`
   padding-top: ${(props) => (props.$variant === 'operational' ? '0.55rem' : '0')};
   border-top: ${(props) =>
     props.$variant === 'operational'
-      ? '1px solid color-mix(in srgb, var(--border) 10%, transparent)'
+      ? '1px solid rgba(255, 255, 255, 0.1)'
       : '0'};
 `;
 
@@ -419,9 +419,9 @@ export const OperationalPanel = styled.div`
   min-width: 0;
   padding: 0.7rem;
   border-radius: 0.8rem;
-  background: color-mix(in srgb, var(--border) 4%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 9%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--border) 4%, transparent);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   @media (max-width: 480px) {
     margin: 0.55rem 0 0;
@@ -450,7 +450,7 @@ export const OrderButton = styled.div<OrderProps>`
   min-width: 6.4rem;
   background: ${(props) =>
     props.typebutton ? props.theme['green-500'] : props.theme['red-700']};
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
   padding: 0.55rem 0.8rem;
 
@@ -502,17 +502,17 @@ export const SelectContainer = styled.div`
   select,
   input {
     height: 2.4rem;
-    background: color-mix(in srgb, var(--card) 82%, transparent);
+    background: rgba(39, 39, 42, 0.82);
     color: ${(props) => props.theme['gray-100']};
     width: min(100%, 34rem);
     max-width: 100%;
     min-width: 0;
     white-space: normal;
-    border: 1px solid color-mix(in srgb, var(--border) 14%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 0.7rem;
     padding: 0 0.7rem;
     outline: none;
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--border) 4%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     transition: border-color 0.2s ease, box-shadow 0.2s ease,
       background 0.2s ease;
   }
@@ -520,7 +520,7 @@ export const SelectContainer = styled.div`
   select:focus,
   input:focus {
     border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green-hover) 14%, transparent);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
   }
 
   select:disabled,
@@ -570,7 +570,7 @@ export const Status = styled.p<StatusProps>`
   border-radius: 999px;
   background-color: ${(props) =>
     props.type === StatusDelivery.ONCOURSE
-      ? 'color-mix(in srgb, var(--info-blue) 92%, transparent)'
+      ? 'rgba(37, 99, 235, 0.92)'
       : props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
   font-size: 0.7rem;

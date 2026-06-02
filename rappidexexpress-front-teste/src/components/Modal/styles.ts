@@ -3,9 +3,9 @@ import { styled } from 'styled-components'
 export const BaseInput = styled.input`
   width: 100%;
   min-height: 2.85rem;
-  border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: ${(props) => props.theme['radius-md']};
-  background: color-mix(in srgb, var(--background-primary) 82%, transparent);
+  background: rgba(18, 18, 20, 0.82);
   padding: 0 0.9rem;
   margin: 0.75rem 0 1rem;
   font-weight: 700;
@@ -14,7 +14,7 @@ export const BaseInput = styled.input`
 
   &:focus {
     border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
+    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
   }
 
   &::placeholder {

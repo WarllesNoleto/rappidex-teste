@@ -23,7 +23,7 @@ export const FormContainer = styled.div`
   gap: 0.9rem;
   padding: clamp(1rem, 3vw, 1.5rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
 
@@ -38,7 +38,7 @@ export const FormContainer = styled.div`
   select {
     width: 100%;
     min-height: 2.85rem;
-    border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: ${(props) => props.theme['radius-md']};
     background-color: ${(props) => props.theme['gray-800']};
     color: ${(props) => props.theme['gray-100']};
@@ -47,7 +47,7 @@ export const FormContainer = styled.div`
 
     &:focus {
       border-color: ${(props) => props.theme['green-500']};
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
+      box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
     }
   }
 `
@@ -57,13 +57,13 @@ export const ContainerProfileImage = styled.div`
   width: clamp(7rem, 26vw, 11rem);
   margin: 0.5rem 0 1.25rem;
   border-radius: 100%;
-  border: 2px solid color-mix(in srgb, var(--action-green) 28%, transparent);
+  border: 2px solid rgba(0, 179, 126, 0.28);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--action-green) 6%, transparent);
+  box-shadow: 0 0 0 0.45rem rgba(0, 179, 126, 0.06);
 `
 
 export const ProfileImage = styled.img`
@@ -76,21 +76,21 @@ export const ProfileImage = styled.img`
 const fieldStyles = `
   width: 100%;
   min-height: 2.85rem;
-  border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--background-primary) 82%, transparent);
+  background: rgba(18, 18, 20, 0.82);
   padding: 0 0.9rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #E1E1E6;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: var(--action-green);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
+    border-color: #00875F;
+    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
   }
 
   &::placeholder {
-    color: var(--text-secondary);
+    color: #8D8D99;
   }
 `
 
@@ -159,10 +159,10 @@ export const CreditHistoryContainer = styled.div`
 `
 
 export const CreditHistoryItem = styled.div`
-  border: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: ${(props) => props.theme['radius-md']};
   padding: 0.8rem;
-  background: color-mix(in srgb, var(--border) 4%, transparent);
+  background: rgba(255, 255, 255, 0.04);
   color: ${(props) => props.theme['gray-100']};
   font-size: 0.875rem;
   font-weight: 400;

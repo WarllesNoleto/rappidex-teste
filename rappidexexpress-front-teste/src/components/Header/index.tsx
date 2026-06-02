@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Hamburger,
@@ -9,30 +9,63 @@ import {
   UserPlus,
   MapPin,
   Storefront,
+  List,
+  X,
 } from 'phosphor-react'
 
-import { HeaderContainer, RappidexLogo } from './styles'
+import {
+  DesktopMenu,
+  HeaderContainer,
+  MobileCloseButton,
+  MobileMenuButton,
+  MobileMenuDrawer,
+  MobileMenuHeader,
+  MobileMenuLink,
+  MobileMenuOverlay,
+  RappidexLogo,
+} from './styles'
 import { DeliveryContext } from '../../context/DeliveryContext'
 
 export function Header() {
   const { logout, permission } = useContext(DeliveryContext)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   function handleLogout(){
     logout()
   }
 
+  function handleMobileLogout() {
+    closeMobileMenu()
+    logout()
+  }
+
+  function toggleMobileMenu() {
+    setIsMobileMenuOpen((state) => !state)
+  }
+
+  function closeMobileMenu() {
+    setIsMobileMenuOpen(false)
+  }
+
+  const canAccessAdminMenu = permission === 'admin' || permission === 'superadmin'
+  const canCreateDelivery =
+    permission === 'admin' ||
+    permission === 'superadmin' ||
+    permission === 'shopkeeper' ||
+    permission === 'shopkeeperadmin'
+
   return (
     <HeaderContainer>
-      <NavLink to="/" title="Entregas">
+      <NavLink to="/" title="Entregas" onClick={closeMobileMenu}>
         <RappidexLogo src="https://i.pinimg.com/736x/a5/9f/17/a59f176343c6fd0d83adea72eaf0c57f.jpg" />
       </NavLink>
-      <nav>
-        {(permission === 'admin' || permission === 'superadmin') && 
+      <DesktopMenu>
+        {canAccessAdminMenu &&
           <NavLink to="/novo-usuario" title="Novo Usuário">
             <UserPlus  size={24} />
           </NavLink>
         }
-        {(permission === 'admin' || permission === 'superadmin') && 
+        {canAccessAdminMenu &&
           <NavLink to="/clientes-ifood" title="Empresas Cadastradas">
             <Storefront size={24} />
           </NavLink>
@@ -42,7 +75,7 @@ export function Header() {
             <MapPin size={24} />
           </NavLink>
         }
-        {(permission === 'admin' || permission === 'superadmin' || permission === 'shopkeeper' || permission === 'shopkeeperadmin') && 
+        {canCreateDelivery &&
           <NavLink to="/nova-entrega" title="Nova entrega">
             <FilePlus  size={24} />
           </NavLink>
@@ -59,7 +92,74 @@ export function Header() {
         <NavLink to="/" onClick={handleLogout} title="Sair">
           <SignOut size={24} />
         </NavLink>
-      </nav>
+      </DesktopMenu>
+
+      <MobileMenuButton
+        type="button"
+        onClick={toggleMobileMenu}
+        aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+        aria-expanded={isMobileMenuOpen}
+      >
+        <List size={26} />
+      </MobileMenuButton>
+
+      {isMobileMenuOpen && (
+        <MobileMenuOverlay onClick={closeMobileMenu}>
+          <MobileMenuDrawer onClick={(event) => event.stopPropagation()}>
+            <MobileMenuHeader>
+              <strong>Menu</strong>
+              <MobileCloseButton
+                type="button"
+                onClick={closeMobileMenu}
+                aria-label="Fechar menu"
+              >
+                <X size={22} />
+              </MobileCloseButton>
+            </MobileMenuHeader>
+
+            {canAccessAdminMenu && (
+              <MobileMenuLink to="/novo-usuario" onClick={closeMobileMenu}>
+                <UserPlus size={21} />
+                <span>Clientes</span>
+              </MobileMenuLink>
+            )}
+            {canAccessAdminMenu && (
+              <MobileMenuLink to="/clientes-ifood" onClick={closeMobileMenu}>
+                <Storefront size={21} />
+                <span>Lojas iFood</span>
+              </MobileMenuLink>
+            )}
+            {permission === 'superadmin' && (
+              <MobileMenuLink to="/cidades" onClick={closeMobileMenu}>
+                <MapPin size={21} />
+                <span>Localização</span>
+              </MobileMenuLink>
+            )}
+            {canCreateDelivery && (
+              <MobileMenuLink to="/nova-entrega" onClick={closeMobileMenu}>
+                <FilePlus size={21} />
+                <span>Nova entrega</span>
+              </MobileMenuLink>
+            )}
+            <MobileMenuLink to="/" onClick={closeMobileMenu}>
+              <Hamburger size={21} />
+              <span>Pedidos</span>
+            </MobileMenuLink>
+            <MobileMenuLink to="/relatorios" onClick={closeMobileMenu}>
+              <Scroll size={21} />
+              <span>Relatórios</span>
+            </MobileMenuLink>
+            <MobileMenuLink to="/perfil" onClick={closeMobileMenu}>
+              <User size={21} />
+              <span>Perfil</span>
+            </MobileMenuLink>
+            <MobileMenuLink to="/" onClick={handleMobileLogout}>
+              <SignOut size={21} />
+              <span>Sair</span>
+            </MobileMenuLink>
+          </MobileMenuDrawer>
+        </MobileMenuOverlay>
+      )}
     </HeaderContainer>
   )
 }

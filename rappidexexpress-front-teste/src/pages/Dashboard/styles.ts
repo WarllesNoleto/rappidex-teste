@@ -59,7 +59,7 @@ export const ShopkeeperCreditsToggleButton = styled.button`
   border-radius: 0.75rem;
   font-weight: 700;
   font-size: 1rem;
-  padding: 0.75rem 1rem;
+  padding: 0.55rem 0.8rem;
   width: fit-content;
   cursor: pointer;
   transition: filter 0.2s ease;
@@ -131,27 +131,23 @@ interface DeliveryProps {
 export const Delivery = styled.div<DeliveryProps>`
   background-color: ${(props) =>
     props.isfree ? props.theme['green-700'] : props.theme['gray-700']};
-  padding: 1rem;
-  margin: 0.5rem auto;
+  padding: 1.125rem;
+  margin: 0.45rem auto;
   border-radius: 10px;
   box-sizing: border-box;
   width: calc(100% - 1rem);
-  max-width: ${(props) => (props.isIfood ? '860px' : 'calc(100% - 1rem)')};
+  max-width: 620px;
   overflow: hidden;
 
-  @media (max-width: 1024px) {
-    max-width: ${(props) => (props.isIfood ? '780px' : 'calc(100% - 1rem)')};
-  }
-
   @media (max-width: 768px) {
-    padding: 0.875rem;
+    padding: 1rem;
     margin: 0.4rem auto;
-    width: calc(100% - 0.8rem);
-    max-width: calc(100% - 0.8rem);
+    width: calc(100% - 0.9rem);
+    max-width: calc(100% - 0.9rem);
   }
 
   @media (max-width: 480px) {
-    padding: 0.75rem;
+    padding: 0.875rem;
     margin: 0.3rem auto;
     border-radius: 8px;
     width: calc(100% - 0.6rem);
@@ -173,32 +169,32 @@ export const Link = styled.a`
 export const ContainerShopkeeper = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
   width: 100%;
   min-width: 0;
 
   @media (max-width: 480px) {
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 `;
 
 export const ShopkeeperProfileImage = styled.img`
-  height: 6rem;
-  width: 6rem;
+  height: 4.75rem;
+  width: 4.75rem;
   border-radius: 100%;
   object-fit: cover;
   flex-shrink: 0;
 
   @media (max-width: 480px) {
-    height: 4.5rem;
-    width: 4.5rem;
+    height: 4rem;
+    width: 4rem;
   }
 `;
 
 export const ContainerImagem = styled.div`
-  height: 6rem;
-  width: 6rem;
+  height: 4.75rem;
+  width: 4.75rem;
   border-radius: 100%;
   border: solid;
   display: flex;
@@ -207,8 +203,8 @@ export const ContainerImagem = styled.div`
   flex-shrink: 0;
 
   @media (max-width: 480px) {
-    height: 4.5rem;
-    width: 4.5rem;
+    height: 4rem;
+    width: 4rem;
   }
 `;
 
@@ -218,11 +214,11 @@ export const IfoodStoreBadge = styled.span`
   align-items: center;
   width: fit-content;
   margin-bottom: 0.35rem;
-  padding: 0.25rem 0.55rem;
+  padding: 0.2rem 0.48rem;
   border-radius: 999px;
   background: ${(props) => props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -232,15 +228,15 @@ export const ShopkeeperInfo = styled.div`
   min-width: 0;
   flex: 1;
   max-width: 100%;
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.875rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
 
   > p:first-of-type {
-    margin: 0 0 0.45rem;
+    margin: 0 0 0.35rem;
     color: ${(props) => props.theme['gray-100']};
-    font-size: 1.3rem;
+    font-size: 1.08rem;
     font-weight: 800;
     line-height: 1.2;
   }
@@ -255,8 +251,9 @@ export const ShopkeeperInfo = styled.div`
 
   a {
     align-items: center;
-    margin-top: 0.25rem;
-    padding: 0.35rem 0.55rem;
+    margin-top: 0.18rem;
+    padding: 0.28rem 0.48rem;
+    font-size: 0.9rem;
     border-radius: 999px;
     background: ${(props) => props.theme['gray-600']};
     transition: filter 0.2s ease, transform 0.2s ease;
@@ -269,14 +266,14 @@ export const ShopkeeperInfo = styled.div`
 `;
 
 export const ContainerOrder = styled.div`
-  margin: 1rem;
+  margin: 0.65rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.55rem;
   max-width: 100%;
   min-width: 0;
-  padding: 0.85rem;
-  border-radius: 0.875rem;
+  padding: 0.7rem;
+  border-radius: 0.8rem;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.055),
@@ -286,20 +283,20 @@ export const ContainerOrder = styled.div`
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 
   @media (max-width: 480px) {
-    margin: 0.75rem;
-    padding: 0.75rem;
+    margin: 0.55rem 0 0;
+    padding: 0.65rem;
   }
 `;
 
 export const ContainerInfo = styled.div`
-  margin: 1rem;
+  margin: 0.65rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.55rem;
   max-width: 100%;
   min-width: 0;
-  padding: 0.85rem;
-  border-radius: 0.875rem;
+  padding: 0.7rem;
+  border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -318,8 +315,8 @@ export const ContainerInfo = styled.div`
   }
 
   @media (max-width: 480px) {
-    margin: 0.75rem;
-    padding: 0.75rem;
+    margin: 0.55rem 0 0;
+    padding: 0.65rem;
   }
 `;
 
@@ -330,7 +327,7 @@ interface InfoSectionProps {
 export const SectionTitle = styled.h3`
   margin: 0;
   color: ${(props) => props.theme['gray-100']};
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.08em;
@@ -340,10 +337,10 @@ export const SectionTitle = styled.h3`
 export const InfoSection = styled.div<InfoSectionProps>`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.38rem;
   max-width: 100%;
   min-width: 0;
-  padding-top: ${(props) => (props.$variant === 'operational' ? '0.75rem' : '0')};
+  padding-top: ${(props) => (props.$variant === 'operational' ? '0.55rem' : '0')};
   border-top: ${(props) =>
     props.$variant === 'operational'
       ? '1px solid rgba(255, 255, 255, 0.1)'
@@ -352,9 +349,9 @@ export const InfoSection = styled.div<InfoSectionProps>`
 
 export const InfoRow = styled.div`
   display: grid;
-  grid-template-columns: minmax(92px, 112px) minmax(0, 1fr);
+  grid-template-columns: minmax(82px, 102px) minmax(0, 1fr);
   align-items: start;
-  column-gap: 0.75rem;
+  column-gap: 0.6rem;
   row-gap: 0.25rem;
   max-width: 100%;
   min-width: 0;
@@ -367,7 +364,7 @@ export const InfoRow = styled.div`
 
 export const InfoLabel = styled.span`
   color: ${(props) => props.theme['gray-300']};
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: 0.035em;
@@ -378,7 +375,7 @@ export const InfoLabel = styled.span`
 
 export const InfoValue = styled.span`
   color: ${(props) => props.theme['gray-100']};
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.35;
   min-width: 0;
@@ -391,27 +388,27 @@ export const InfoValue = styled.span`
   }
 
   @media (max-width: 480px) {
-    font-size: 0.94rem;
+    font-size: 0.88rem;
   }
 `;
 
 export const OperationalPanel = styled.div`
-  margin: 1rem;
+  margin: 0.65rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.6rem;
   max-width: 100%;
   min-width: 0;
-  padding: 0.85rem;
-  border-radius: 0.875rem;
+  padding: 0.7rem;
+  border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   @media (max-width: 480px) {
-    margin: 0.75rem;
-    padding: 0.75rem;
-    gap: 0.75rem;
+    margin: 0.55rem 0 0;
+    padding: 0.65rem;
+    gap: 0.55rem;
   }
 `;
 
@@ -419,7 +416,7 @@ export const OrderActions = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
   padding-top: 0.15rem;
 `;
@@ -429,13 +426,13 @@ interface OrderProps {
 }
 
 export const OrderButton = styled.div<OrderProps>`
-  min-height: 2.75rem;
-  min-width: 7.5rem;
+  min-height: 2.35rem;
+  min-width: 6.4rem;
   background: ${(props) =>
     props.typebutton ? props.theme['green-500'] : props.theme['red-700']};
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.55rem 0.8rem;
 
   display: inline-flex;
   align-items: center;
@@ -444,6 +441,7 @@ export const OrderButton = styled.div<OrderProps>`
 
   font-weight: 800;
   color: ${(props) => props.theme['gray-100']};
+  font-size: 0.92rem;
   line-height: 1.2;
 
   cursor: pointer;
@@ -458,7 +456,7 @@ export const OrderButton = styled.div<OrderProps>`
   @media (max-width: 480px) {
     width: 100%;
     min-width: 0;
-    padding: 0.8rem;
+    padding: 0.7rem;
   }
 `;
 
@@ -473,7 +471,7 @@ export const SelectContainer = styled.div`
 
   label {
     color: ${(props) => props.theme['gray-300']};
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
     line-height: 1.35;
     letter-spacing: 0.045em;
@@ -483,7 +481,7 @@ export const SelectContainer = styled.div`
 
   select,
   input {
-    height: 2.75rem;
+    height: 2.4rem;
     background: rgba(39, 39, 42, 0.82);
     color: ${(props) => props.theme['gray-100']};
     width: min(100%, 34rem);
@@ -492,7 +490,7 @@ export const SelectContainer = styled.div`
     white-space: normal;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 0.7rem;
-    padding: 0 0.85rem;
+    padding: 0 0.7rem;
     outline: none;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     transition: border-color 0.2s ease, box-shadow 0.2s ease,
@@ -546,14 +544,14 @@ export const Status = styled.p<StatusProps>`
   width: fit-content;
   max-width: 100%;
   margin: 0;
-  padding: 0.28rem 0.58rem;
+  padding: 0.22rem 0.5rem;
   border-radius: 999px;
   background-color: ${(props) =>
     props.type === StatusDelivery.ONCOURSE
       ? 'rgba(37, 99, 235, 0.92)'
       : props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.045em;

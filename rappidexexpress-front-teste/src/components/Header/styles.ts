@@ -1,35 +1,174 @@
+import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
 export const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 20;
+`
 
-  nav {
+export const DesktopMenu = styled.nav`
+  display: flex;
+  gap: 0.5rem;
+
+  a {
+    width: 3rem;
+    height: 3rem;
+
     display: flex;
-    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
 
-    a {
-      width: 3rem;
-      height: 3rem;
+    color: ${(props) => props.theme['gray-100']};
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
 
-      color: ${(props) => props.theme['gray-100']};
-
-      border-top: 3px solid transparent;
-      border-bottom: 3px solid transparent;
-
-      &:hover {
-        border-bottom: 3px solid ${(props) => props.theme['green-500']};
-      }
-
-      &:active {
-        color: ${(props) => props.theme['green-500']};
-      }
+    &:hover {
+      border-bottom: 3px solid ${(props) => props.theme['green-500']};
     }
+
+    &:active {
+      color: ${(props) => props.theme['green-500']};
+    }
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+`
+
+export const MobileMenuButton = styled.button`
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  background: ${(props) => props.theme['gray-800']};
+  color: ${(props) => props.theme['gray-100']};
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover,
+  &:active {
+    background: ${(props) => props.theme['gray-700']};
+    border-color: ${(props) => props.theme['green-500']};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 767px) {
+    display: inline-flex;
+  }
+`
+
+export const MobileMenuOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(3px);
+`
+
+export const MobileMenuDrawer = styled.aside`
+  width: min(86vw, 21rem);
+  height: 100%;
+  padding: 1.25rem;
+  background: linear-gradient(
+    180deg,
+    ${(props) => props.theme['gray-800']} 0%,
+    ${(props) => props.theme['gray-900']} 100%
+  );
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem 0 0 1.25rem;
+  box-shadow: -1.25rem 0 2.5rem rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  animation: slideIn 0.2s ease;
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0.7;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+`
+
+export const MobileMenuHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  strong {
+    color: ${(props) => props.theme['gray-100']};
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+  }
+`
+
+export const MobileCloseButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: ${(props) => props.theme['gray-100']};
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  &:hover,
+  &:active {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: ${(props) => props.theme['green-500']};
+  }
+`
+
+export const MobileMenuLink = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  color: ${(props) => props.theme['gray-100']};
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+  svg {
+    flex-shrink: 0;
+    color: ${(props) => props.theme['green-500']};
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 `
 
@@ -38,4 +177,3 @@ export const RappidexLogo = styled.img`
   width: 2rem;
   border-radius: 100%;
 `;
-

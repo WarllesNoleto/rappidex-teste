@@ -39,8 +39,10 @@ import {
   InfoSection,
   InfoValue,
   Link,
+  OperationalPanel,
   OrderActions,
   OrderButton,
+  SectionTitle,
   SelectContainer,
   ShopkeeperInfo,
   ShopkeeperProfileImage,
@@ -293,23 +295,53 @@ const DeliveryCard = memo(
 
         {statusFilter !== StatusDelivery.PENDING && (
           <ContainerOrder>
-            <ContainerStatus>
-              <p>Status:</p>
-              <Status type={report.status}>{report.status}</Status>
-            </ContainerStatus>
-            <p>
-              {permission === UserType.SHOPKEEPER
-                ? getEstablishmentVisualStatus(report)
-                : getClientVisualStatus(report)}
-            </p>
-            <p>Forma de pagamento: {report.payment}</p>
-            <p>Valor: R$ {report.value}</p>
-            <p>Pix: {report.establishmentPix}</p>
-            <p>Refrigerante: {report.soda}</p>
+            <SectionTitle>Informações rápidas</SectionTitle>
+
+            <InfoSection>
+              <InfoRow>
+                <InfoLabel>Status</InfoLabel>
+                <InfoValue>
+                  <ContainerStatus>
+                    <Status type={report.status}>{report.status}</Status>
+                  </ContainerStatus>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Andamento</InfoLabel>
+                <InfoValue>
+                  {permission === UserType.SHOPKEEPER
+                    ? getEstablishmentVisualStatus(report)
+                    : getClientVisualStatus(report)}
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Pagamento</InfoLabel>
+                <InfoValue>{report.payment || "Não informado"}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Valor</InfoLabel>
+                <InfoValue>R$ {report.value}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Pix</InfoLabel>
+                <InfoValue>{report.establishmentPix || "Não informado"}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Refrigerante</InfoLabel>
+                <InfoValue>{report.soda || "Não informado"}</InfoValue>
+              </InfoRow>
+            </InfoSection>
           </ContainerOrder>
         )}
 
         <ContainerInfo>
+          <SectionTitle>Detalhes do pedido</SectionTitle>
+
           <InfoSection>
             {isIfoodOrder && (
               <>
@@ -439,74 +471,84 @@ const DeliveryCard = memo(
           </InfoSection>
         </ContainerInfo>
 
-        {canManageReleaseOrder && (
-          <SelectContainer>
-            <label htmlFor={motoboySelectId}>Motoboy:</label>
-            <select
-              id={motoboySelectId}
-              disabled={isUpdating}
-              value={selectedMotoboy}
-              onChange={(e) => onSelectMotoboy(report.id, e.target.value)}
-            >
-              <option value="">Selecione o motoboy:</option>
-              {motoboys.map((motoboy: Motoboy) => (
-                <option key={motoboy.id} value={motoboy.id}>
-                  {motoboy.name}
-                </option>
-              ))}
-            </select>
-          </SelectContainer>
-        )}
+        {(canManageReleaseOrder ||
+          (shouldShowDeliveryCodeInput && canShowDeliveryCodeInput) ||
+          canAdvanceDelivery ||
+          (!isMotoboy && report.status === StatusDelivery.PENDING)) && (
+          <OperationalPanel>
+            <SectionTitle>Operação</SectionTitle>
 
-        {shouldShowDeliveryCodeInput && canShowDeliveryCodeInput && (
-          <SelectContainer>
-            <label htmlFor={`delivery-code-${report.id}`}>
-              Código de entrega iFood:
-            </label>
-            <input
-              id={`delivery-code-${report.id}`}
-              type="text"
-              value={deliveryCode}
-              disabled={isUpdating}
-              placeholder="Digite o código informado pelo cliente"
-              onChange={(e) => onDeliveryCodeChange(report.id, e.target.value)}
-            />
-          </SelectContainer>
+            {canManageReleaseOrder && (
+              <SelectContainer>
+                <label htmlFor={motoboySelectId}>Motoboy</label>
+                <select
+                  id={motoboySelectId}
+                  disabled={isUpdating}
+                  value={selectedMotoboy}
+                  onChange={(e) => onSelectMotoboy(report.id, e.target.value)}
+                >
+                  <option value="">Selecione o motoboy</option>
+                  {motoboys.map((motoboy: Motoboy) => (
+                    <option key={motoboy.id} value={motoboy.id}>
+                      {motoboy.name}
+                    </option>
+                  ))}
+                </select>
+              </SelectContainer>
+            )}
+
+            {shouldShowDeliveryCodeInput && canShowDeliveryCodeInput && (
+              <SelectContainer>
+                <label htmlFor={`delivery-code-${report.id}`}>
+                  Código de entrega iFood
+                </label>
+                <input
+                  id={`delivery-code-${report.id}`}
+                  type="text"
+                  value={deliveryCode}
+                  disabled={isUpdating}
+                  placeholder="Digite o código informado pelo cliente"
+                  onChange={(e) => onDeliveryCodeChange(report.id, e.target.value)}
+                />
+              </SelectContainer>
+            )}
+
+            <OrderActions>
+              {canManageReleaseOrder &&
+                report.status !== StatusDelivery.PENDING && (
+                  <>
+                    <OrderButton typebutton={true} onClick={() => onSave(report)}>
+                      Salvar
+                    </OrderButton>
+                    <OrderButton typebutton={false} onClick={() => onCancel(report)}>
+                      Cancelar
+                    </OrderButton>
+                  </>
+                )}
+
+              {canAdvanceDelivery && (
+                <OrderButton typebutton={true} onClick={() => onNextStep(report)}>
+                  {getButtonText(report.status, report)}
+                </OrderButton>
+              )}
+
+              {!isMotoboy && report.status === StatusDelivery.PENDING && (
+                <OrderButton typebutton={false} onClick={() => onDelete(report)}>
+                  Apagar
+                </OrderButton>
+              )}
+            </OrderActions>
+          </OperationalPanel>
         )}
 
         {(report.status === StatusDelivery.ARRIVED_AT_DESTINATION ||
           report.status === StatusDelivery.AWAITING_CODE) &&
           shouldShowObservationPreview && (
             <ContainerInfo>
+              <SectionTitle>Observação</SectionTitle>
               <p><b>Observação do pedido:</b> {previewObservation || "Sem observação."}</p>
             </ContainerInfo>
           )}
-
-        <OrderActions>
-          {canManageReleaseOrder &&
-            report.status !== StatusDelivery.PENDING && (
-              <>
-                <OrderButton typebutton={true} onClick={() => onSave(report)}>
-                  Salvar
-                </OrderButton>
-                <OrderButton typebutton={false} onClick={() => onCancel(report)}>
-                  Cancelar
-                </OrderButton>
-              </>
-            )}
-
-          {canAdvanceDelivery && (
-            <OrderButton typebutton={true} onClick={() => onNextStep(report)}>
-              {getButtonText(report.status, report)}
-            </OrderButton>
-          )}
-
-          {!isMotoboy && report.status === StatusDelivery.PENDING && (
-            <OrderButton typebutton={false} onClick={() => onDelete(report)}>
-              Apagar
-            </OrderButton>
-          )}
-        </OrderActions>
       </Delivery>
     );
   },

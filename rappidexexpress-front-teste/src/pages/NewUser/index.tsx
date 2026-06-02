@@ -701,9 +701,10 @@ export function NewUser() {
                             )
                           }
                         />
-                        <label>Endereço de coleta (opcional):</label>
+                        <label>Link da localização da loja (opcional):</label>
                         <BaseInput
                           type="text"
+                          placeholder="Cole o link do Google Maps da loja"
                           value={merchant.pickupAddress || ""}
                           onChange={(event) =>
                             setIfoodMerchants((prev) =>

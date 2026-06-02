@@ -282,17 +282,14 @@ export const ContainerInfo = styled.div`
   margin: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.75rem;
   max-width: 100%;
   min-width: 0;
-
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    max-width: 100%;
-    min-width: 0;
-  }
+  padding: 0.85rem;
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   p {
     margin: 0;
@@ -302,19 +299,76 @@ export const ContainerInfo = styled.div`
     white-space: normal;
   }
 
-  div p:first-child {
-    font-weight: bold;
-    color: ${(props) => props.theme['gray-100']};
-  }
-
   a {
     width: fit-content;
     max-width: 100%;
-    margin-top: 0.15rem;
   }
 
   @media (max-width: 480px) {
     margin: 0.75rem;
+    padding: 0.75rem;
+  }
+`;
+
+interface InfoSectionProps {
+  $variant?: 'main' | 'operational'
+}
+
+export const InfoSection = styled.div<InfoSectionProps>`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-width: 0;
+  padding-top: ${(props) => (props.$variant === 'operational' ? '0.75rem' : '0')};
+  border-top: ${(props) =>
+    props.$variant === 'operational'
+      ? '1px solid rgba(255, 255, 255, 0.1)'
+      : '0'};
+`;
+
+export const InfoRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(92px, 112px) minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.75rem;
+  row-gap: 0.25rem;
+  max-width: 100%;
+  min-width: 0;
+
+  @media (max-width: 480px) {
+    grid-template-columns: minmax(82px, 96px) minmax(0, 1fr);
+    column-gap: 0.55rem;
+  }
+`;
+
+export const InfoLabel = styled.span`
+  color: ${(props) => props.theme['gray-300']};
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  opacity: 0.82;
+  padding-top: 0.08rem;
+`;
+
+export const InfoValue = styled.span`
+  color: ${(props) => props.theme['gray-100']};
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.35;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+
+  a {
+    margin-top: 0;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.94rem;
   }
 `;
 

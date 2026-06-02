@@ -34,6 +34,10 @@ import {
   Delivery,
   Flag,
   IfoodStoreBadge,
+  InfoLabel,
+  InfoRow,
+  InfoSection,
+  InfoValue,
   Link,
   OrderActions,
   OrderButton,
@@ -306,70 +310,133 @@ const DeliveryCard = memo(
         )}
 
         <ContainerInfo>
-          <div>
-            {isIfoodOrder && <p>Pedido iFood: {ifoodOrderNumber || "Não informado"}</p>}
-            {isIfoodOrder && <p>Loja iFood: {ifoodMerchantName || ifoodMerchantId || "Não informada"}</p>}
+          <InfoSection>
+            {isIfoodOrder && (
+              <>
+                <InfoRow>
+                  <InfoLabel>Pedido iFood</InfoLabel>
+                  <InfoValue>{ifoodOrderNumber || "Não informado"}</InfoValue>
+                </InfoRow>
 
-            <p>Cliente: {report.clientName}</p>
+                <InfoRow>
+                  <InfoLabel>Loja iFood</InfoLabel>
+                  <InfoValue>{ifoodMerchantName || ifoodMerchantId || "Não informada"}</InfoValue>
+                </InfoRow>
+              </>
+            )}
+
+            <InfoRow>
+              <InfoLabel>Cliente</InfoLabel>
+              <InfoValue>{report.clientName || "Não informado"}</InfoValue>
+            </InfoRow>
+
             {statusFilter !== StatusDelivery.PENDING && ifoodClientAddress && (
-              <p>Endereço: {ifoodClientAddress}</p>
+              <InfoRow>
+                <InfoLabel>Endereço</InfoLabel>
+                <InfoValue>{ifoodClientAddress}</InfoValue>
+              </InfoRow>
             )}
+
             {statusFilter !== StatusDelivery.PENDING && ifoodClientLocationLink && (
-              <Link
-                href={ifoodClientLocationLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <p>Ver no mapa</p> <MapPin size={18} />
-              </Link>
+              <InfoRow>
+                <InfoLabel>Mapa</InfoLabel>
+                <InfoValue>
+                  <Link
+                    href={ifoodClientLocationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <p>Ver no mapa</p> <MapPin size={18} />
+                  </Link>
+                </InfoValue>
+              </InfoRow>
             )}
+
             {statusFilter !== StatusDelivery.PENDING && !ifoodClientLocationLink && googleMapsAddressLink && (
-              <Link
-                href={googleMapsAddressLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <p>Ver no mapa</p> <MapPin size={18} />
-              </Link>
+              <InfoRow>
+                <InfoLabel>Mapa</InfoLabel>
+                <InfoValue>
+                  <Link
+                    href={googleMapsAddressLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <p>Ver no mapa</p> <MapPin size={18} />
+                  </Link>
+                </InfoValue>
+              </InfoRow>
             )}
-          </div>
 
-          {statusFilter !== StatusDelivery.PENDING && (
-            <Link
-              href={getLinkToWhatsapp(
-                report.clientPhone,
-                messageTypes.client,
-                getClientWhatsappMessage(report),
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {formatPhoneNumber(report.clientPhone)} <WhatsappLogo size={18} />
-            </Link>
-          )}
-        </ContainerInfo>
+            {statusFilter !== StatusDelivery.PENDING && (
+              <InfoRow>
+                <InfoLabel>WhatsApp</InfoLabel>
+                <InfoValue>
+                  <Link
+                    href={getLinkToWhatsapp(
+                      report.clientPhone,
+                      messageTypes.client,
+                      getClientWhatsappMessage(report),
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {formatPhoneNumber(report.clientPhone)} <WhatsappLogo size={18} />
+                  </Link>
+                </InfoValue>
+              </InfoRow>
+            )}
+          </InfoSection>
 
-        {statusFilter !== StatusDelivery.PENDING && (
-          <ContainerInfo>
-            <p>Motoboy: {report.motoboyName}</p>
-            <Link
-              href={getLinkToWhatsapp(
-                report.motoboyPhone,
-                messageTypes.establishment,
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {formatPhoneNumber(report.motoboyPhone)} <WhatsappLogo size={18} />
-            </Link>
-          </ContainerInfo>
-        )}
+          <InfoSection $variant="operational">
+            <InfoRow>
+              <InfoLabel>Criado</InfoLabel>
+              <InfoValue>{report.createdAt ? getHours(report.createdAt) : "Não informado"}</InfoValue>
+            </InfoRow>
 
-        <ContainerInfo>
-          {report.createdAt && <p>Criado: {getHours(report.createdAt)}</p>}
-          {report.onCoursedAt && <p>Atribuído: {getHours(report.onCoursedAt)}</p>}
-          {report.collectedAt && <p>Coletado: {getHours(report.collectedAt)}</p>}
-          {report.finishedAt && <p>Finalizado: {getHours(report.finishedAt)}</p>}
+            {report.onCoursedAt && (
+              <InfoRow>
+                <InfoLabel>Atribuído</InfoLabel>
+                <InfoValue>{getHours(report.onCoursedAt)}</InfoValue>
+              </InfoRow>
+            )}
+
+            {report.collectedAt && (
+              <InfoRow>
+                <InfoLabel>Coletado</InfoLabel>
+                <InfoValue>{getHours(report.collectedAt)}</InfoValue>
+              </InfoRow>
+            )}
+
+            {report.finishedAt && (
+              <InfoRow>
+                <InfoLabel>Finalizado</InfoLabel>
+                <InfoValue>{getHours(report.finishedAt)}</InfoValue>
+              </InfoRow>
+            )}
+
+            <InfoRow>
+              <InfoLabel>Motoboy</InfoLabel>
+              <InfoValue>{report.motoboyName || "Não atribuído"}</InfoValue>
+            </InfoRow>
+
+            {statusFilter !== StatusDelivery.PENDING && (
+              <InfoRow>
+                <InfoLabel>WhatsApp</InfoLabel>
+                <InfoValue>
+                  <Link
+                    href={getLinkToWhatsapp(
+                      report.motoboyPhone,
+                      messageTypes.establishment,
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {formatPhoneNumber(report.motoboyPhone)} <WhatsappLogo size={18} />
+                  </Link>
+                </InfoValue>
+              </InfoRow>
+            )}
+          </InfoSection>
         </ContainerInfo>
 
         {canManageReleaseOrder && (

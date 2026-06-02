@@ -21,13 +21,4 @@ export interface User {
   ifoodOrdersReleased?: number;
   ifoodOrdersUsed?: number;
   ifoodOrdersAvailable?: number;
-  anotaAiEnabled?: boolean;
-  anotaAiStoreId?: string;
-  anotaAiClientId?: string;
-  anotaAiToken?: string;
-  anotaAiIgnoreIfoodOrders?: boolean;
-  saiposEnabled?: boolean;
-  saiposStoreId?: string;
-  saiposMerchantId?: string;
-  saiposToken?: string;
 }

@@ -6,7 +6,7 @@ import * as zod from "zod";
 import { useForm } from "react-hook-form";
 
 import { DeliveryContext } from "../../context/DeliveryContext";
-import api, { API_URL } from "../../services/api";
+import api from "../../services/api";
 import { City } from "../../shared/interfaces";
 import {
   BaseInput,
@@ -17,10 +17,6 @@ import {
   BaseInputMask,
   DeleteButton,
   ResetPassButton,
-  IntegrationSection,
-  HelpText,
-  InlineInfo,
-  CopyButton,
 } from "./styles";
 import { Loader } from "../../components/Loader";
 
@@ -35,18 +31,9 @@ const ProfileFormValidationSchema = zod.object({
   useIfoodIntegration: zod.boolean().optional(),
   usesExternalIfoodPdv: zod.boolean().optional(),
   ifoodMerchantId: zod.string().optional(),
-  anotaAiEnabled: zod.boolean().optional(),
-  anotaAiStoreId: zod.string().optional(),
-  anotaAiToken: zod.string().optional(),
-  anotaAiIgnoreIfoodOrders: zod.boolean().optional(),
 });
 
-type IfoodMerchantForm = {
-  merchantId: string;
-  name: string;
-  enabled: boolean;
-  pickupAddress?: string;
-};
+type IfoodMerchantForm = { merchantId: string; name: string; enabled: boolean; pickupAddress?: string };
 type ProfileFormData = zod.infer<typeof ProfileFormValidationSchema>;
 
 export function NewUser() {
@@ -68,10 +55,6 @@ export function NewUser() {
     useIfoodIntegration: false,
     usesExternalIfoodPdv: false,
     ifoodMerchantId: "",
-    anotaAiEnabled: false,
-    anotaAiStoreId: "",
-    anotaAiToken: "",
-    anotaAiIgnoreIfoodOrders: true,
   });
   const [ifoodMerchants, setIfoodMerchants] = useState<IfoodMerchantForm[]>([]);
 
@@ -91,73 +74,16 @@ export function NewUser() {
   const { handleSubmit, watch, register, reset, setValue } = profileFormData;
 
   const allowCitySelection = permission === "superadmin";
-  const anotaAiWebhookUrl = `${API_URL}/anota-ai/webhook`;
-  const anotaAiWebhookPath = "/api/anota-ai/webhook";
 
-  function resetAnotaAiFields() {
-    setValue("anotaAiEnabled", false);
-    setValue("anotaAiStoreId", "");
-    setValue("anotaAiToken", "");
-    setValue("anotaAiIgnoreIfoodOrders", true);
-  }
-
-  function buildAnotaAiPayload(data: Partial<ProfileFormData>) {
-    const shouldKeepAnotaAi =
-      selectedType === "shopkeeper" || selectedType === "shopkeeperadmin";
-    const anotaAiEnabled = shouldKeepAnotaAi
-      ? Boolean(data.anotaAiEnabled)
-      : false;
-
-    return {
-      anotaAiEnabled,
-      anotaAiStoreId: anotaAiEnabled
-        ? String(data.anotaAiStoreId || "").trim()
-        : "",
-      anotaAiToken: anotaAiEnabled
-        ? String(data.anotaAiToken || "").trim()
-        : "",
-      anotaAiIgnoreIfoodOrders: shouldKeepAnotaAi
-        ? data.anotaAiIgnoreIfoodOrders !== false
-        : true,
-    };
-  }
-
-  async function handleCopyCompanyId() {
-    if (!userId) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(String(userId));
-      alert("ID da empresa copiado!");
-    } catch {
-      alert(`ID da empresa no Rappidex: ${userId}`);
-    }
-  }
-
-  async function handleCopyAnotaAiWebhook(value: string, label: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      alert(`${label} copiado!`);
-    } catch {
-      alert(`${label}: ${value}`);
-    }
-  }
-
-  function resolveLegacyMerchantId(
-    merchantId: string,
-    merchants: IfoodMerchantForm[] = [],
-  ) {
+  function resolveLegacyMerchantId(merchantId: string, merchants: IfoodMerchantForm[] = []) {
     const normalizedLegacyMerchantId = String(merchantId || "").trim();
     if (normalizedLegacyMerchantId) {
       return normalizedLegacyMerchantId;
     }
 
-    const firstActiveMerchantId = merchants.find(
-      (merchant) =>
-        merchant?.enabled !== false &&
-        String(merchant?.merchantId || "").trim(),
-    )?.merchantId;
+    const firstActiveMerchantId = merchants
+      .find((merchant) => merchant?.enabled !== false && String(merchant?.merchantId || "").trim())
+      ?.merchantId;
 
     return String(firstActiveMerchantId || "").trim();
   }
@@ -190,16 +116,9 @@ export function NewUser() {
         pickupAddress: String(merchant.pickupAddress || "").trim(),
       }))
       .filter((merchant) => merchant.merchantId);
-    const ifoodMerchantId = resolveLegacyMerchantId(
-      data.ifoodMerchantId || "",
-      normalizedMerchants,
-    );
+    const ifoodMerchantId = resolveLegacyMerchantId(data.ifoodMerchantId || "", normalizedMerchants);
 
-    if (
-      useIfoodIntegration &&
-      !ifoodMerchantId &&
-      normalizedMerchants.length === 0
-    ) {
+    if (useIfoodIntegration && !ifoodMerchantId && normalizedMerchants.length === 0) {
       alert("Para integração iFood, preencha o merchantId.");
       setLoading(false);
       return;
@@ -225,14 +144,11 @@ export function NewUser() {
         usesExternalIfoodPdv,
         ifoodMerchantId,
         ifoodMerchants: normalizedMerchants,
-        ...buildAnotaAiPayload(data),
       });
       if (useIfoodIntegration && ifoodMerchantId) {
         const createdCompanyId = response?.data?.id;
         if (createdCompanyId) {
-          await api
-            .post(`/ifood/sync-company/${createdCompanyId}`)
-            .catch(() => undefined);
+          await api.post(`/ifood/sync-company/${createdCompanyId}`).catch(() => undefined);
         }
         alert(
           "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
@@ -245,7 +161,7 @@ export function NewUser() {
       setLoading(false);
       alert(error.response.data.message);
     }
-  }
+      }
 
   async function handleSave() {
     if (loading) {
@@ -264,10 +180,6 @@ export function NewUser() {
       useIfoodIntegration,
       ifoodMerchantId,
       usesExternalIfoodPdv,
-      anotaAiEnabled,
-      anotaAiStoreId,
-      anotaAiToken,
-      anotaAiIgnoreIfoodOrders,
     } = watch();
     const cityIdToSubmit = allowCitySelection
       ? selectedCityId
@@ -281,11 +193,7 @@ export function NewUser() {
       }))
       .filter((merchant) => merchant.merchantId);
 
-    if (
-      useIfoodIntegration &&
-      !(ifoodMerchantId || "").trim() &&
-      normalizedMerchants.length === 0
-    ) {
+    if (useIfoodIntegration && !(ifoodMerchantId || "").trim() && normalizedMerchants.length === 0) {
       alert("Para integração iFood, preencha o merchantId.");
       setLoading(false);
       return;
@@ -307,24 +215,11 @@ export function NewUser() {
         type: selectedType,
         cityId: cityIdToSubmit,
         useIfoodIntegration: Boolean(useIfoodIntegration),
-        usesExternalIfoodPdv:
-          Boolean(useIfoodIntegration) && Boolean(usesExternalIfoodPdv),
-        ifoodMerchantId: resolveLegacyMerchantId(
-          ifoodMerchantId || "",
-          normalizedMerchants,
-        ),
+        usesExternalIfoodPdv: Boolean(useIfoodIntegration) && Boolean(usesExternalIfoodPdv),
+        ifoodMerchantId: resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants),
         ifoodMerchants: normalizedMerchants,
-        ...buildAnotaAiPayload({
-          anotaAiEnabled,
-          anotaAiStoreId,
-          anotaAiToken,
-          anotaAiIgnoreIfoodOrders,
-        }),
       });
-      if (
-        useIfoodIntegration &&
-        resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants)
-      ) {
+      if (useIfoodIntegration && resolveLegacyMerchantId(ifoodMerchantId || "", normalizedMerchants)) {
         await api.post(`/ifood/sync-company/${userId}`).catch(() => undefined);
         alert(
           "Integração iFood salva. Os pedidos podem levar até 1 minuto para aparecer após ficarem prontos. Sincronização inicial iniciada.",
@@ -337,7 +232,7 @@ export function NewUser() {
       alert(error.response.data.message);
     }
   }
-
+  
   async function handleDelete() {
     if (loadingDelete) {
       return;
@@ -432,19 +327,8 @@ export function NewUser() {
     let userFinded;
     try {
       userFinded = await api.get(`/user/${user}`);
-      setFormValues({
-        ...userFinded.data,
-        anotaAiEnabled: Boolean(userFinded.data?.anotaAiEnabled),
-        anotaAiStoreId: userFinded.data?.anotaAiStoreId || "",
-        anotaAiToken: userFinded.data?.anotaAiToken || "",
-        anotaAiIgnoreIfoodOrders:
-          userFinded.data?.anotaAiIgnoreIfoodOrders !== false,
-      });
-      setIfoodMerchants(
-        Array.isArray(userFinded.data?.ifoodMerchants)
-          ? userFinded.data.ifoodMerchants
-          : [],
-      );
+      setFormValues(userFinded.data);
+      setIfoodMerchants(Array.isArray(userFinded.data?.ifoodMerchants) ? userFinded.data.ifoodMerchants : []);
       setUserId(userFinded.data.id);
       setSelectedType(userFinded.data.type);
       const cityIdFromUser =
@@ -470,18 +354,12 @@ export function NewUser() {
   const pix = watch("pix");
   const profileImage = watch("profileImage");
   const useIfoodIntegration = watch("useIfoodIntegration");
-  const anotaAiEnabled = watch("anotaAiEnabled");
-  const anotaAiToken = watch("anotaAiToken");
   // const location = watch('location')
   const citySelectionMissing = allowCitySelection
     ? !selectedCityId
     : !loggedUserCityId;
   const ifoodIntegrationMissingFields =
     Boolean(useIfoodIntegration) && !watch("ifoodMerchantId");
-  const shouldWarnAnotaAiLink =
-    Boolean(anotaAiEnabled) && !String(watch("anotaAiStoreId") || "").trim();
-  const shouldWarnAnotaAiToken =
-    Boolean(anotaAiEnabled) && !String(anotaAiToken || "").trim();
   const isSubmitDisabled =
     !name ||
     !phone ||
@@ -507,14 +385,6 @@ export function NewUser() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  useEffect(() => {
-    if (window.location.hash === "#anota-ai" && isShopkeeperType) {
-      document
-        .getElementById("anota-ai-section")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [isShopkeeperType, userId]);
 
   return (
     <Container>
@@ -610,7 +480,6 @@ export function NewUser() {
               if (nextType !== "shopkeeper" && nextType !== "shopkeeperadmin") {
                 setValue("useIfoodIntegration", false);
                 setValue("ifoodMerchantId", "");
-                resetAnotaAiFields();
               }
             }}
           >
@@ -652,9 +521,7 @@ export function NewUser() {
                     />{" "}
                     Usa PDV externo integrado ao iFood?
                   </label>
-                  <label htmlFor="ifoodMerchantId">
-                    iFood Merchant ID (legado):
-                  </label>
+                  <label htmlFor="ifoodMerchantId">iFood Merchant ID (legado):</label>
                   <BaseInput
                     type="text"
                     id="ifoodMerchantId"
@@ -664,268 +531,44 @@ export function NewUser() {
                   <div>
                     <strong>Lojas iFood vinculadas</strong>
                     {ifoodMerchants.map((merchant, index) => (
-                      <div
-                        key={`${merchant.merchantId}-${index}`}
-                        style={{
-                          border: "1px solid #555",
-                          padding: "0.75rem",
-                          marginTop: "0.5rem",
-                          borderRadius: 8,
-                        }}
-                      >
+                      <div key={`${merchant.merchantId}-${index}`} style={{ border: "1px solid #555", padding: "0.75rem", marginTop: "0.5rem", borderRadius: 8 }}>
                         <label>Nome da loja:</label>
                         <BaseInput
                           type="text"
                           value={merchant.name || ""}
-                          onChange={(event) =>
-                            setIfoodMerchants((prev) =>
-                              prev.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, name: event.target.value }
-                                  : item,
-                              ),
-                            )
-                          }
+                          onChange={(event) => setIfoodMerchants((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))}
                         />
                         <label>Merchant ID:</label>
                         <BaseInput
                           type="text"
                           value={merchant.merchantId || ""}
-                          onChange={(event) =>
-                            setIfoodMerchants((prev) =>
-                              prev.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, merchantId: event.target.value }
-                                  : item,
-                              ),
-                            )
-                          }
+                          onChange={(event) => setIfoodMerchants((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, merchantId: event.target.value } : item))}
                         />
-                        <label>Link da localização da loja (opcional):</label>
+                        <label>Endereço de coleta (opcional):</label>
                         <BaseInput
                           type="text"
-                          placeholder="Cole o link do Google Maps da loja"
                           value={merchant.pickupAddress || ""}
-                          onChange={(event) =>
-                            setIfoodMerchants((prev) =>
-                              prev.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? {
-                                      ...item,
-                                      pickupAddress: event.target.value,
-                                    }
-                                  : item,
-                              ),
-                            )
-                          }
+                          onChange={(event) => setIfoodMerchants((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, pickupAddress: event.target.value } : item))}
                         />
                         <label>
                           <input
                             type="checkbox"
                             checked={merchant.enabled !== false}
-                            onChange={(event) =>
-                              setIfoodMerchants((prev) =>
-                                prev.map((item, itemIndex) =>
-                                  itemIndex === index
-                                    ? { ...item, enabled: event.target.checked }
-                                    : item,
-                                ),
-                              )
-                            }
-                          />{" "}
-                          Ativa
+                            onChange={(event) => setIfoodMerchants((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, enabled: event.target.checked } : item))}
+                          /> Ativa
                         </label>
-                        <BaseButton
-                          type="button"
-                          onClick={() =>
-                            setIfoodMerchants((prev) =>
-                              prev.filter(
-                                (_, itemIndex) => itemIndex !== index,
-                              ),
-                            )
-                          }
-                        >
-                          Remover loja
-                        </BaseButton>
+                        <BaseButton type="button" onClick={() => setIfoodMerchants((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}>Remover loja</BaseButton>
                       </div>
                     ))}
-                    <BaseButton
-                      type="button"
-                      onClick={() => {
-                        const updatedMerchants = [
-                          ...ifoodMerchants,
-                          {
-                            merchantId: "",
-                            name: "",
-                            enabled: true,
-                            pickupAddress: "",
-                          },
-                        ];
-                        setIfoodMerchants(updatedMerchants);
-                        setValue(
-                          "ifoodMerchantId",
-                          resolveLegacyMerchantId(
-                            watch("ifoodMerchantId") || "",
-                            updatedMerchants,
-                          ),
-                        );
-                      }}
-                    >
-                      Adicionar loja iFood
-                    </BaseButton>
+                    <BaseButton type="button" onClick={() => {
+                      const updatedMerchants = [...ifoodMerchants, { merchantId: "", name: "", enabled: true, pickupAddress: "" }];
+                      setIfoodMerchants(updatedMerchants);
+                      setValue("ifoodMerchantId", resolveLegacyMerchantId(watch("ifoodMerchantId") || "", updatedMerchants));
+                    }}>Adicionar loja iFood</BaseButton>
                   </div>
+
                 </>
               )}
-
-              <IntegrationSection id="anota-ai-section">
-                <h2>Integração Anota AI</h2>
-
-                <label htmlFor="anotaAiEnabled">
-                  <input
-                    type="checkbox"
-                    id="anotaAiEnabled"
-                    checked={Boolean(anotaAiEnabled)}
-                    onChange={(event) => {
-                      const enabled = event.target.checked;
-                      setValue("anotaAiEnabled", enabled);
-
-                      if (!enabled) {
-                        setValue("anotaAiStoreId", "");
-                        setValue("anotaAiToken", "");
-                      }
-
-                      setValue("anotaAiIgnoreIfoodOrders", true);
-                    }}
-                  />{" "}
-                  Ativar integração Anota AI para esta empresa
-                </label>
-
-                {userId ? (
-                  <>
-                    <InlineInfo>
-                      <span>ID da empresa no Rappidex: {userId}</span>
-                      <CopyButton type="button" onClick={handleCopyCompanyId}>
-                        Copiar ID
-                      </CopyButton>
-                    </InlineInfo>
-                    <HelpText>
-                      Cole este ID no campo ID Externo do Restaurante no portal
-                      da Anota AI.
-                    </HelpText>
-                  </>
-                ) : (
-                  <HelpText>
-                    Salve a empresa primeiro para gerar o ID da empresa no
-                    Rappidex. Depois cole esse ID no campo ID Externo do
-                    Restaurante no portal da Anota AI.
-                  </HelpText>
-                )}
-
-                <label htmlFor="anotaAiStoreId">
-                  Root / ID interno da loja Anota AI
-                </label>
-                <BaseInput
-                  type="text"
-                  id="anotaAiStoreId"
-                  placeholder="Root gerado pela Anota AI"
-                  disabled={!anotaAiEnabled}
-                  {...register("anotaAiStoreId")}
-                />
-                <HelpText>
-                  Opcional. Cole aqui o Root gerado automaticamente no portal da
-                  Anota AI caso o webhook envie o Root.
-                </HelpText>
-                {shouldWarnAnotaAiLink && (
-                  <HelpText role="alert">
-                    Recomendado preencher o Root ou garantir que o ID Externo do
-                    Restaurante no portal da Anota AI seja o ID desta empresa no
-                    Rappidex.
-                  </HelpText>
-                )}
-
-                <label htmlFor="anotaAiToken">Token da Anota AI</label>
-                <BaseInput
-                  type="text"
-                  id="anotaAiToken"
-                  placeholder="Token da loja Anota AI"
-                  disabled={!anotaAiEnabled}
-                  {...register("anotaAiToken")}
-                />
-                <HelpText>
-                  Cole aqui o token da loja gerado no portal da Anota AI. Após
-                  salvar, o token será exibido mascarado por segurança.
-                </HelpText>
-                {shouldWarnAnotaAiToken && (
-                  <HelpText role="alert">
-                    Esta empresa está com Anota AI ativa, mas não possui token
-                    próprio salvo. Cadastre o token da loja; o token global do
-                    Heroku é apenas fallback opcional.
-                  </HelpText>
-                )}
-
-                <label htmlFor="anotaAiIgnoreIfoodOrders">
-                  <input
-                    type="checkbox"
-                    id="anotaAiIgnoreIfoodOrders"
-                    disabled={!anotaAiEnabled}
-                    {...register("anotaAiIgnoreIfoodOrders")}
-                  />{" "}
-                  Ignorar pedidos iFood vindos da Anota AI
-                </label>
-
-                <InlineInfo>
-                  <span>URL completa: {anotaAiWebhookUrl}</span>
-                  <CopyButton
-                    type="button"
-                    onClick={() =>
-                      handleCopyAnotaAiWebhook(
-                        anotaAiWebhookUrl,
-                        "URL completa",
-                      )
-                    }
-                  >
-                    Copiar URL completa
-                  </CopyButton>
-                </InlineInfo>
-                <InlineInfo>
-                  <span>Caminho/path: {anotaAiWebhookPath}</span>
-                  <CopyButton
-                    type="button"
-                    onClick={() =>
-                      handleCopyAnotaAiWebhook(anotaAiWebhookPath, "Caminho")
-                    }
-                  >
-                    Copiar caminho
-                  </CopyButton>
-                </InlineInfo>
-                <HelpText>
-                  Se o portal da Anota AI pedir URL completa, use a URL
-                  completa. Se pedir apenas o caminho, use
-                  /api/anota-ai/webhook.
-                </HelpText>
-                <HelpText>
-                  Cadastre este webhook nos campos Pedidos Realizados, Pedidos
-                  Atualizados e Pedidos Cancelados no portal da Anota AI, usando
-                  método POST.
-                </HelpText>
-
-                <HelpText>
-                  * Root é gerado pela Anota AI e identifica a loja dentro da
-                  Anota AI.
-                </HelpText>
-                <HelpText>
-                  * ID Externo do Restaurante deve ser o ID da empresa no
-                  Rappidex.
-                </HelpText>
-                <HelpText>
-                  * O webhook deve ser cadastrado no portal da Anota AI como
-                  POST.
-                </HelpText>
-                <HelpText>
-                  * A integração só cria pedido no Rappidex quando o pedido
-                  estiver aceito/em produção, status 1.
-                </HelpText>
-              </IntegrationSection>
             </>
           )}
 

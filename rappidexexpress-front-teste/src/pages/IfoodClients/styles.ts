@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const Container = styled.main`
   flex: 1;
@@ -21,7 +21,7 @@ export const Title = styled.h1`
 `;
 
 export const Subtitle = styled.p`
-  color: ${(props) => props.theme["gray-300"]};
+  color: ${(props) => props.theme['gray-300']};
 `;
 
 export const LoadingContainer = styled.div`
@@ -32,7 +32,7 @@ export const LoadingContainer = styled.div`
 `;
 
 export const Card = styled.div`
-  background: ${(props) => props.theme["gray-600"]};
+  background: ${(props) => props.theme['gray-600']};
   border-radius: 8px;
   padding: 1rem;
   display: flex;
@@ -69,18 +69,12 @@ export const Input = styled.input`
   padding: 0.75rem;
 `;
 
-export const HelpText = styled.p`
-  color: ${(props) => props.theme["yellow-500"]};
-  font-size: 0.85rem;
-  line-height: 1.4;
-`;
-
 export const SaveButton = styled.button`
   width: fit-content;
   border: 0;
   border-radius: 8px;
-  background: ${(props) => props.theme["green-700"]};
-  color: ${(props) => props.theme["gray-100"]};
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
   padding: 0.75rem 1rem;
   cursor: pointer;
@@ -98,7 +92,7 @@ export const CreditSummary = styled.div`
 `;
 
 export const CreditLine = styled.span`
-  background: ${(props) => props.theme["gray-700"]};
+  background: ${(props) => props.theme['gray-700']};
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
   font-size: 0.85rem;
@@ -120,8 +114,8 @@ export const CreditInput = styled.input`
 export const CreditButton = styled.button`
   border: 0;
   border-radius: 8px;
-  background: ${(props) => props.theme["green-700"]};
-  color: ${(props) => props.theme["gray-100"]};
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
   font-weight: 600;
   padding: 0.65rem 0.8rem;
   cursor: pointer;
@@ -130,8 +124,8 @@ export const CreditButton = styled.button`
 export const HistoryButton = styled.button`
   border: 0;
   border-radius: 8px;
-  background: ${(props) => props.theme["gray-500"]};
-  color: ${(props) => props.theme["gray-100"]};
+  background: ${(props) => props.theme['gray-500']};
+  color: ${(props) => props.theme['gray-100']};
   font-weight: 600;
   padding: 0.65rem 0.8rem;
   cursor: pointer;
@@ -146,7 +140,7 @@ export const HistoryList = styled.ul`
 `;
 
 export const HistoryItem = styled.li`
-  color: ${(props) => props.theme["gray-200"]};
+  color: ${(props) => props.theme['gray-200']};
   font-size: 0.85rem;
 `;
 
@@ -154,15 +148,15 @@ export const LoadMoreButton = styled.button`
   width: 100%;
   border: 0;
   border-radius: 8px;
-  background: ${(props) => props.theme["gray-500"]};
-  color: ${(props) => props.theme["gray-100"]};
+  background: ${(props) => props.theme['gray-500']};
+  color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
   padding: 0.75rem 1rem;
   cursor: pointer;
 `;
 
 export const EmptyState = styled.p`
-  color: ${(props) => props.theme["gray-300"]};
+  color: ${(props) => props.theme['gray-300']};
   text-align: center;
   margin-top: 1rem;
 `;

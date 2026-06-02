@@ -4,19 +4,53 @@ import styled from 'styled-components'
 export const Container = styled.main`
   flex: 1;
   width: 100%;
+  max-width: 100%;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: clamp(1rem, 3vw, 2rem) 1rem 2rem;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+`
+
+export const PageHeader = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+
+    h1 {
+      color: ${(props) => props.theme['gray-100']};
+      font-size: 1.5rem;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+  }
 `
 
 export const FiltersContainer = styled.div`
   width: min(100%, 64rem);
+  max-width: 100%;
   padding: clamp(1rem, 3vw, 1.4rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+  }
 `
 
 export const DataContainer = styled.div`
@@ -24,6 +58,10 @@ export const DataContainer = styled.div`
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+
+  form {
+    max-width: 100%;
+  }
 
   input {
     min-height: 2.75rem;
@@ -38,8 +76,18 @@ export const DataContainer = styled.div`
     flex-direction: column;
     align-items: stretch;
 
+    form {
+      width: 100%;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
     input {
       width: 100%;
+      max-width: 100%;
     }
   }
 `
@@ -65,13 +113,20 @@ export const Filter = styled.div`
     flex-direction: column;
     align-items: stretch;
 
+    p {
+      width: 100%;
+    }
+
     select {
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
   }
 `
 
 export const SearchButton = styled.div`
+  max-width: 100%;
   background: ${(props) => props.theme['green-500']};
   color: ${(props) => props.theme.white};
   min-height: 2.9rem;
@@ -89,23 +144,51 @@ export const SearchButton = styled.div`
     filter: brightness(1.1);
     transform: translateY(-1px);
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+  }
 `
 
 export const ReportsContainer = styled.div`
+  width: 100%;
+  max-width: 100%;
   margin-top: 1rem;
   background: rgba(18, 18, 20, 0.36);
   padding: 0.75rem;
   border-radius: ${(props) => props.theme['radius-lg']};
   border: 1px solid rgba(255, 255, 255, 0.07);
+  overflow-x: hidden;
+
+  h3 {
+    color: ${(props) => props.theme['gray-100']};
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
 `
 
 export const Delivery = styled.div`
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: ${(props) => props.theme['gray-700']};
   padding: 1rem;
   margin: 0.65rem 0;
   border-radius: ${(props) => props.theme['radius-lg']};
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: ${(props) => props.theme['shadow-soft']};
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    margin: 0.75rem 0;
+  }
 `
 
 export const ContainerShopkeeper = styled.div`
@@ -113,6 +196,7 @@ export const ContainerShopkeeper = styled.div`
   align-items: center;
   gap: 0.8rem;
   min-width: 0;
+  max-width: 100%;
 `
 
 export const ShopkeeperProfileImage = styled.img`
@@ -143,6 +227,9 @@ export const ShopkeeperInfo = styled.div`
 `
 
 export const ContainerOrder = styled.div`
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0.85rem 0 0;
   padding: 0.85rem;
   border-radius: ${(props) => props.theme['radius-md']};
@@ -155,10 +242,19 @@ export const ContainerOrder = styled.div`
 `
 
 export const ContainerInfo = styled.div`
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0.85rem 0 0;
+
+  p {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
 `
 
 export const EditContainer = styled.div`
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -166,6 +262,7 @@ export const EditContainer = styled.div`
 `
 
 export const OnClickLink = styled(Link)`
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;

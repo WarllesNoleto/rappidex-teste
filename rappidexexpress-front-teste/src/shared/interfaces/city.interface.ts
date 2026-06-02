@@ -7,4 +7,8 @@ export interface City {
   deliveryValue?: string;
   deliveryFeeValue?: number;
   pixKey?: string;
+  adminWhatsapp?: string;
+  whatsappPhoneNumberId?: string;
+  whatsappCloudToken?: string;
+  whatsappCloudTokenConfigured?: boolean;
 }

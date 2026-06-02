@@ -96,6 +96,27 @@ export const CityTextarea = styled.textarea`
   }
 `
 
+export const FormSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: ${(props) => props.theme['radius-md']};
+  background: rgba(255, 255, 255, 0.03);
+`
+
+export const SectionTitle = styled.h2`
+  font-size: 1rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.white};
+`
+
+export const SectionDescription = styled.p`
+  font-size: 0.875rem;
+  color: ${(props) => props.theme['gray-400']};
+`
+
 export const FormActions = styled.div`
   display: flex;
   gap: 0.75rem;

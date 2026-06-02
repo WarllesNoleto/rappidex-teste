@@ -14,7 +14,7 @@ export const Content = styled.div`
   max-width: 720px;
   padding: clamp(1rem, 2vw, 1.25rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
   display: flex;
@@ -48,7 +48,7 @@ export const CityInput = styled.input`
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
 
@@ -66,7 +66,7 @@ export const CitySelect = styled.select`
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
 
@@ -171,7 +171,7 @@ export const CityCard = styled.div<CityCardProps>`
   gap: 1rem;
   width: 100%;
   border: 1px solid
-    ${(props) => (props.$isSelected ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)')};
+    ${(props) => (props.$isSelected ? props.theme['green-500'] : 'color-mix(in srgb, var(--border) 8%, transparent)')};
 `
 
 export const CityInfo = styled.div`

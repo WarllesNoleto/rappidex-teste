@@ -11,9 +11,9 @@ export const HeaderContainer = styled.header`
   gap: 1rem;
   padding: 0.35rem 0 1rem;
   margin-bottom: 0.25rem;
-  background: linear-gradient(180deg, rgba(32, 32, 36, 0.98), rgba(32, 32, 36, 0.78));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--background-secondary) 98%, transparent), color-mix(in srgb, var(--background-secondary) 78%, transparent));
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 6%, transparent);
 
   @media (max-width: 768px) {
     padding: 0.35rem 0.15rem 0.85rem;
@@ -25,8 +25,8 @@ export const DesktopMenu = styled.nav`
   gap: 0.45rem;
   padding: 0.25rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--border) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 6%, transparent);
 
   a {
     width: 3rem;
@@ -44,8 +44,8 @@ export const DesktopMenu = styled.nav`
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
     &:hover {
-      background: rgba(0, 179, 126, 0.1);
-      border-color: rgba(0, 179, 126, 0.24);
+      background: color-mix(in srgb, var(--action-green) 10%, transparent);
+      border-color: color-mix(in srgb, var(--action-green) 24%, transparent);
       color: ${(props) => props.theme['green-300']};
       transform: translateY(-1px);
     }
@@ -54,7 +54,7 @@ export const DesktopMenu = styled.nav`
       background: ${(props) => props.theme['green-700']};
       border-color: ${(props) => props.theme['green-500']};
       color: ${(props) => props.theme.white};
-      box-shadow: 0 0.65rem 1.2rem rgba(0, 135, 95, 0.2);
+      box-shadow: 0 0.65rem 1.2rem color-mix(in srgb, var(--action-green) 20%, transparent);
     }
   }
 
@@ -69,7 +69,7 @@ export const MobileMenuButton = styled.button`
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
   border-radius: 0.875rem;
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
@@ -113,7 +113,7 @@ export const MobileMenuDrawer = styled.aside`
     ${(props) => props.theme['gray-800']} 0%,
     ${(props) => props.theme['gray-900']} 100%
   );
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
   border-radius: 1.25rem 0 0 1.25rem;
   box-shadow: -1.25rem 0 2.5rem rgba(0, 0, 0, 0.35);
   display: flex;
@@ -149,11 +149,11 @@ export const MobileMenuHeader = styled.div`
   gap: 1rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
   background: linear-gradient(
     180deg,
     ${(props) => props.theme['gray-800']} 0%,
-    rgba(32, 32, 36, 0.96) 100%
+    color-mix(in srgb, var(--background-secondary) 96%, transparent) 100%
   );
 
   strong {
@@ -171,16 +171,16 @@ export const MobileCloseButton = styled.button`
   justify-content: center;
   width: 2.4rem;
   height: 2.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--border) 4%, transparent);
   color: ${(props) => props.theme['gray-100']};
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
 
   &:hover,
   &:active {
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--border) 8%, transparent);
     border-color: ${(props) => props.theme['green-500']};
   }
 `
@@ -219,12 +219,12 @@ export const MobileMenuLink = styled(NavLink)`
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--border) 6%, transparent);
+    border-color: color-mix(in srgb, var(--border) 10%, transparent);
   }
 
   &.active:not([data-ignore-active='true']) {
-    background: rgba(0, 135, 95, 0.22);
+    background: color-mix(in srgb, var(--action-green) 22%, transparent);
     border-color: ${(props) => props.theme['green-500']};
     color: ${(props) => props.theme.white};
   }
@@ -239,5 +239,5 @@ export const RappidexLogo = styled.img`
   width: 2.35rem;
   border-radius: 100%;
   object-fit: cover;
-  box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
 `;

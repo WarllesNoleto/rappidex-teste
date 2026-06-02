@@ -13,16 +13,16 @@ export const DeliveryContainer = styled.div`
   width: min(100%, 42rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
   padding: clamp(0.75rem, 2vw, 1.25rem);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
 `
 
 export const Delivery = styled.div`
-  background: rgba(255, 255, 255, 0.035);
+  background: color-mix(in srgb, var(--border) 4%, transparent);
   padding: clamp(0.9rem, 2vw, 1.1rem);
   border-radius: ${(props) => props.theme['radius-lg']};
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid color-mix(in srgb, var(--border) 7%, transparent);
 `
 
 export const ContainerShopkeeper = styled.div`
@@ -47,7 +47,7 @@ export const ProfileImageContainer = styled.div`
   height: 5rem;
   width: 5rem;
   border-radius: 100%;
-  border: 2px solid rgba(0, 179, 126, 0.28);
+  border: 2px solid color-mix(in srgb, var(--action-green) 28%, transparent);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
@@ -73,8 +73,8 @@ export const ContainerOrder = styled.div`
   gap: 0.45rem;
   padding: 0.9rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: rgba(18, 18, 20, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--background-primary) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 7%, transparent);
 
   p {
     line-height: 1.45;
@@ -96,7 +96,7 @@ export const ContainerInfo = styled.div`
   select {
     width: 100%;
     min-height: 2.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
     border-radius: ${(props) => props.theme['radius-md']};
     background-color: ${(props) => props.theme['gray-800']};
     color: ${(props) => props.theme['gray-100']};
@@ -104,7 +104,7 @@ export const ContainerInfo = styled.div`
 
     &:focus {
       border-color: ${(props) => props.theme['green-500']};
-      box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
     }
   }
 `

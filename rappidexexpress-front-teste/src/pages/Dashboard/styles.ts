@@ -270,11 +270,24 @@ export const ShopkeeperInfo = styled.div`
 
 export const ContainerOrder = styled.div`
   margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   max-width: 100%;
   min-width: 0;
+  padding: 0.85rem;
+  border-radius: 0.875rem;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.055),
+    rgba(255, 255, 255, 0.028)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 
   @media (max-width: 480px) {
     margin: 0.75rem;
+    padding: 0.75rem;
   }
 `;
 
@@ -313,6 +326,16 @@ export const ContainerInfo = styled.div`
 interface InfoSectionProps {
   $variant?: 'main' | 'operational'
 }
+
+export const SectionTitle = styled.h3`
+  margin: 0;
+  color: ${(props) => props.theme['gray-100']};
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+`;
 
 export const InfoSection = styled.div<InfoSectionProps>`
   display: flex;
@@ -372,12 +395,33 @@ export const InfoValue = styled.span`
   }
 `;
 
+export const OperationalPanel = styled.div`
+  margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0.85rem;
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  @media (max-width: 480px) {
+    margin: 0.75rem;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+`;
+
 export const OrderActions = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
+  padding-top: 0.15rem;
 `;
 
 interface OrderProps {
@@ -385,25 +429,36 @@ interface OrderProps {
 }
 
 export const OrderButton = styled.div<OrderProps>`
+  min-height: 2.75rem;
+  min-width: 7.5rem;
   background: ${(props) =>
     props.typebutton ? props.theme['green-500'] : props.theme['red-700']};
-  border: none;
-  border-radius: 10%;
-  margin-top: 1rem;
-  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
 
-  font-weight: bold;
-  color: ${(props) => props.theme['gray-300']};
+  font-weight: 800;
+  color: ${(props) => props.theme['gray-100']};
+  line-height: 1.2;
 
   cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0.45rem 1rem rgba(0, 0, 0, 0.16);
+
+  &:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
 
   @media (max-width: 480px) {
-    padding: 0.85rem;
-    min-width: 110px;
+    width: 100%;
+    min-width: 0;
+    padding: 0.8rem;
   }
 `;
 
@@ -412,31 +467,55 @@ export const SelectContainer = styled.div`
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  gap: 0.25rem;
-  margin: 1rem;
+  gap: 0.45rem;
   max-width: 100%;
   min-width: 0;
 
+  label {
+    color: ${(props) => props.theme['gray-300']};
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.35;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    opacity: 0.86;
+  }
+
   select,
   input {
-    height: 2.5rem;
-    background: ${(props) => props.theme['gray-600']};
+    height: 2.75rem;
+    background: rgba(39, 39, 42, 0.82);
     color: ${(props) => props.theme['gray-100']};
-    width: 100%;
+    width: min(100%, 34rem);
     max-width: 100%;
     min-width: 0;
     white-space: normal;
-    border: 1px solid ${(props) => props.theme['gray-500']};
-    border-radius: 0.4rem;
-    padding: 0 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.7rem;
+    padding: 0 0.85rem;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+
+  select:focus,
+  input:focus {
+    border-color: ${(props) => props.theme['green-500']};
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+  }
+
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
   }
 
   @media (max-width: 480px) {
-    margin: 0.75rem;
-
     select,
     input {
-      height: 2.3rem;
+      width: 100%;
+      height: 2.55rem;
       font-size: 0.95rem;
     }
   }
@@ -449,11 +528,12 @@ export const ContainerLoading = styled.div`
 `;
 
 export const ContainerStatus = styled.div`
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  max-width: 100%;
 `;
 
 interface StatusProps {
@@ -461,8 +541,25 @@ interface StatusProps {
 }
 
 export const Status = styled.p<StatusProps>`
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
   background-color: ${(props) =>
-    props.type === StatusDelivery.ONCOURSE ? 'blue' : 'green'};
+    props.type === StatusDelivery.ONCOURSE
+      ? 'rgba(37, 99, 235, 0.92)'
+      : props.theme['green-700']};
+  color: ${(props) => props.theme['gray-100']};
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 export const Flag = styled.p`

@@ -17,8 +17,8 @@ export const Container = styled.main`
     justify-content: center;
     padding: clamp(1.25rem, 4vw, 2rem);
     border-radius: ${(props) => props.theme['radius-xl']};
-    background: linear-gradient(145deg, rgba(41, 41, 46, 0.96), rgba(18, 18, 20, 0.96));
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--card) 96%, transparent), color-mix(in srgb, var(--background-primary) 96%, transparent));
+    border: 1px solid color-mix(in srgb, var(--border) 8%, transparent);
     box-shadow: ${(props) => props.theme['shadow-card']};
   }
 `
@@ -61,9 +61,9 @@ export const FormContainer = styled.div`
 export const BaseInput = styled.input`
   width: 100%;
   min-height: 2.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--border) 12%, transparent);
   border-radius: ${(props) => props.theme['radius-md']};
-  background: rgba(18, 18, 20, 0.82);
+  background: color-mix(in srgb, var(--background-primary) 82%, transparent);
   padding: 0 0.9rem;
   font-weight: 700;
   color: ${(props) => props.theme['gray-100']};
@@ -71,7 +71,7 @@ export const BaseInput = styled.input`
 
   &:focus {
     border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action-green) 16%, transparent);
   }
 
   &::placeholder {
@@ -85,5 +85,5 @@ export const Logo = styled.img`
   border-radius: 100%;
   margin-bottom: 1.5rem;
   object-fit: cover;
-  box-shadow: 0 0 0 0.5rem rgba(0, 179, 126, 0.08);
+  box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--action-green) 8%, transparent);
 `

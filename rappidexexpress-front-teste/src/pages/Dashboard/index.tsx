@@ -33,6 +33,7 @@ import {
   ContainerStatus,
   Delivery,
   Flag,
+  IfoodStoreBadge,
   Link,
   OrderActions,
   OrderButton,
@@ -218,8 +219,15 @@ const DeliveryCard = memo(
     );
     const ifoodClientAddress = report.clientAddress || getIfoodClientAddress(report.observation);
     const googleMapsAddressLink = getGoogleMapsLinkFromAddress(ifoodClientAddress);
-    const nomeLojaCard = report.ifoodMerchantName || report.establishmentName;
-    const localizacaoLojaCard = report.ifoodMerchantLocation || report.establishmentLocation;
+    const ifoodMerchantName = String(report.ifoodMerchantName || "").trim();
+    const ifoodMerchantLocation = String(report.ifoodMerchantLocation || "").trim();
+    const ifoodMerchantId = String(report.ifoodMerchantId || "").trim();
+    const nomeLojaCard = isIfoodOrder
+      ? ifoodMerchantName || ifoodMerchantId || report.establishmentName
+      : report.establishmentName;
+    const localizacaoLojaCard = isIfoodOrder
+      ? ifoodMerchantLocation
+      : report.establishmentLocation;
     const motoboySelectId = `motoboy-${report.id}`;
     const shouldShowDeliveryCodeInput =
       isIfoodOrder &&
@@ -252,6 +260,7 @@ const DeliveryCard = memo(
           </ContainerImagem>
 
           <ShopkeeperInfo>
+            {isIfoodOrder && <IfoodStoreBadge>Loja iFood</IfoodStoreBadge>}
             <p>{nomeLojaCard}</p>
 
             <Link
@@ -266,13 +275,15 @@ const DeliveryCard = memo(
               <WhatsappLogo size={18} />
             </Link>
 
-            <Link
-              href={localizacaoLojaCard}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <p>Localização</p> <MapPin size={18} />
-            </Link>
+            {localizacaoLojaCard && (
+              <Link
+                href={localizacaoLojaCard}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <p>{isIfoodOrder ? "Abrir localização" : "Localização"}</p> <MapPin size={18} />
+              </Link>
+            )}
           </ShopkeeperInfo>
         </ContainerShopkeeper>
 
@@ -297,7 +308,7 @@ const DeliveryCard = memo(
         <ContainerInfo>
           <div>
             {isIfoodOrder && <p>Pedido iFood: {ifoodOrderNumber || "Não informado"}</p>}
-            {isIfoodOrder && <p>Loja iFood: {report.ifoodMerchantName || report.ifoodMerchantId || "Não informada"}</p>}
+            {isIfoodOrder && <p>Loja iFood: {ifoodMerchantName || ifoodMerchantId || "Não informada"}</p>}
 
             <p>Cliente: {report.clientName}</p>
             {statusFilter !== StatusDelivery.PENDING && ifoodClientAddress && (

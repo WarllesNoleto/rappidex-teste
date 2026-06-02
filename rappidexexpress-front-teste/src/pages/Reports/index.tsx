@@ -18,6 +18,7 @@ import {
     ShopkeeperProfileImage,
     EditContainer,
     OnClickLink,
+    PageHeader,
 } from "./styles";
 import api from "../../services/api";
 import { DeliveryContext } from "../../context/DeliveryContext";
@@ -215,6 +216,11 @@ export function Reports() {
 
     return (
         <Container>
+            {!loadingInitial && (
+                <PageHeader>
+                    <h1>Relatórios</h1>
+                </PageHeader>
+            )}
             {loadingInitial ? 
                 <Loader size={40} biggestColor='gray' smallestColor='gray' /> :
                 <FiltersContainer>

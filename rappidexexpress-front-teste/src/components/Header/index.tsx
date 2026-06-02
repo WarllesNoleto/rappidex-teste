@@ -1,4 +1,5 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NavLink } from 'react-router-dom'
 import {
   Hamburger,
@@ -21,6 +22,7 @@ import {
   MobileMenuDrawer,
   MobileMenuHeader,
   MobileMenuLink,
+  MobileMenuList,
   MobileMenuOverlay,
   RappidexLogo,
 } from './styles'
@@ -29,6 +31,19 @@ import { DeliveryContext } from '../../context/DeliveryContext'
 export function Header() {
   const { logout, permission } = useContext(DeliveryContext)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isMobileMenuOpen])
 
   function handleLogout(){
     logout()
@@ -103,7 +118,7 @@ export function Header() {
         <List size={26} />
       </MobileMenuButton>
 
-      {isMobileMenuOpen && (
+      {isMobileMenuOpen && createPortal(
         <MobileMenuOverlay onClick={closeMobileMenu}>
           <MobileMenuDrawer onClick={(event) => event.stopPropagation()}>
             <MobileMenuHeader>
@@ -117,48 +132,55 @@ export function Header() {
               </MobileCloseButton>
             </MobileMenuHeader>
 
-            {canAccessAdminMenu && (
-              <MobileMenuLink to="/novo-usuario" onClick={closeMobileMenu}>
-                <UserPlus size={21} />
-                <span>Clientes</span>
+            <MobileMenuList aria-label="Navegação mobile">
+              {canAccessAdminMenu && (
+                <MobileMenuLink to="/novo-usuario" onClick={closeMobileMenu}>
+                  <UserPlus size={21} />
+                  <span>Clientes</span>
+                </MobileMenuLink>
+              )}
+              {canAccessAdminMenu && (
+                <MobileMenuLink to="/clientes-ifood" onClick={closeMobileMenu}>
+                  <Storefront size={21} />
+                  <span>Lojas iFood</span>
+                </MobileMenuLink>
+              )}
+              {permission === 'superadmin' && (
+                <MobileMenuLink to="/cidades" onClick={closeMobileMenu}>
+                  <MapPin size={21} />
+                  <span>Localização</span>
+                </MobileMenuLink>
+              )}
+              {canCreateDelivery && (
+                <MobileMenuLink to="/nova-entrega" onClick={closeMobileMenu}>
+                  <FilePlus size={21} />
+                  <span>Nova entrega</span>
+                </MobileMenuLink>
+              )}
+              <MobileMenuLink to="/" end onClick={closeMobileMenu}>
+                <Hamburger size={21} />
+                <span>Pedidos</span>
               </MobileMenuLink>
-            )}
-            {canAccessAdminMenu && (
-              <MobileMenuLink to="/clientes-ifood" onClick={closeMobileMenu}>
-                <Storefront size={21} />
-                <span>Lojas iFood</span>
+              <MobileMenuLink to="/relatorios" onClick={closeMobileMenu}>
+                <Scroll size={21} />
+                <span>Relatórios</span>
               </MobileMenuLink>
-            )}
-            {permission === 'superadmin' && (
-              <MobileMenuLink to="/cidades" onClick={closeMobileMenu}>
-                <MapPin size={21} />
-                <span>Localização</span>
+              <MobileMenuLink to="/perfil" onClick={closeMobileMenu}>
+                <User size={21} />
+                <span>Perfil</span>
               </MobileMenuLink>
-            )}
-            {canCreateDelivery && (
-              <MobileMenuLink to="/nova-entrega" onClick={closeMobileMenu}>
-                <FilePlus size={21} />
-                <span>Nova entrega</span>
+              <MobileMenuLink
+                to="/"
+                data-ignore-active="true"
+                onClick={handleMobileLogout}
+              >
+                <SignOut size={21} />
+                <span>Sair</span>
               </MobileMenuLink>
-            )}
-            <MobileMenuLink to="/" onClick={closeMobileMenu}>
-              <Hamburger size={21} />
-              <span>Pedidos</span>
-            </MobileMenuLink>
-            <MobileMenuLink to="/relatorios" onClick={closeMobileMenu}>
-              <Scroll size={21} />
-              <span>Relatórios</span>
-            </MobileMenuLink>
-            <MobileMenuLink to="/perfil" onClick={closeMobileMenu}>
-              <User size={21} />
-              <span>Perfil</span>
-            </MobileMenuLink>
-            <MobileMenuLink to="/" onClick={handleMobileLogout}>
-              <SignOut size={21} />
-              <span>Sair</span>
-            </MobileMenuLink>
+            </MobileMenuList>
           </MobileMenuDrawer>
-        </MobileMenuOverlay>
+        </MobileMenuOverlay>,
+        document.body,
       )}
     </HeaderContainer>
   )

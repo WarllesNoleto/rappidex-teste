@@ -33,6 +33,7 @@ import api from "../../services/api";
 import { DeliveryContext } from "../../context/DeliveryContext";
 import { User, Report } from "../../shared/interfaces";
 import { Loader } from "../../components/Loader";
+import { createLocalDate } from "../../shared/utils/deliveryPerformance";
 
 export function Reports() {
   const { token, permission } = useContext(DeliveryContext);
@@ -88,10 +89,10 @@ export function Reports() {
       param = `${param}&establishmentId=${selectedEstablishment}`;
     }
     if (createdIn) {
-      param = `${param}&createdIn=${createdIn}T00:00:00.000Z`;
+      param = `${param}&createdIn=${encodeURIComponent(createLocalDate(createdIn).toISOString())}`;
     }
     if (createdUntil) {
-      param = `${param}&createdUntil=${createdUntil}T23:59:59.000Z`;
+      param = `${param}&createdUntil=${encodeURIComponent(createLocalDate(createdUntil, true).toISOString())}`;
     }
 
     try {
@@ -135,10 +136,10 @@ export function Reports() {
       param = `${param}&establishmentId=${selectedEstablishment}`;
     }
     if (createdIn) {
-      param = `${param}&createdIn=${createdIn}T00:00:00.000Z`;
+      param = `${param}&createdIn=${encodeURIComponent(createLocalDate(createdIn).toISOString())}`;
     }
     if (createdUntil) {
-      param = `${param}&createdUntil=${createdUntil}T23:59:59.000Z`;
+      param = `${param}&createdUntil=${encodeURIComponent(createLocalDate(createdUntil, true).toISOString())}`;
     }
 
     try {

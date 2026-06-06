@@ -5,6 +5,7 @@ import { StatusDelivery } from "../../constants/enums.constants";
 import type { City, Report } from "../../interfaces";
 import {
   calculateDeliveryPerformance,
+  createLocalDate,
   getRappidexWeekRange,
 } from "../deliveryPerformance";
 
@@ -39,6 +40,24 @@ function report(overrides: Partial<Report>): Report {
   };
 }
 
+test("cria limites locais inclusivos para o filtro manual", () => {
+  assert.deepEqual(
+    createLocalDate("2026-06-02"),
+    new Date(2026, 5, 2, 0, 0, 0, 0),
+  );
+  assert.deepEqual(
+    createLocalDate("2026-06-02", true),
+    new Date(2026, 5, 2, 23, 59, 59, 999),
+  );
+});
+
+test("sábado usa a semana inclusiva de terça a segunda", () => {
+  const { start, end } = getRappidexWeekRange(new Date(2026, 5, 6, 12));
+
+  assert.deepEqual(start, new Date(2026, 5, 2, 0, 0, 0, 0));
+  assert.deepEqual(end, new Date(2026, 5, 8, 23, 59, 59, 999));
+});
+
 test("segunda-feira pertence à semana iniciada na terça anterior", () => {
   const { start, end } = getRappidexWeekRange(new Date(2026, 5, 8, 12));
 
@@ -59,9 +78,28 @@ test("conta somente entregas finalizadas do motoboy e usa o valor da cidade", ()
     report({ id: "end", finishedAt: "2026-06-08T23:59:59.999" }),
     report({ id: "previous-week", finishedAt: "2026-06-01T23:59:59.999" }),
     report({ id: "next-week", finishedAt: "2026-06-09T00:00:00" }),
-    report({ id: "canceled", status: StatusDelivery.CANCELED, finishedAt: "2026-06-04T12:00:00" }),
-    report({ id: "in-route", status: StatusDelivery.ONCOURSE, finishedAt: "2026-06-04T12:00:00" }),
-    report({ id: "other-motoboy", motoboyId: "motoboy-2", finishedAt: "2026-06-04T12:00:00" }),
+    report({
+      id: "canceled",
+      status: StatusDelivery.CANCELED,
+      finishedAt: "2026-06-04T12:00:00",
+    }),
+    report({
+      id: "in-route",
+      status: StatusDelivery.ONCOURSE,
+      finishedAt: "2026-06-04T12:00:00",
+    }),
+    report({
+      id: "other-motoboy",
+      motoboyId: "motoboy-2",
+      finishedAt: "2026-06-04T12:00:00",
+    }),
+    report({
+      id: "nested-motoboy",
+      motoboyId: "",
+      motoboy: { id: "motoboy-1" },
+      finishedAt: "2026-06-03T12:00:00",
+    }),
+    report({ id: "no-finished-date", createdAt: "2026-06-03T12:00:00" }),
   ];
 
   const performance = calculateDeliveryPerformance(
@@ -71,7 +109,7 @@ test("conta somente entregas finalizadas do motoboy e usa o valor da cidade", ()
     new Date(2026, 5, 8, 12),
   );
 
-  assert.deepEqual(performance.week, { count: 2, total: 17 });
+  assert.deepEqual(performance.week, { count: 3, total: 25.5 });
 });
 
 test("prioriza finishedAt e usa datas alternativas somente quando necessário", () => {

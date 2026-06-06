@@ -16,6 +16,20 @@ type DateRange = {
   end: Date;
 };
 
+export function createLocalDate(dateString: string, endOfDay = false): Date {
+  const [year, month, day] = dateString.split("-").map(Number);
+
+  return new Date(
+    year,
+    month - 1,
+    day,
+    endOfDay ? 23 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 999 : 0,
+  );
+}
+
 export function getTodayRange(referenceDate = new Date()): DateRange {
   const start = new Date(referenceDate);
   start.setHours(0, 0, 0, 0);
@@ -74,8 +88,10 @@ function getFinishedDate(report: Report): Date | null {
   const finishedDateValue =
     report.finishedAt ||
     report.completedAt ||
-    report.updatedAt ||
-    report.createdAt;
+    report.finalizedAt ||
+    report.updatedAt;
+
+  if (!finishedDateValue) return null;
   const finishedDate = new Date(finishedDateValue);
 
   return Number.isNaN(finishedDate.getTime()) ? null : finishedDate;
@@ -117,10 +133,14 @@ export function calculateDeliveryPerformance(
   });
 
   reports.forEach((report) => {
-    if (
-      report.status !== StatusDelivery.FINISHED ||
-      String(report.motoboyId) !== String(motoboyId)
-    ) {
+    const normalizedStatus = String(report.status).toUpperCase();
+    const isFinished =
+      normalizedStatus === StatusDelivery.FINISHED ||
+      normalizedStatus === "COMPLETED";
+    const assignedMotoboyId =
+      report.motoboyId || report.motoboy?._id || report.motoboy?.id;
+
+    if (!isFinished || String(assignedMotoboyId) !== String(motoboyId)) {
       return;
     }
 

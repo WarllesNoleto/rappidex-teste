@@ -133,8 +133,8 @@ export const SubmitButton = styled.button`
   padding: 0.75rem 1.5rem;
   border-radius: ${(props) => props.theme['radius-md']};
   border: 0;
-  background: ${(props) => props.theme['brand-yellow']};
-  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.white};
   font-weight: 700;
   cursor: pointer;
   transition: filter 0.2s;
@@ -192,7 +192,7 @@ export const CityCard = styled.div<CityCardProps>`
   gap: 1rem;
   width: 100%;
   border: 1px solid
-    ${(props) => (props.$isSelected ? props.theme['brand-yellow'] : 'rgba(255, 255, 255, 0.08)')};
+    ${(props) => (props.$isSelected ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)')};
 `
 
 export const CityInfo = styled.div`
@@ -245,8 +245,8 @@ export const CityActionButton = styled.button<CityActionButtonProps>`
   background: ${(props) =>
     props.$variant === 'secondary'
       ? props.theme['gray-500']
-      : props.theme['brand-yellow']};
-  color: ${(props) => props.$variant === 'secondary' ? props.theme.white : props.theme.black};
+      : props.theme['green-500']};
+  color: ${(props) => props.theme.white};
   display: flex;
   align-items: center;
   justify-content: center;

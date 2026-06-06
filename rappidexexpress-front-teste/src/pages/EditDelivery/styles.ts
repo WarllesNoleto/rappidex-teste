@@ -47,7 +47,7 @@ export const ProfileImageContainer = styled.div`
   height: 5rem;
   width: 5rem;
   border-radius: 100%;
-  border: 2px solid rgba(255, 196, 0, 0.28);
+  border: 2px solid rgba(0, 179, 126, 0.28);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
@@ -73,7 +73,7 @@ export const ContainerOrder = styled.div`
   gap: 0.45rem;
   padding: 0.9rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: rgba(18, 18, 20, 0.36);
+  background: rgba(18, 18, 20, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.07);
 
   p {
@@ -103,8 +103,8 @@ export const ContainerInfo = styled.div`
     padding: 0 0.9rem;
 
     &:focus {
-      border-color: ${(props) => props.theme['brand-yellow']};
-      box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+      border-color: ${(props) => props.theme['green-500']};
+      box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
     }
   }
 `

@@ -13,8 +13,8 @@ export const BaseInput = styled.input`
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: ${(props) => props.theme['brand-yellow']};
-    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+    border-color: ${(props) => props.theme['green-500']};
+    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
   }
 
   &::placeholder {
@@ -38,8 +38,8 @@ export const BaseButton = styled.button`
   gap: 0.5rem;
   font-weight: 800;
   cursor: pointer;
-  background: ${(props) => props.theme['brand-yellow']};
-  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.white};
   transition: filter 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 
   &:not(:disabled):hover {

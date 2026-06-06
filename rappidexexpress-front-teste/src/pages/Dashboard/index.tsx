@@ -1646,7 +1646,9 @@ export function Dashboard() {
             </PerformanceMetric>
           </PerformanceMetrics>
           <PerformanceHint>
-            Clique para ver {performancePeriod === "week" ? "hoje" : "a semana"}
+            {performancePeriod === "week"
+              ? "Semana de terça a segunda • Clique para ver hoje"
+              : "Clique para ver a semana"}
           </PerformanceHint>
         </PerformanceCard>
       )}

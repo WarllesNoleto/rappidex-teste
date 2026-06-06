@@ -77,7 +77,6 @@ export function Cities() {
   const [cityName, setCityName] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [cityWhatsappMessage, setCityWhatsappMessage] = useState("");
-  const [deliveryFeeValue, setDeliveryFeeValue] = useState("");
   const [deliveryValue, setDeliveryValue] = useState("");
   const [pixKey, setPixKey] = useState("");
   const [editingCityId, setEditingCityId] = useState<string | null>(null);
@@ -143,7 +142,6 @@ export function Cities() {
     setCityName("");
     setSelectedState("");
     setCityWhatsappMessage("");
-    setDeliveryFeeValue("");
     setDeliveryValue("");
     setPixKey("");
     setEditingCityId(null);
@@ -153,21 +151,18 @@ export function Cities() {
     setCityName(city.name ?? "");
     setSelectedState(city.state ?? "");
     setCityWhatsappMessage(city.clientWhatsappMessage ?? "");
-    setDeliveryFeeValue(
+    setDeliveryValue(
       city.deliveryFeeValue !== undefined
         ? String(city.deliveryFeeValue).replace(".", ",")
-        : "",
+        : (city.deliveryValue ?? ""),
     );
-    setDeliveryValue(city.deliveryValue ?? "");
     setPixKey(city.pixKey ?? "");
     setEditingCityId(city.id ? String(city.id) : null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function parseDeliveryFeeValue(value: string) {
-    const normalized = value.trim().replace(/\./g, "").replace(",", ".");
-    if (!normalized) return undefined;
-
+    const normalized = value.replace(/\./g, "").replace(",", ".");
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : undefined;
   }
@@ -188,8 +183,8 @@ export function Cities() {
       name: trimmedName,
       state: selectedState,
       clientWhatsappMessage: cityWhatsappMessage.trim(),
-      deliveryFeeValue: parseDeliveryFeeValue(deliveryFeeValue),
       deliveryValue: deliveryValue.trim(),
+      deliveryFeeValue: parseDeliveryFeeValue(deliveryValue),
       pixKey: pixKey.trim(),
     };
 
@@ -301,14 +296,7 @@ export function Cities() {
           </CitySelect>
 
           <CityInput
-            placeholder="Valor cobrado do estabelecimento por entrega. Ex: 10,00"
-            value={deliveryFeeValue}
-            onChange={(event) => setDeliveryFeeValue(event.target.value)}
-            disabled={isSubmitting}
-          />
-
-          <CityInput
-            placeholder="Valor pago ao entregador por entrega. Ex: 7,00"
+            placeholder="Valor da entrega para fechamento. Ex: 7,00"
             value={deliveryValue}
             onChange={(event) => setDeliveryValue(event.target.value)}
             disabled={isSubmitting}
@@ -374,19 +362,15 @@ export function Cities() {
                     <CityName>{city.name}</CityName>
                     <CityState>{getStateLabel(city.state)}</CityState>
                     <CityState>
-                      Valor cobrado do estabelecimento por entrega:{" "}
+                      Valor da entrega para fechamento:{" "}
                       {city.deliveryFeeValue !== undefined
                         ? city.deliveryFeeValue.toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",
                           })
-                        : "não configurado"}
-                    </CityState>
-                    <CityState>
-                      Valor pago ao entregador por entrega:{" "}
-                      {city.deliveryValue?.trim()
-                        ? `R$ ${city.deliveryValue}`
-                        : "não configurado"}
+                        : city.deliveryValue?.trim()
+                          ? `R$ ${city.deliveryValue}`
+                          : "não configurado"}
                     </CityState>
                     <CityState>
                       Chave PIX: {city.pixKey?.trim() || "não configurada"}

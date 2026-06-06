@@ -21,7 +21,6 @@ export interface Report {
     establishmentLocation: string;
     establishmentPix: string;
     establishmentCityId?: string;
-    cityId?: string;
     id: string;
     isActive: boolean;
     motoboyId: string;

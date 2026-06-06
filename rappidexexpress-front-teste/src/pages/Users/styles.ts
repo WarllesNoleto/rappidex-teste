@@ -28,7 +28,7 @@ interface FilterProps {
 export const Filter = styled.div<FilterProps>`
   flex: 1 1 10rem;
   min-height: 2.9rem;
-  border: 1px solid ${(props) => props.isSelected ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.1)'};
+  border: 1px solid ${(props) => props.isSelected ? props.theme['brand-yellow'] : 'rgba(255, 255, 255, 0.1)'};
   padding: 0.75rem 1rem;
   border-radius: 999px;
   display: flex;
@@ -37,13 +37,13 @@ export const Filter = styled.div<FilterProps>`
   gap: 0.5rem;
   font-weight: 800;
   cursor: pointer;
-  background: ${(props) => props.isSelected ? 'rgba(0, 179, 126, 0.18)' : props.theme['gray-700']};
-  color: ${(props) => props.isSelected ? props.theme['green-300'] : props.theme['gray-300']};
+  background: ${(props) => props.isSelected ? 'rgba(255, 196, 0, 0.18)' : props.theme['gray-700']};
+  color: ${(props) => props.isSelected ? props.theme['brand-yellow-hover'] : props.theme['gray-300']};
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
-    border-color: ${(props) => props.theme['green-500']};
+    border-color: ${(props) => props.theme['brand-yellow']};
   }
 `
 
@@ -72,7 +72,7 @@ export const UserContainer = styled.div`
   transition: border-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: rgba(0, 179, 126, 0.35);
+    border-color: rgba(255, 196, 0, 0.35);
     transform: translateY(-1px);
   }
 `
@@ -81,7 +81,7 @@ export const ContainerProfileImage = styled.div`
   height: 4.75rem;
   width: 4.75rem;
   border-radius: 100%;
-  border: 2px solid rgba(0, 179, 126, 0.22);
+  border: 2px solid rgba(255, 196, 0, 0.22);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
@@ -117,8 +117,8 @@ export const LoadMoreButton = styled.button`
   border-radius: ${(props) => props.theme['radius-md']};
   font-weight: 800;
   cursor: pointer;
-  color: ${(props) => props.theme.white};
-  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['brand-yellow']};
   transition: filter 0.2s ease, transform 0.2s ease;
 
   &:not(:disabled):hover {

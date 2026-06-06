@@ -17,7 +17,7 @@ export const Container = styled.main`
     justify-content: center;
     padding: clamp(1.25rem, 4vw, 2rem);
     border-radius: ${(props) => props.theme['radius-xl']};
-    background: linear-gradient(145deg, rgba(41, 41, 46, 0.96), rgba(18, 18, 20, 0.96));
+    background: linear-gradient(145deg, ${(props) => props.theme['gray-800']}, ${(props) => props.theme['gray-900']});
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: ${(props) => props.theme['shadow-card']};
   }
@@ -35,8 +35,8 @@ export const BaseButton = styled.button`
   justify-content: center;
   gap: 0.5rem;
   font-weight: 800;
-  color: ${(props) => props.theme.white};
-  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['brand-yellow']};
   cursor: pointer;
   transition: filter 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 
@@ -70,8 +70,8 @@ export const BaseInput = styled.input`
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    border-color: ${(props) => props.theme['brand-yellow']};
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
   }
 
   &::placeholder {
@@ -85,5 +85,5 @@ export const Logo = styled.img`
   border-radius: 100%;
   margin-bottom: 1.5rem;
   object-fit: cover;
-  box-shadow: 0 0 0 0.5rem rgba(0, 179, 126, 0.08);
+  box-shadow: 0 0 0 0.5rem rgba(255, 196, 0, 0.08);
 `

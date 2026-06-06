@@ -46,8 +46,8 @@ export const FormContainer = styled.div`
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
-      border-color: ${(props) => props.theme['green-500']};
-      box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+      border-color: ${(props) => props.theme['brand-yellow']};
+      box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
     }
   }
 `
@@ -57,13 +57,13 @@ export const ContainerProfileImage = styled.div`
   width: clamp(7rem, 26vw, 11rem);
   margin: 0.5rem 0 1.25rem;
   border-radius: 100%;
-  border: 2px solid rgba(0, 179, 126, 0.28);
+  border: 2px solid rgba(255, 196, 0, 0.28);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 0 0 0.45rem rgba(0, 179, 126, 0.06);
+  box-shadow: 0 0 0 0.45rem rgba(255, 196, 0, 0.06);
 `
 
 export const ProfileImage = styled.img`
@@ -85,8 +85,8 @@ const fieldStyles = `
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #00875F;
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    border-color: #FFC400;
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
   }
 
   &::placeholder {
@@ -121,8 +121,8 @@ export const BaseButton = styled.button`
   gap: 0.5rem;
   font-weight: 800;
   cursor: pointer;
-  color: ${(props) => props.theme.white};
-  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['brand-yellow']};
   transition: filter 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 
   &:not(:disabled):hover {
@@ -153,8 +153,8 @@ export const BlockDeliveriesButton = styled.button<BlockDeliveriesButtonProps>`
   gap: 0.5rem;
   font-weight: 800;
   cursor: pointer;
-  background: ${(props) => props.type ? props.theme['green-500'] : props.theme['red-500']};
-  color: ${(props) => props.theme.white};
+  background: ${(props) => props.type ? props.theme['brand-yellow'] : props.theme['red-500']};
+  color: ${(props) => props.type ? props.theme.black : props.theme.white};
   transition: filter 0.2s ease, transform 0.2s ease;
 
   &:hover {

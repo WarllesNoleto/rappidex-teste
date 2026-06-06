@@ -154,7 +154,7 @@ export function Cities() {
     setDeliveryValue(
       city.deliveryFeeValue !== undefined
         ? String(city.deliveryFeeValue).replace(".", ",")
-        : (city.deliveryValue ?? ""),
+        : "",
     );
     setPixKey(city.pixKey ?? "");
     setEditingCityId(city.id ? String(city.id) : null);
@@ -162,7 +162,9 @@ export function Cities() {
   }
 
   function parseDeliveryFeeValue(value: string) {
-    const normalized = value.replace(/\./g, "").replace(",", ".");
+    const normalized = value.trim().replace(/\./g, "").replace(",", ".");
+    if (!normalized) return undefined;
+
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : undefined;
   }
@@ -183,7 +185,6 @@ export function Cities() {
       name: trimmedName,
       state: selectedState,
       clientWhatsappMessage: cityWhatsappMessage.trim(),
-      deliveryValue: deliveryValue.trim(),
       deliveryFeeValue: parseDeliveryFeeValue(deliveryValue),
       pixKey: pixKey.trim(),
     };
@@ -296,7 +297,7 @@ export function Cities() {
           </CitySelect>
 
           <CityInput
-            placeholder="Valor da entrega para fechamento. Ex: 7,00"
+            placeholder="Valor pago ao entregador por entrega. Ex: 7,00"
             value={deliveryValue}
             onChange={(event) => setDeliveryValue(event.target.value)}
             disabled={isSubmitting}
@@ -362,15 +363,13 @@ export function Cities() {
                     <CityName>{city.name}</CityName>
                     <CityState>{getStateLabel(city.state)}</CityState>
                     <CityState>
-                      Valor da entrega para fechamento:{" "}
+                      Valor pago ao entregador por entrega:{" "}
                       {city.deliveryFeeValue !== undefined
                         ? city.deliveryFeeValue.toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",
                           })
-                        : city.deliveryValue?.trim()
-                          ? `R$ ${city.deliveryValue}`
-                          : "não configurado"}
+                        : "não configurado"}
                     </CityState>
                     <CityState>
                       Chave PIX: {city.pixKey?.trim() || "não configurada"}

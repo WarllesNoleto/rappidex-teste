@@ -45,6 +45,8 @@ export interface Report {
     ifoodStatus?: string;
     externalStatus?: string;
     logisticsStatus?: string;
-    finishedAt: string;
+    finishedAt?: string;
+    completedAt?: string;
+    updatedAt?: string;
     isIfoodOrder?: boolean;
 }

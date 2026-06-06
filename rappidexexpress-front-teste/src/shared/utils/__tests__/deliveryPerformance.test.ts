@@ -1,0 +1,99 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { StatusDelivery } from "../../constants/enums.constants";
+import type { City, Report } from "../../interfaces";
+import {
+  calculateDeliveryPerformance,
+  getRappidexWeekRange,
+} from "../deliveryPerformance";
+
+const city: City = { id: "city-1", name: "Cidade", deliveryValue: "R$ 8,50" };
+
+function report(overrides: Partial<Report>): Report {
+  return {
+    clientName: "Cliente",
+    clientPhone: "",
+    createdAt: "2026-06-02T10:00:00",
+    createdBy: "",
+    establishmentId: "",
+    establishmentImage: "",
+    establishmentName: "",
+    establishmentPhone: "",
+    establishmentLocation: "",
+    establishmentPix: "",
+    establishmentCityId: "city-1",
+    id: "delivery-1",
+    isActive: true,
+    motoboyId: "motoboy-1",
+    motoboyName: "Motoboy",
+    motoboyPhone: "",
+    payment: "",
+    status: StatusDelivery.FINISHED,
+    value: "999,00",
+    observation: "",
+    soda: "",
+    onCoursedAt: "",
+    collectedAt: "",
+    ...overrides,
+  };
+}
+
+test("segunda-feira pertence à semana iniciada na terça anterior", () => {
+  const { start, end } = getRappidexWeekRange(new Date(2026, 5, 8, 12));
+
+  assert.deepEqual(start, new Date(2026, 5, 2, 0, 0, 0, 0));
+  assert.deepEqual(end, new Date(2026, 5, 8, 23, 59, 59, 999));
+});
+
+test("terça-feira inicia uma nova semana", () => {
+  const { start, end } = getRappidexWeekRange(new Date(2026, 5, 9, 12));
+
+  assert.deepEqual(start, new Date(2026, 5, 9, 0, 0, 0, 0));
+  assert.deepEqual(end, new Date(2026, 5, 15, 23, 59, 59, 999));
+});
+
+test("conta somente entregas finalizadas do motoboy e usa o valor da cidade", () => {
+  const reports = [
+    report({ id: "start", finishedAt: "2026-06-02T00:00:00" }),
+    report({ id: "end", finishedAt: "2026-06-08T23:59:59.999" }),
+    report({ id: "previous-week", finishedAt: "2026-06-01T23:59:59.999" }),
+    report({ id: "next-week", finishedAt: "2026-06-09T00:00:00" }),
+    report({ id: "canceled", status: StatusDelivery.CANCELED, finishedAt: "2026-06-04T12:00:00" }),
+    report({ id: "in-route", status: StatusDelivery.ONCOURSE, finishedAt: "2026-06-04T12:00:00" }),
+    report({ id: "other-motoboy", motoboyId: "motoboy-2", finishedAt: "2026-06-04T12:00:00" }),
+  ];
+
+  const performance = calculateDeliveryPerformance(
+    reports,
+    "motoboy-1",
+    [city],
+    new Date(2026, 5, 8, 12),
+  );
+
+  assert.deepEqual(performance.week, { count: 2, total: 17 });
+});
+
+test("prioriza finishedAt e usa datas alternativas somente quando necessário", () => {
+  const reports = [
+    report({
+      id: "finished-at-wins",
+      finishedAt: "2026-06-01T12:00:00",
+      updatedAt: "2026-06-04T12:00:00",
+    }),
+    report({
+      id: "legacy-completed-at",
+      completedAt: "2026-06-04T12:00:00",
+      updatedAt: "2026-06-01T12:00:00",
+    }),
+  ];
+
+  const performance = calculateDeliveryPerformance(
+    reports,
+    "motoboy-1",
+    [city],
+    new Date(2026, 5, 8, 12),
+  );
+
+  assert.deepEqual(performance.week, { count: 1, total: 8.5 });
+});

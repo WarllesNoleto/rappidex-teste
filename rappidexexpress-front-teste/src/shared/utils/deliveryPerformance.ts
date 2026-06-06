@@ -26,10 +26,14 @@ export function getTodayRange(referenceDate = new Date()): DateRange {
   return { start, end };
 }
 
-export function getTuesdayWeekRange(referenceDate = new Date()): DateRange {
-  const start = new Date(referenceDate);
-  const daysSinceTuesday = (start.getDay() - 2 + 7) % 7;
-  start.setDate(start.getDate() - daysSinceTuesday);
+export function getRappidexWeekRange(baseDate = new Date()): DateRange {
+  const date = new Date(baseDate);
+  const weekStartDay = 2; // terça-feira
+  const currentDay = date.getDay();
+  const diffToTuesday = (currentDay - weekStartDay + 7) % 7;
+
+  const start = new Date(date);
+  start.setDate(date.getDate() - diffToTuesday);
   start.setHours(0, 0, 0, 0);
 
   const end = new Date(start);
@@ -38,6 +42,8 @@ export function getTuesdayWeekRange(referenceDate = new Date()): DateRange {
 
   return { start, end };
 }
+
+export const getTuesdayWeekRange = getRappidexWeekRange;
 
 function isWithinRange(date: Date, range: DateRange) {
   const timestamp = date.getTime();
@@ -64,6 +70,17 @@ export function parseDeliveryValue(value?: string | number | null): number {
   return Number.isFinite(parsedValue) ? parsedValue : 0;
 }
 
+function getFinishedDate(report: Report): Date | null {
+  const finishedDateValue =
+    report.finishedAt ||
+    report.completedAt ||
+    report.updatedAt ||
+    report.createdAt;
+  const finishedDate = new Date(finishedDateValue);
+
+  return Number.isNaN(finishedDate.getTime()) ? null : finishedDate;
+}
+
 function getCityDeliveryValue(
   report: Report,
   deliveryValueByCityId: Map<string, number>,
@@ -83,7 +100,7 @@ export function calculateDeliveryPerformance(
   referenceDate = new Date(),
 ): DeliveryPerformancePeriods {
   const todayRange = getTodayRange(referenceDate);
-  const weekRange = getTuesdayWeekRange(referenceDate);
+  const weekRange = getRappidexWeekRange(referenceDate);
   const deliveryValueByCityId = new Map<string, number>();
   const performance: DeliveryPerformancePeriods = {
     today: { count: 0, total: 0 },
@@ -102,14 +119,13 @@ export function calculateDeliveryPerformance(
   reports.forEach((report) => {
     if (
       report.status !== StatusDelivery.FINISHED ||
-      report.motoboyId !== motoboyId ||
-      !report.finishedAt
+      String(report.motoboyId) !== String(motoboyId)
     ) {
       return;
     }
 
-    const finishedAt = new Date(report.finishedAt);
-    if (Number.isNaN(finishedAt.getTime())) return;
+    const finishedAt = getFinishedDate(report);
+    if (!finishedAt) return;
 
     const deliveryValue = getCityDeliveryValue(report, deliveryValueByCityId);
 

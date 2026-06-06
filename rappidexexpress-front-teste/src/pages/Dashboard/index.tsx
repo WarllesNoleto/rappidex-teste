@@ -45,6 +45,7 @@ import {
   PerformanceMetric,
   PerformanceMetrics,
   PerformanceValue,
+  DeliveryGainToast,
   OrderActions,
   OrderButton,
   SectionTitle,
@@ -59,7 +60,11 @@ import {
   StatusDelivery,
   UserType,
 } from "../../shared/constants/enums.constants";
-import { calculateDeliveryPerformance } from "../../shared/utils/deliveryPerformance";
+import {
+  calculateDeliveryPerformance,
+  formatMotoboyDeliveryGain,
+  getMotoboyDeliveryValue,
+} from "../../shared/utils/deliveryPerformance";
 
 type DeliveryUpdateData = {
   status?: string;
@@ -599,6 +604,10 @@ export function Dashboard() {
     report: Report;
   } | null>(null);
   const [isCancelConfirmVisible, setIsCancelConfirmVisible] = useState(false);
+  const [deliveryGain, setDeliveryGain] = useState<{
+    id: number;
+    value: number;
+  } | null>(null);
 
   const [selectedMotoboyByReport, setSelectedMotoboyByReport] = useState<
     Record<string, string>
@@ -618,10 +627,19 @@ export function Dashboard() {
   const reloadTimeoutRef = useRef<number | null>(null);
   const refreshRequestIdRef = useRef(0);
   const didFirstLoadRef = useRef(false);
+  const deliveryGainTimeoutRef = useRef<number | null>(null);
 
   const [observationModalDeliveryId, setObservationModalDeliveryId] = useState<string | null>(null);
   const [observationTextByDeliveryId, setObservationTextByDeliveryId] = useState<Record<string, string>>({});
   const [observationSavingId, setObservationSavingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (deliveryGainTimeoutRef.current) {
+        window.clearTimeout(deliveryGainTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -808,6 +826,24 @@ export function Dashboard() {
 
   function isDeliveryUpdating(deliveryId: string) {
     return updatingDeliveryIds.has(deliveryId);
+  }
+
+  function showDeliveryGain(report: Report) {
+    if (!isCurrentUserMotoboy) return;
+
+    if (deliveryGainTimeoutRef.current) {
+      window.clearTimeout(deliveryGainTimeoutRef.current);
+    }
+
+    setDeliveryGain({
+      id: Date.now(),
+      value: getMotoboyDeliveryValue(report, cities),
+    });
+
+    deliveryGainTimeoutRef.current = window.setTimeout(() => {
+      setDeliveryGain(null);
+      deliveryGainTimeoutRef.current = null;
+    }, 2800);
   }
 
   const refreshDashboard = useCallback(
@@ -1094,6 +1130,9 @@ export function Dashboard() {
 
       if (!updatedReport) {
         await Promise.all([refreshDashboard(false), getMotoboys()]);
+        if (newStatus === StatusDelivery.FINISHED) {
+          showDeliveryGain(report);
+        }
         alert(`Solicitação avançada para o passo ${newStatus}`);
         return;
       }
@@ -1117,6 +1156,9 @@ export function Dashboard() {
       setAssignedCount((state) => Math.max(0, state + delta.assigned));
       updateReportInListLocally(updatedReport);
       void getMotoboys();
+      if (newStatus === StatusDelivery.FINISHED) {
+        showDeliveryGain({ ...report, ...updatedReport });
+      }
       alert(`Solicitação avançada para o passo ${newStatus}`);
       setDeliveryCodeByReport((state) => {
         const nextState = { ...state };
@@ -1507,6 +1549,11 @@ export function Dashboard() {
 
   return (
     <Container>
+      {deliveryGain && (
+        <DeliveryGainToast key={deliveryGain.id} role="status" aria-live="polite">
+          {formatMotoboyDeliveryGain(deliveryGain.value)}
+        </DeliveryGainToast>
+      )}
 
       <Modal
         open={isCancelConfirmVisible}

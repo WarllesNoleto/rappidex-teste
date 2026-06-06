@@ -131,8 +131,8 @@ export const Filter = styled.div`
 
 export const SearchButton = styled.div`
   max-width: 100%;
-  background: ${(props) => props.theme["green-500"]};
-  color: ${(props) => props.theme.white};
+  background: ${(props) => props.theme["brand-yellow"]};
+  color: ${(props) => props.theme.black};
   min-height: 2.9rem;
   padding: 0.85rem 1rem;
   margin-top: 1rem;
@@ -216,7 +216,7 @@ export const ProfileImageContainer = styled.div`
   height: 4.5rem;
   width: 4.5rem;
   border-radius: 100%;
-  border: 2px solid rgba(0, 179, 126, 0.22);
+  border: 2px solid rgba(255, 196, 0, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,8 +293,8 @@ export const SettlementSummary = styled.div`
   margin-top: 1rem;
   padding: 1rem;
   border-radius: ${(props) => props.theme["radius-lg"]};
-  border: 1px solid rgba(0, 179, 126, 0.28);
-  background: rgba(0, 179, 126, 0.08);
+  border: 1px solid rgba(255, 196, 0, 0.28);
+  background: rgba(255, 196, 0, 0.08);
 
   strong {
     display: block;
@@ -332,7 +332,7 @@ export const ActionButton = styled.button<ActionButtonProps>`
   background: ${(props) => {
     if (props.$variant === "whatsapp") return "#25d366";
     if (props.$variant === "secondary") return props.theme["gray-600"];
-    return props.theme["green-500"];
+    return props.theme["brand-yellow"];
   }};
   display: inline-flex;
   align-items: center;
@@ -366,11 +366,11 @@ export const SettlementFeedback = styled.div<SettlementFeedbackProps>`
   border: 1px solid
     ${(props) =>
       props.$type === "success"
-        ? "rgba(0, 179, 126, 0.35)"
+        ? "rgba(255, 196, 0, 0.35)"
         : "rgba(239, 68, 68, 0.45)"};
   background: ${(props) =>
     props.$type === "success"
-      ? "rgba(0, 179, 126, 0.12)"
+      ? "rgba(255, 196, 0, 0.12)"
       : "rgba(239, 68, 68, 0.14)"};
   color: ${(props) => props.theme["gray-100"]};
   line-height: 1.45;

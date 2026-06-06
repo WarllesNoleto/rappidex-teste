@@ -17,7 +17,7 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at top left, rgba(0, 179, 126, 0.12), transparent 28rem),
+      radial-gradient(circle at top left, rgba(255, 196, 0, 0.12), transparent 28rem),
       linear-gradient(180deg, ${(props) => props.theme['gray-900']} 0%, ${(props) => props.theme['gray-950']} 100%);
     color: ${(props) => props.theme['gray-300']};
     -webkit-font-smoothing: antialiased;
@@ -74,11 +74,11 @@ export const GlobalStyle = createGlobalStyle`
 
   :focus-visible {
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.22);
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.22);
   }
 
   ::selection {
-    background: rgba(0, 179, 126, 0.32);
+    background: rgba(255, 196, 0, 0.32);
     color: ${(props) => props.theme.white};
   }
 

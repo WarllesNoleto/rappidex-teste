@@ -13,7 +13,7 @@ export const HeaderContainer = styled.header`
   margin-bottom: 0.25rem;
   background: linear-gradient(180deg, rgba(32, 32, 36, 0.98), rgba(32, 32, 36, 0.78));
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 3px solid ${(props) => props.theme['brand-yellow']};
 
   @media (max-width: 768px) {
     padding: 0.35rem 0.15rem 0.85rem;
@@ -36,7 +36,7 @@ export const DesktopMenu = styled.nav`
     justify-content: center;
     align-items: center;
 
-    color: ${(props) => props.theme['gray-100']};
+    color: ${(props) => props.theme.white};
 
     border-radius: 999px;
     border: 1px solid transparent;
@@ -44,17 +44,17 @@ export const DesktopMenu = styled.nav`
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
     &:hover {
-      background: rgba(0, 179, 126, 0.1);
-      border-color: rgba(0, 179, 126, 0.24);
-      color: ${(props) => props.theme['green-300']};
+      background: rgba(255, 196, 0, 0.1);
+      border-color: rgba(255, 196, 0, 0.24);
+      color: ${(props) => props.theme['brand-yellow-hover']};
       transform: translateY(-1px);
     }
 
     &.active:not([data-ignore-active='true']) {
-      background: ${(props) => props.theme['green-700']};
-      border-color: ${(props) => props.theme['green-500']};
-      color: ${(props) => props.theme.white};
-      box-shadow: 0 0.65rem 1.2rem rgba(0, 135, 95, 0.2);
+      background: ${(props) => props.theme['brand-yellow-dark']};
+      border-color: ${(props) => props.theme['brand-yellow']};
+      color: ${(props) => props.theme.black};
+      box-shadow: 0 0.65rem 1.2rem rgba(255, 196, 0, 0.2);
     }
   }
 
@@ -79,7 +79,7 @@ export const MobileMenuButton = styled.button`
   &:hover,
   &:active {
     background: ${(props) => props.theme['gray-700']};
-    border-color: ${(props) => props.theme['green-500']};
+    border-color: ${(props) => props.theme['brand-yellow']};
   }
 
   &:active {
@@ -153,7 +153,7 @@ export const MobileMenuHeader = styled.div`
   background: linear-gradient(
     180deg,
     ${(props) => props.theme['gray-800']} 0%,
-    rgba(32, 32, 36, 0.96) 100%
+    ${(props) => props.theme['gray-900']} 100%
   );
 
   strong {
@@ -181,7 +181,7 @@ export const MobileCloseButton = styled.button`
   &:hover,
   &:active {
     background: rgba(255, 255, 255, 0.08);
-    border-color: ${(props) => props.theme['green-500']};
+    border-color: ${(props) => props.theme['brand-yellow']};
   }
 `
 
@@ -209,7 +209,7 @@ export const MobileMenuLink = styled(NavLink)`
 
   svg {
     flex: 0 0 auto;
-    color: ${(props) => props.theme['green-500']};
+    color: ${(props) => props.theme['brand-yellow']};
   }
 
   span {
@@ -224,9 +224,9 @@ export const MobileMenuLink = styled(NavLink)`
   }
 
   &.active:not([data-ignore-active='true']) {
-    background: rgba(0, 135, 95, 0.22);
-    border-color: ${(props) => props.theme['green-500']};
-    color: ${(props) => props.theme.white};
+    background: rgba(255, 196, 0, 0.22);
+    border-color: ${(props) => props.theme['brand-yellow']};
+    color: ${(props) => props.theme.black};
   }
 
   &:active {
@@ -239,5 +239,5 @@ export const RappidexLogo = styled.img`
   width: 2.35rem;
   border-radius: 100%;
   object-fit: cover;
-  box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
 `;

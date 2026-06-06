@@ -596,3 +596,83 @@ export const Flag = styled.p`
   font-weight: 900;
   text-align: center;
 `;
+
+export const PerformanceCard = styled.button`
+  width: min(100%, 1200px);
+  margin: 0.5rem 0 1rem;
+  padding: 1rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid ${(props) => props.theme['brand-yellow']};
+  border-radius: ${(props) => props.theme['radius-lg']};
+  background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
+  box-shadow: ${(props) => props.theme['shadow-soft']};
+  color: ${(props) => props.theme['gray-100']};
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  > svg {
+    flex-shrink: 0;
+    color: ${(props) => props.theme['brand-yellow']};
+  }
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: ${(props) => props.theme['shadow-card']};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme['brand-yellow']};
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 600px) {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+`;
+
+export const PerformanceMetrics = styled.span`
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.5rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+`;
+
+export const PerformanceMetric = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: ${(props) => props.theme['gray-300']};
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  strong {
+    color: ${(props) => props.theme['gray-100']};
+    font-size: 1.35rem;
+  }
+`;
+
+export const PerformanceValue = styled.strong`
+  color: ${(props) => props.theme['brand-yellow']} !important;
+`;
+
+export const PerformanceHint = styled.span`
+  flex-shrink: 0;
+  color: ${(props) => props.theme['gray-400']};
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+`;

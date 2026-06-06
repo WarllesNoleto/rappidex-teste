@@ -52,7 +52,7 @@ export const Card = styled.div`
     ${(props) => props.theme['gray-600']} 0%,
     ${(props) => props.theme['gray-700']} 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
   display: flex;
@@ -101,7 +101,7 @@ export const ToggleGroup = styled.div`
 export const Checkbox = styled.label`
   align-items: center;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 999px;
   color: ${(props) => props.theme['gray-100']};
   cursor: pointer;
@@ -111,7 +111,7 @@ export const Checkbox = styled.label`
   padding: 0.55rem 0.8rem;
 
   input {
-    accent-color: ${(props) => props.theme['green-300']};
+    accent-color: ${(props) => props.theme['brand-yellow-hover']};
   }
 `;
 
@@ -150,8 +150,8 @@ export const Input = styled.input`
   }
 
   &:focus {
-    border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    border-color: ${(props) => props.theme['brand-yellow']};
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
     outline: 0;
   }
 
@@ -163,14 +163,14 @@ export const Input = styled.input`
 
 export const SearchInput = styled(Input)`
   background: ${(props) => props.theme['gray-600']};
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(17, 17, 17, 0.08);
 `;
 
 export const SaveButton = styled.button`
   align-self: flex-start;
   border: 0;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: ${(props) => props.theme['green-700']};
+  background: ${(props) => props.theme['brand-yellow-dark']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
   min-width: 6.5rem;
@@ -194,8 +194,8 @@ export const SaveButton = styled.button`
 `;
 
 export const StoreSection = styled.section`
-  background: rgba(18, 18, 20, 0.34);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(245, 245, 245, 0.92);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: ${(props) => props.theme['radius-lg']};
   display: flex;
   flex-direction: column;
@@ -221,7 +221,7 @@ export const StoreList = styled.div`
 
 export const StoreCard = styled.article`
   background: ${(props) => props.theme['gray-700']};
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(17, 17, 17, 0.1);
   border-radius: ${(props) => props.theme['radius-lg']};
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   display: flex;
@@ -258,12 +258,12 @@ export const StoreName = styled.strong`
 export const StoreStatusBadge = styled.span<StoreStatusBadgeProps>`
   align-items: center;
   background: ${(props) =>
-    props.$isActive ? 'rgba(0, 179, 126, 0.16)' : 'rgba(124, 124, 138, 0.18)'};
+    props.$isActive ? 'rgba(255, 196, 0, 0.16)' : 'rgba(124, 124, 138, 0.18)'};
   border: 1px solid
     ${(props) =>
-    props.$isActive ? 'rgba(0, 179, 126, 0.34)' : 'rgba(124, 124, 138, 0.32)'};
+    props.$isActive ? 'rgba(255, 196, 0, 0.34)' : 'rgba(124, 124, 138, 0.32)'};
   border-radius: 999px;
-  color: ${(props) => props.$isActive ? props.theme['green-300'] : props.theme['gray-300']};
+  color: ${(props) => props.$isActive ? props.theme['brand-yellow-hover'] : props.theme['gray-300']};
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 800;
@@ -299,10 +299,10 @@ export const LocationPreview = styled.span`
 
 export const LocationLink = styled.a`
   align-self: flex-start;
-  background: rgba(0, 179, 126, 0.12);
-  border: 1px solid rgba(0, 179, 126, 0.28);
+  background: rgba(255, 196, 0, 0.12);
+  border: 1px solid rgba(255, 196, 0, 0.28);
   border-radius: 999px;
-  color: ${(props) => props.theme['green-300']};
+  color: ${(props) => props.theme['brand-yellow-hover']};
   font-size: 0.84rem;
   font-weight: 800;
   padding: 0.4rem 0.7rem;
@@ -310,7 +310,7 @@ export const LocationLink = styled.a`
   transition: background 0.2s, transform 0.2s;
 
   &:hover {
-    background: rgba(0, 179, 126, 0.2);
+    background: rgba(255, 196, 0, 0.2);
     transform: translateY(-1px);
   }
 `;
@@ -336,7 +336,7 @@ export const CreditSummary = styled.div`
 
 export const CreditLine = styled.span`
   background: ${(props) => props.theme['gray-800']};
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 999px;
   color: ${(props) => props.theme['gray-300']};
   padding: 0.45rem 0.7rem;
@@ -356,7 +356,7 @@ export const CreditInput = styled(Input)`
 export const CreditButton = styled.button`
   border: 0;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: ${(props) => props.theme['green-700']};
+  background: ${(props) => props.theme['brand-yellow-dark']};
   color: ${(props) => props.theme['gray-100']};
   font-weight: 700;
   padding: 0.7rem 0.9rem;
@@ -421,7 +421,7 @@ export const LoadMoreButton = styled.button`
 
 export const EmptyState = styled.p`
   background: ${(props) => props.theme['gray-600']};
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 12px;
   color: ${(props) => props.theme['gray-300']};
   text-align: center;

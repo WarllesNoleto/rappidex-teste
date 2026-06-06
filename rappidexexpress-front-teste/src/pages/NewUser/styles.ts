@@ -23,7 +23,7 @@ export const FormContainer = styled.div`
   gap: 0.9rem;
   padding: clamp(1rem, 3vw, 1.5rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(17, 17, 17, 0.1);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
 
@@ -38,7 +38,7 @@ export const FormContainer = styled.div`
   select {
     width: 100%;
     min-height: 2.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(17, 17, 17, 0.16);
     border-radius: ${(props) => props.theme['radius-md']};
     background-color: ${(props) => props.theme['gray-800']};
     color: ${(props) => props.theme['gray-100']};
@@ -46,8 +46,8 @@ export const FormContainer = styled.div`
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
-      border-color: ${(props) => props.theme['green-500']};
-      box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+      border-color: ${(props) => props.theme['brand-yellow']};
+      box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
     }
   }
 `
@@ -57,13 +57,13 @@ export const ContainerProfileImage = styled.div`
   width: clamp(7rem, 26vw, 11rem);
   margin: 0.5rem 0 1.25rem;
   border-radius: 100%;
-  border: 2px solid rgba(0, 179, 126, 0.28);
+  border: 2px solid rgba(255, 196, 0, 0.28);
   background: ${(props) => props.theme['gray-800']};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 0 0 0.45rem rgba(0, 179, 126, 0.06);
+  box-shadow: 0 0 0 0.45rem rgba(255, 196, 0, 0.06);
 `
 
 export const ProfileImage = styled.img`
@@ -76,17 +76,17 @@ export const ProfileImage = styled.img`
 const fieldStyles = `
   width: 100%;
   min-height: 2.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(17, 17, 17, 0.16);
   border-radius: 0.75rem;
-  background: rgba(18, 18, 20, 0.82);
+  background: rgba(255, 255, 255, 0.96);
   padding: 0 0.9rem;
   font-weight: 700;
   color: #E1E1E6;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #00875F;
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    border-color: #FFC400;
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
   }
 
   &::placeholder {
@@ -123,8 +123,8 @@ export const BaseButton = styled.button`
   gap: 0.5rem;
   font-weight: 800;
   cursor: pointer;
-  color: ${(props) => props.theme.white};
-  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['brand-yellow']};
   transition: filter 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 
   &:not(:disabled):hover {

@@ -6,6 +6,8 @@ import type { City, Report } from "../../interfaces";
 import {
   calculateDeliveryPerformance,
   createLocalDate,
+  formatMotoboyDeliveryGain,
+  getMotoboyDeliveryValue,
   getRappidexWeekRange,
 } from "../deliveryPerformance";
 
@@ -134,4 +136,18 @@ test("prioriza finishedAt e usa datas alternativas somente quando necessário", 
   );
 
   assert.deepEqual(performance.week, { count: 1, total: 8.5 });
+});
+
+test("usa o valor pago ao entregador da cidade para o aviso de finalização", () => {
+  const finishedDelivery = report({ value: "150,00" });
+
+  assert.equal(getMotoboyDeliveryValue(finishedDelivery, [city]), 8.5);
+  assert.equal(formatMotoboyDeliveryGain(8.5), "+R$ 8,50");
+});
+
+test("usa zero no aviso quando a cidade não tem valor configurado", () => {
+  const cityWithoutValue: City = { id: "city-1", name: "Cidade" };
+
+  assert.equal(getMotoboyDeliveryValue(report({}), [cityWithoutValue]), 0);
+  assert.equal(formatMotoboyDeliveryGain(0), "+R$ 0,00");
 });

@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { StatusDelivery } from '../../shared/constants/enums.constants';
 
 export const Container = styled.main`
@@ -16,6 +16,47 @@ export const Container = styled.main`
 
   @media (max-width: 480px) {
     padding: 0 0.5rem 1rem;
+  }
+`;
+
+const deliveryGainAnimation = keyframes`
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0.75rem) scale(0.94);
+  }
+
+  18%, 72% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -1rem) scale(0.98);
+  }
+`;
+
+export const DeliveryGainToast = styled.div`
+  position: fixed;
+  z-index: 1400;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
+  min-width: min(14rem, calc(100vw - 2rem));
+  padding: 0.85rem 1.25rem;
+  border: 1px solid #22c55e;
+  border-radius: 999px;
+  background: rgba(18, 18, 20, 0.94);
+  box-shadow: 0 0.75rem 2rem rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  font-size: clamp(1.25rem, 5vw, 1.65rem);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+  animation: ${deliveryGainAnimation} 2.8s ease-out forwards;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `;
 

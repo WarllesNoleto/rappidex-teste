@@ -109,6 +109,27 @@ function getCityDeliveryValue(
   return deliveryValueByCityId.get(cityId) ?? 0;
 }
 
+export function getMotoboyDeliveryValue(report: Report, cities: City[]) {
+  const deliveryValueByCityId = new Map<string, number>();
+
+  cities.forEach((city) => {
+    const cityId = String(city.id ?? "").trim();
+
+    if (cityId) {
+      deliveryValueByCityId.set(cityId, parseDeliveryValue(city.deliveryValue));
+    }
+  });
+
+  return getCityDeliveryValue(report, deliveryValueByCityId);
+}
+
+export function formatMotoboyDeliveryGain(value: number) {
+  return `+R$ ${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export function calculateDeliveryPerformance(
   reports: Report[],
   motoboyId: string,

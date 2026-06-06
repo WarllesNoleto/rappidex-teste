@@ -6,7 +6,7 @@ export const LayoutContainer = styled.div`
   margin: 0.5rem auto;
   padding: clamp(0.75rem, 2vw, 1.25rem);
 
-  background: rgba(32, 32, 36, 0.86);
+  background: rgba(28, 28, 28, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: ${(props) => props.theme['radius-lg']};
   box-shadow: ${(props) => props.theme['shadow-card']};

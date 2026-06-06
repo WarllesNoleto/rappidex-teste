@@ -111,7 +111,7 @@ export const Checkbox = styled.label`
   padding: 0.55rem 0.8rem;
 
   input {
-    accent-color: ${(props) => props.theme['green-300']};
+    accent-color: ${(props) => props.theme['brand-yellow-hover']};
   }
 `;
 
@@ -150,8 +150,8 @@ export const Input = styled.input`
   }
 
   &:focus {
-    border-color: ${(props) => props.theme['green-500']};
-    box-shadow: 0 0 0 3px rgba(0, 179, 126, 0.16);
+    border-color: ${(props) => props.theme['brand-yellow']};
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
     outline: 0;
   }
 
@@ -170,8 +170,8 @@ export const SaveButton = styled.button`
   align-self: flex-start;
   border: 0;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: ${(props) => props.theme['green-700']};
-  color: ${(props) => props.theme['gray-100']};
+  background: ${(props) => props.theme['brand-yellow-dark']};
+  color: ${(props) => props.theme.black};
   font-weight: 700;
   min-width: 6.5rem;
   padding: 0.8rem 1.15rem;
@@ -194,7 +194,7 @@ export const SaveButton = styled.button`
 `;
 
 export const StoreSection = styled.section`
-  background: rgba(18, 18, 20, 0.34);
+  background: rgba(18, 18, 20, 0.36);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: ${(props) => props.theme['radius-lg']};
   display: flex;
@@ -258,12 +258,12 @@ export const StoreName = styled.strong`
 export const StoreStatusBadge = styled.span<StoreStatusBadgeProps>`
   align-items: center;
   background: ${(props) =>
-    props.$isActive ? 'rgba(0, 179, 126, 0.16)' : 'rgba(124, 124, 138, 0.18)'};
+    props.$isActive ? 'rgba(255, 196, 0, 0.16)' : 'rgba(124, 124, 138, 0.18)'};
   border: 1px solid
     ${(props) =>
-    props.$isActive ? 'rgba(0, 179, 126, 0.34)' : 'rgba(124, 124, 138, 0.32)'};
+    props.$isActive ? 'rgba(255, 196, 0, 0.34)' : 'rgba(124, 124, 138, 0.32)'};
   border-radius: 999px;
-  color: ${(props) => props.$isActive ? props.theme['green-300'] : props.theme['gray-300']};
+  color: ${(props) => props.$isActive ? props.theme['brand-yellow-hover'] : props.theme['gray-300']};
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 800;
@@ -299,10 +299,10 @@ export const LocationPreview = styled.span`
 
 export const LocationLink = styled.a`
   align-self: flex-start;
-  background: rgba(0, 179, 126, 0.12);
-  border: 1px solid rgba(0, 179, 126, 0.28);
+  background: rgba(255, 196, 0, 0.12);
+  border: 1px solid rgba(255, 196, 0, 0.28);
   border-radius: 999px;
-  color: ${(props) => props.theme['green-300']};
+  color: ${(props) => props.theme['brand-yellow-hover']};
   font-size: 0.84rem;
   font-weight: 800;
   padding: 0.4rem 0.7rem;
@@ -310,7 +310,7 @@ export const LocationLink = styled.a`
   transition: background 0.2s, transform 0.2s;
 
   &:hover {
-    background: rgba(0, 179, 126, 0.2);
+    background: rgba(255, 196, 0, 0.2);
     transform: translateY(-1px);
   }
 `;
@@ -356,8 +356,8 @@ export const CreditInput = styled(Input)`
 export const CreditButton = styled.button`
   border: 0;
   border-radius: ${(props) => props.theme['radius-md']};
-  background: ${(props) => props.theme['green-700']};
-  color: ${(props) => props.theme['gray-100']};
+  background: ${(props) => props.theme['brand-yellow-dark']};
+  color: ${(props) => props.theme.black};
   font-weight: 700;
   padding: 0.7rem 0.9rem;
   cursor: pointer;

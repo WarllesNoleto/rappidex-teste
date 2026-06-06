@@ -1,5 +1,5 @@
 import { StatusDelivery } from "../constants/enums.constants";
-import { Report } from "../interfaces";
+import type { City, Report } from "../interfaces";
 
 export type DeliveryPerformance = {
   count: number;
@@ -39,6 +39,11 @@ export function getTuesdayWeekRange(referenceDate = new Date()): DateRange {
   return { start, end };
 }
 
+function isWithinRange(date: Date, range: DateRange) {
+  const timestamp = date.getTime();
+  return timestamp >= range.start.getTime() && timestamp <= range.end.getTime();
+}
+
 export function parseDeliveryValue(value?: string | number | null): number {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -59,22 +64,40 @@ export function parseDeliveryValue(value?: string | number | null): number {
   return Number.isFinite(parsedValue) ? parsedValue : 0;
 }
 
-function isWithinRange(date: Date, range: DateRange) {
-  const timestamp = date.getTime();
-  return timestamp >= range.start.getTime() && timestamp <= range.end.getTime();
+function getCityDeliveryValue(
+  report: Report,
+  deliveryValueByCityId: Map<string, number>,
+) {
+  const cityId = String(
+    report.establishmentCityId || report.cityId || "",
+  ).trim();
+  if (!cityId) return 0;
+
+  return deliveryValueByCityId.get(cityId) ?? 0;
 }
 
 export function calculateDeliveryPerformance(
   reports: Report[],
   motoboyId: string,
+  cities: City[],
   referenceDate = new Date(),
 ): DeliveryPerformancePeriods {
   const todayRange = getTodayRange(referenceDate);
   const weekRange = getTuesdayWeekRange(referenceDate);
+  const deliveryValueByCityId = new Map<string, number>();
   const performance: DeliveryPerformancePeriods = {
     today: { count: 0, total: 0 },
     week: { count: 0, total: 0 },
   };
+
+  cities.forEach((city) => {
+    const cityId = String(city.id ?? "").trim();
+    const deliveryValue = parseDeliveryValue(city.deliveryValue);
+
+    if (cityId) {
+      deliveryValueByCityId.set(cityId, deliveryValue);
+    }
+  });
 
   reports.forEach((report) => {
     if (
@@ -88,7 +111,7 @@ export function calculateDeliveryPerformance(
     const finishedAt = new Date(report.finishedAt);
     if (Number.isNaN(finishedAt.getTime())) return;
 
-    const deliveryValue = parseDeliveryValue(report.value);
+    const deliveryValue = getCityDeliveryValue(report, deliveryValueByCityId);
 
     if (isWithinRange(finishedAt, weekRange)) {
       performance.week.count += 1;

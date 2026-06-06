@@ -1,5 +1,5 @@
 import { StatusDelivery } from "../constants/enums.constants";
-import type { City, Report } from "../interfaces";
+import { Report } from "../interfaces";
 
 export type DeliveryPerformance = {
   count: number;
@@ -39,45 +39,42 @@ export function getTuesdayWeekRange(referenceDate = new Date()): DateRange {
   return { start, end };
 }
 
+export function parseDeliveryValue(value?: string | number | null): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const normalizedValue = String(value ?? "")
+    .trim()
+    .replace(/R\$/gi, "")
+    .replace(/\s/g, "");
+
+  if (!normalizedValue) return 0;
+
+  const decimalValue = normalizedValue.includes(",")
+    ? normalizedValue.replace(/\./g, "").replace(",", ".")
+    : normalizedValue;
+  const parsedValue = Number(decimalValue);
+
+  return Number.isFinite(parsedValue) ? parsedValue : 0;
+}
+
 function isWithinRange(date: Date, range: DateRange) {
   const timestamp = date.getTime();
   return timestamp >= range.start.getTime() && timestamp <= range.end.getTime();
 }
 
-function getCityDeliveryFee(
-  report: Report,
-  deliveryFeeByCityId: Map<string, number>,
-) {
-  const cityId = String(
-    report.cityId ?? report.establishmentCityId ?? "",
-  ).trim();
-  if (!cityId) return 0;
-
-  return deliveryFeeByCityId.get(cityId) ?? 0;
-}
-
 export function calculateDeliveryPerformance(
   reports: Report[],
   motoboyId: string,
-  cities: City[],
   referenceDate = new Date(),
 ): DeliveryPerformancePeriods {
   const todayRange = getTodayRange(referenceDate);
   const weekRange = getTuesdayWeekRange(referenceDate);
-  const deliveryFeeByCityId = new Map<string, number>();
   const performance: DeliveryPerformancePeriods = {
     today: { count: 0, total: 0 },
     week: { count: 0, total: 0 },
   };
-
-  cities.forEach((city) => {
-    const cityId = String(city.id ?? "").trim();
-    const deliveryFeeValue = Number(city.deliveryFeeValue);
-
-    if (cityId && Number.isFinite(deliveryFeeValue)) {
-      deliveryFeeByCityId.set(cityId, deliveryFeeValue);
-    }
-  });
 
   reports.forEach((report) => {
     if (
@@ -91,16 +88,16 @@ export function calculateDeliveryPerformance(
     const finishedAt = new Date(report.finishedAt);
     if (Number.isNaN(finishedAt.getTime())) return;
 
-    const deliveryFee = getCityDeliveryFee(report, deliveryFeeByCityId);
+    const deliveryValue = parseDeliveryValue(report.value);
 
     if (isWithinRange(finishedAt, weekRange)) {
       performance.week.count += 1;
-      performance.week.total += deliveryFee;
+      performance.week.total += deliveryValue;
     }
 
     if (isWithinRange(finishedAt, todayRange)) {
       performance.today.count += 1;
-      performance.today.total += deliveryFee;
+      performance.today.total += deliveryValue;
     }
   });
 

@@ -10,7 +10,7 @@ import {
 } from "react";
 import { Modal } from "@mui/material";
 import { io } from "socket.io-client";
-import { MapPin, WhatsappLogo } from "phosphor-react";
+import { ChartLineUp, MapPin, WhatsappLogo } from "phosphor-react";
 
 import { DeliveryContext } from "../../context/DeliveryContext";
 import api, { SOCKET_URL } from "../../services/api";
@@ -40,6 +40,11 @@ import {
   InfoValue,
   Link,
   OperationalPanel,
+  PerformanceCard,
+  PerformanceHint,
+  PerformanceMetric,
+  PerformanceMetrics,
+  PerformanceValue,
   OrderActions,
   OrderButton,
   SectionTitle,
@@ -54,7 +59,7 @@ import {
   StatusDelivery,
   UserType,
 } from "../../shared/constants/enums.constants";
-
+import { calculateDeliveryPerformance } from "../../shared/utils/deliveryPerformance";
 
 type DeliveryUpdateData = {
   status?: string;
@@ -577,6 +582,10 @@ export function Dashboard() {
   const [status, setStatus] = useState<string>(`${StatusDelivery.PENDING}`);
   const [loading, setLoading] = useState<boolean>(true);
   const [reports, setReports] = useState<Report[]>([]);
+  const [finishedReports, setFinishedReports] = useState<Report[]>([]);
+  const [performancePeriod, setPerformancePeriod] = useState<"week" | "today">(
+    "week",
+  );
   const [cities, setCities] = useState<City[]>([]);
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -677,6 +686,23 @@ export function Dashboard() {
   const statusFilterSet = useMemo(() => {
     return new Set(status.split(",").filter(Boolean));
   }, [status]);
+
+  const deliveryPerformance = useMemo(
+    () => calculateDeliveryPerformance(finishedReports, currentUserId),
+    [currentUserId, finishedReports],
+  );
+
+  const selectedPerformance = deliveryPerformance[performancePeriod];
+  const performancePeriodLabel =
+    performancePeriod === "week" ? "na semana" : "hoje";
+  const formattedPerformanceValue = useMemo(
+    () =>
+      selectedPerformance.total.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }),
+    [selectedPerformance.total],
+  );
 
   const clientWhatsappMessageByCityId = useMemo(() => {
     const cityMessageMap = new Map<string, string>();
@@ -829,6 +855,43 @@ export function Dashboard() {
     },
     [status],
   );
+
+  const refreshDeliveryPerformance = useCallback(async () => {
+    if (!isCurrentUserMotoboy || !currentUserId) {
+      setFinishedReports([]);
+      return;
+    }
+
+    try {
+      const itemsPerPage = 500;
+      const firstResponse = await api.get(
+        `/delivery?status=${StatusDelivery.FINISHED}&itemsPerPage=${itemsPerPage}`,
+      );
+      const firstPage = Array.isArray(firstResponse.data?.data)
+        ? firstResponse.data.data
+        : [];
+      const totalReports = Number(firstResponse.data?.count) || firstPage.length;
+      const totalPages = Math.ceil(totalReports / itemsPerPage);
+      const remainingResponses = await Promise.all(
+        Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) =>
+          api.get(
+            `/delivery?status=${StatusDelivery.FINISHED}&itemsPerPage=${itemsPerPage}&page=${index + 2}`,
+          ),
+        ),
+      );
+      const finalizedDeliveries = remainingResponses.reduce<Report[]>(
+        (allReports, response) =>
+          allReports.concat(
+            Array.isArray(response.data?.data) ? response.data.data : [],
+          ),
+        firstPage,
+      );
+
+      setFinishedReports(finalizedDeliveries);
+    } catch (error) {
+      console.error("Erro ao carregar desempenho do motoboy:", error);
+    }
+  }, [currentUserId, isCurrentUserMotoboy]);
 
   const getCities = useCallback(async () => {
     try {
@@ -1369,6 +1432,10 @@ export function Dashboard() {
   }, [getMyself]);
 
   useEffect(() => {
+    void refreshDeliveryPerformance();
+  }, [refreshDeliveryPerformance]);
+
+  useEffect(() => {
     if (!canViewReleaseTab && status === StatusDelivery.AWAITING_RELEASE) {
       setStatus(StatusDelivery.PENDING);
     }
@@ -1387,7 +1454,11 @@ export function Dashboard() {
       }
 
       reloadTimeoutRef.current = window.setTimeout(() => {
-        void Promise.all([refreshDashboard(false), getMotoboys()]);
+        void Promise.all([
+          refreshDashboard(false),
+          getMotoboys(),
+          refreshDeliveryPerformance(),
+        ]);
       }, 250);
     };
 
@@ -1409,7 +1480,12 @@ export function Dashboard() {
       socket.off("delivery:deleted", reloadDeliveries);
       socket.disconnect();
     };
-  }, [currentCityId, getMotoboys, refreshDashboard]);
+  }, [
+    currentCityId,
+    getMotoboys,
+    refreshDashboard,
+    refreshDeliveryPerformance,
+  ]);
 
   const confirmationReport = confirmAction?.report || null;
   const isCancelingDelivery = Boolean(
@@ -1547,6 +1623,33 @@ export function Dashboard() {
           void handleConfirmObservation();
         }}
       />
+
+      {isCurrentUserMotoboy && (
+        <PerformanceCard
+          type="button"
+          onClick={() =>
+            setPerformancePeriod((currentPeriod) =>
+              currentPeriod === "week" ? "today" : "week",
+            )
+          }
+          aria-label={`Mostrar desempenho ${performancePeriod === "week" ? "de hoje" : "da semana"}`}
+        >
+          <ChartLineUp size={24} weight="duotone" aria-hidden="true" />
+          <PerformanceMetrics>
+            <PerformanceMetric>
+              <span>Entregas {performancePeriodLabel}</span>
+              <strong>{selectedPerformance.count}</strong>
+            </PerformanceMetric>
+            <PerformanceMetric>
+              <span>Valor {performancePeriodLabel}</span>
+              <PerformanceValue>{formattedPerformanceValue}</PerformanceValue>
+            </PerformanceMetric>
+          </PerformanceMetrics>
+          <PerformanceHint>
+            Clique para ver {performancePeriod === "week" ? "hoje" : "a semana"}
+          </PerformanceHint>
+        </PerformanceCard>
+      )}
 
       <ContainerButtons>
         {canViewReleaseTab && (

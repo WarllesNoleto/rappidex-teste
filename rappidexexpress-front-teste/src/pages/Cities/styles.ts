@@ -14,7 +14,7 @@ export const Content = styled.div`
   max-width: 720px;
   padding: clamp(1rem, 2vw, 1.25rem);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
   display: flex;
@@ -48,7 +48,7 @@ export const CityInput = styled.input`
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  border: 1px solid rgba(17, 17, 17, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
 
@@ -66,7 +66,7 @@ export const CitySelect = styled.select`
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: ${(props) => props.theme['radius-md']};
-  border: 1px solid rgba(17, 17, 17, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: ${(props) => props.theme['gray-800']};
   color: ${(props) => props.theme['gray-100']};
 
@@ -101,7 +101,7 @@ export const FormSection = styled.section`
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-md']};
   background: rgba(255, 255, 255, 0.03);
 `
@@ -133,8 +133,8 @@ export const SubmitButton = styled.button`
   padding: 0.75rem 1.5rem;
   border-radius: ${(props) => props.theme['radius-md']};
   border: 0;
-  background: ${(props) => props.theme['brand-yellow']};
-  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.white};
   font-weight: 700;
   cursor: pointer;
   transition: filter 0.2s;
@@ -192,7 +192,7 @@ export const CityCard = styled.div<CityCardProps>`
   gap: 1rem;
   width: 100%;
   border: 1px solid
-    ${(props) => (props.$isSelected ? props.theme['brand-yellow'] : 'rgba(17, 17, 17, 0.1)')};
+    ${(props) => (props.$isSelected ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)')};
 `
 
 export const CityInfo = styled.div`
@@ -245,8 +245,8 @@ export const CityActionButton = styled.button<CityActionButtonProps>`
   background: ${(props) =>
     props.$variant === 'secondary'
       ? props.theme['gray-500']
-      : props.theme['brand-yellow']};
-  color: ${(props) => props.$variant === 'secondary' ? props.theme.white : props.theme.black};
+      : props.theme['green-500']};
+  color: ${(props) => props.theme.white};
   display: flex;
   align-items: center;
   justify-content: center;

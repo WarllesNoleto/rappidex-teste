@@ -32,7 +32,7 @@ export const ContainerButtons = styled.div`
 export const ShopkeeperCreditsContainer = styled.div`
   width: min(100%, 1200px);
   background: linear-gradient(145deg, ${(props) => props.theme['gray-700']}, ${(props) => props.theme['gray-800']});
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme['radius-lg']};
   box-shadow: ${(props) => props.theme['shadow-soft']};
   padding: 1rem;
@@ -85,10 +85,10 @@ export const BaseButton = styled.div<ButtonProps>`
   flex: 1 1 12rem;
   min-height: 3rem;
   background: ${(props) =>
-    props.typeReport ? 'rgba(255, 196, 0, 0.18)' : props.theme['gray-700']};
+    props.typeReport ? 'rgba(0, 179, 126, 0.18)' : props.theme['gray-700']};
 
   border: 1px solid ${(props) =>
-    props.typeReport ? props.theme['brand-yellow'] : 'rgba(17, 17, 17, 0.1)'};
+    props.typeReport ? props.theme['green-500'] : 'rgba(255, 255, 255, 0.08)'};
   padding: 0.75rem 1rem;
   border-radius: 999px;
 
@@ -98,13 +98,13 @@ export const BaseButton = styled.div<ButtonProps>`
 
   font-weight: bold;
   color: ${(props) =>
-    props.typeReport ? props.theme['brand-yellow-hover'] : props.theme['gray-300']};
+    props.typeReport ? props.theme['green-300'] : props.theme['gray-300']};
 
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: ${(props) => props.theme['brand-yellow']};
+    border-color: ${(props) => props.theme['green-500']};
     transform: translateY(-1px);
   }
 
@@ -115,9 +115,9 @@ export const BaseButton = styled.div<ButtonProps>`
 `;
 
 export const ContainerDeliveries = styled.div`
-  background: ${(props) => props.theme.white};
+  background: rgba(50, 50, 56, 0.72);
   width: min(100%, 1200px);
-  border: 1px solid rgba(17, 17, 17, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: ${(props) => props.theme['radius-xl']};
   box-shadow: ${(props) => props.theme['shadow-card']};
   padding: 0.4rem;
@@ -145,9 +145,9 @@ interface DeliveryProps {
 export const Delivery = styled.div<DeliveryProps>`
   background: ${(props) =>
     props.isfree
-      ? 'linear-gradient(145deg, rgba(255, 196, 0, 0.96), rgba(255, 212, 59, 0.82))'
+      ? 'linear-gradient(145deg, rgba(1, 95, 67, 0.98), rgba(0, 135, 95, 0.82))'
       : `linear-gradient(145deg, ${props.theme['gray-700']}, ${props.theme['gray-800']})`};
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.22);
   padding: 1.125rem;
   margin: 0.45rem auto;
@@ -234,7 +234,7 @@ export const IfoodStoreBadge = styled.span`
   margin-bottom: 0.35rem;
   padding: 0.2rem 0.48rem;
   border-radius: 999px;
-  background: ${(props) => props.theme['brand-yellow-dark']};
+  background: ${(props) => props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
   font-size: 0.68rem;
   font-weight: 700;
@@ -249,7 +249,7 @@ export const ShopkeeperInfo = styled.div`
   padding: 0.6rem 0.7rem;
   border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   > p:first-of-type {
     margin: 0 0 0.35rem;
@@ -297,7 +297,7 @@ export const ContainerOrder = styled.div`
     rgba(255, 255, 255, 0.055),
     rgba(255, 255, 255, 0.028)
   );
-  border: 1px solid rgba(17, 17, 17, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 
   @media (max-width: 480px) {
@@ -316,7 +316,7 @@ export const ContainerInfo = styled.div`
   padding: 0.7rem;
   border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   p {
@@ -361,7 +361,7 @@ export const InfoSection = styled.div<InfoSectionProps>`
   padding-top: ${(props) => (props.$variant === 'operational' ? '0.55rem' : '0')};
   border-top: ${(props) =>
     props.$variant === 'operational'
-      ? '1px solid rgba(17, 17, 17, 0.12)'
+      ? '1px solid rgba(255, 255, 255, 0.1)'
       : '0'};
 `;
 
@@ -449,8 +449,8 @@ export const OrderButton = styled.div<OrderProps>`
   min-height: 2.35rem;
   min-width: 6.4rem;
   background: ${(props) =>
-    props.typebutton ? props.theme['brand-yellow'] : props.theme['red-700']};
-  border: 1px solid rgba(17, 17, 17, 0.1);
+    props.typebutton ? props.theme['green-500'] : props.theme['red-700']};
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
   padding: 0.55rem 0.8rem;
 
@@ -519,7 +519,7 @@ export const SelectContainer = styled.div`
 
   select:focus,
   input:focus {
-    border-color: ${(props) => props.theme['brand-yellow']};
+    border-color: ${(props) => props.theme['green-500']};
     box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
   }
 
@@ -571,7 +571,7 @@ export const Status = styled.p<StatusProps>`
   background-color: ${(props) =>
     props.type === StatusDelivery.ONCOURSE
       ? 'rgba(37, 99, 235, 0.92)'
-      : props.theme['brand-yellow-dark']};
+      : props.theme['green-700']};
   color: ${(props) => props.theme['gray-100']};
   font-size: 0.7rem;
   font-weight: 800;
@@ -590,8 +590,8 @@ export const Flag = styled.p`
   height: 1.45rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: ${(props) => props.theme['brand-yellow-dark']};
-  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme['green-700']};
+  color: ${(props) => props.theme.white};
   font-size: 0.78rem;
   font-weight: 900;
   text-align: center;

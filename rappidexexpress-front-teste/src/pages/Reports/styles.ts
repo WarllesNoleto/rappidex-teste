@@ -46,7 +46,7 @@ export const FiltersContainer = styled.div`
     ${(props) => props.theme["gray-700"]},
     ${(props) => props.theme["gray-800"]}
   );
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: ${(props) => props.theme["radius-xl"]};
   box-shadow: ${(props) => props.theme["shadow-card"]};
 
@@ -69,7 +69,7 @@ export const DataContainer = styled.div`
 
   input {
     min-height: 2.75rem;
-    border: 1px solid rgba(17, 17, 17, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: ${(props) => props.theme["radius-md"]};
     background: ${(props) => props.theme["gray-800"]};
     color: ${(props) => props.theme["gray-100"]};
@@ -106,7 +106,7 @@ export const Filter = styled.div`
   select {
     min-height: 2.75rem;
     min-width: 12rem;
-    border: 1px solid rgba(17, 17, 17, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: ${(props) => props.theme["radius-md"]};
     background-color: ${(props) => props.theme["gray-800"]};
     color: ${(props) => props.theme["gray-100"]};
@@ -131,8 +131,8 @@ export const Filter = styled.div`
 
 export const SearchButton = styled.div`
   max-width: 100%;
-  background: ${(props) => props.theme["brand-yellow"]};
-  color: ${(props) => props.theme.black};
+  background: ${(props) => props.theme["green-500"]};
+  color: ${(props) => props.theme.white};
   min-height: 2.9rem;
   padding: 0.85rem 1rem;
   margin-top: 1rem;
@@ -161,10 +161,10 @@ export const ReportsContainer = styled.div`
   width: 100%;
   max-width: 100%;
   margin-top: 1rem;
-  background: rgba(245, 245, 245, 0.92);
+  background: rgba(18, 18, 20, 0.36);
   padding: 0.75rem;
   border-radius: ${(props) => props.theme["radius-lg"]};
-  border: 1px solid rgba(17, 17, 17, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   overflow-x: hidden;
 
   h3 {
@@ -188,7 +188,7 @@ export const Delivery = styled.div`
   padding: 1rem;
   margin: 0.65rem 0;
   border-radius: ${(props) => props.theme["radius-lg"]};
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: ${(props) => props.theme["shadow-soft"]};
   overflow-x: hidden;
 
@@ -216,7 +216,7 @@ export const ProfileImageContainer = styled.div`
   height: 4.5rem;
   width: 4.5rem;
   border-radius: 100%;
-  border: 2px solid rgba(255, 196, 0, 0.22);
+  border: 2px solid rgba(0, 179, 126, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,8 +293,8 @@ export const SettlementSummary = styled.div`
   margin-top: 1rem;
   padding: 1rem;
   border-radius: ${(props) => props.theme["radius-lg"]};
-  border: 1px solid rgba(255, 196, 0, 0.28);
-  background: rgba(255, 196, 0, 0.08);
+  border: 1px solid rgba(0, 179, 126, 0.28);
+  background: rgba(0, 179, 126, 0.08);
 
   strong {
     display: block;
@@ -332,7 +332,7 @@ export const ActionButton = styled.button<ActionButtonProps>`
   background: ${(props) => {
     if (props.$variant === "whatsapp") return "#25d366";
     if (props.$variant === "secondary") return props.theme["gray-600"];
-    return props.theme["brand-yellow"];
+    return props.theme["green-500"];
   }};
   display: inline-flex;
   align-items: center;
@@ -366,11 +366,11 @@ export const SettlementFeedback = styled.div<SettlementFeedbackProps>`
   border: 1px solid
     ${(props) =>
       props.$type === "success"
-        ? "rgba(255, 196, 0, 0.35)"
+        ? "rgba(0, 179, 126, 0.35)"
         : "rgba(239, 68, 68, 0.45)"};
   background: ${(props) =>
     props.$type === "success"
-      ? "rgba(255, 196, 0, 0.12)"
+      ? "rgba(0, 179, 126, 0.12)"
       : "rgba(239, 68, 68, 0.14)"};
   color: ${(props) => props.theme["gray-100"]};
   line-height: 1.45;

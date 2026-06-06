@@ -688,8 +688,8 @@ export function Dashboard() {
   }, [status]);
 
   const deliveryPerformance = useMemo(
-    () => calculateDeliveryPerformance(finishedReports, currentUserId),
-    [currentUserId, finishedReports],
+    () => calculateDeliveryPerformance(finishedReports, currentUserId, cities),
+    [cities, currentUserId, finishedReports],
   );
 
   const selectedPerformance = deliveryPerformance[performancePeriod];

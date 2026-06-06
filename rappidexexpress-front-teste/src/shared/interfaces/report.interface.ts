@@ -25,6 +25,7 @@ export interface Report {
     id: string;
     isActive: boolean;
     motoboyId: string;
+    motoboy?: { id?: string; _id?: string };
     motoboyName: string;
     motoboyPhone: string;
     payment: string;
@@ -47,6 +48,7 @@ export interface Report {
     logisticsStatus?: string;
     finishedAt?: string;
     completedAt?: string;
+    finalizedAt?: string;
     updatedAt?: string;
     isIfoodOrder?: boolean;
 }

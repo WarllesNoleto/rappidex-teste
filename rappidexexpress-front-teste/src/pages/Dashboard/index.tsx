@@ -173,6 +173,53 @@ const getGoogleMapsLinkFromAddress = (address?: string | null): string | null =>
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizedAddress)}`;
 };
 
+function playMoneySound() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    const audioContext = new AudioContextClass();
+
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+
+      gainNode.gain.setValueAtTime(0.0001, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.25, startTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+
+      return oscillator;
+    };
+
+    const now = audioContext.currentTime;
+
+    playTone(880, now, 0.12);
+    playTone(1175, now + 0.12, 0.16);
+    const finalTone = playTone(1568, now + 0.28, 0.18);
+
+    finalTone.addEventListener(
+      "ended",
+      () => void audioContext.close().catch(() => {}),
+      { once: true },
+    );
+  } catch (error) {
+    console.warn("Som de ganho bloqueado ou indisponível", error);
+  }
+}
+
 const DeliveryCard = memo(
   function DeliveryCard({
     report,
@@ -628,6 +675,7 @@ export function Dashboard() {
   const refreshRequestIdRef = useRef(0);
   const didFirstLoadRef = useRef(false);
   const deliveryGainTimeoutRef = useRef<number | null>(null);
+  const earningToastRef = useRef<HTMLDivElement | null>(null);
 
   const [observationModalDeliveryId, setObservationModalDeliveryId] = useState<string | null>(null);
   const [observationTextByDeliveryId, setObservationTextByDeliveryId] = useState<Record<string, string>>({});
@@ -640,6 +688,31 @@ export function Dashboard() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!deliveryGain) return;
+
+    const scrollAnimationFrame = window.requestAnimationFrame(() => {
+      const earningToast = earningToastRef.current;
+
+      if (!earningToast) return;
+
+      const { top, bottom, left, right } = earningToast.getBoundingClientRect();
+      const isToastVisible =
+        top >= 0 &&
+        bottom <= window.innerHeight &&
+        left >= 0 &&
+        right <= window.innerWidth;
+
+      if (!isToastVisible) {
+        earningToast.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+
+    playMoneySound();
+
+    return () => window.cancelAnimationFrame(scrollAnimationFrame);
+  }, [deliveryGain]);
 
   useEffect(() => {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -1550,7 +1623,12 @@ export function Dashboard() {
   return (
     <Container>
       {deliveryGain && (
-        <DeliveryGainToast key={deliveryGain.id} role="status" aria-live="polite">
+        <DeliveryGainToast
+          ref={earningToastRef}
+          key={deliveryGain.id}
+          role="status"
+          aria-live="polite"
+        >
           {formatMotoboyDeliveryGain(deliveryGain.value)}
         </DeliveryGainToast>
       )}

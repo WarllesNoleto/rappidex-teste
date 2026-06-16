@@ -102,6 +102,13 @@ export const ProfileImage = styled.img`
   object-fit: cover;
 `
 
+export const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+`
+
 export const Username = styled.p`
   font-weight: 800;
   color: ${(props) => props.theme['gray-100']};
@@ -129,5 +136,36 @@ export const LoadMoreButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+`
+
+
+export const BlockedBadge = styled.span`
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  font-size: 0.78rem;
+  font-weight: 800;
+`
+
+export const BlockedReason = styled.p`
+  color: ${(props) => props.theme['gray-300']};
+  font-size: 0.9rem;
+`
+
+export const UnblockButton = styled.button`
+  width: fit-content;
+  border: 0;
+  border-radius: ${(props) => props.theme['radius-sm']};
+  padding: 0.45rem 0.7rem;
+  background: ${(props) => props.theme['brand-yellow']};
+  color: ${(props) => props.theme.black};
+  cursor: pointer;
+  font-weight: 800;
+
+  &:hover {
+    filter: brightness(1.1);
   }
 `

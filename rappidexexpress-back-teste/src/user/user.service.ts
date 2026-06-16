@@ -632,6 +632,34 @@ export class UserService {
     }
   }
 
+
+  async unblockUser(id: string, requestUser: UserRequest) {
+    const requester = await this.findUserOrFail(requestUser.id);
+    const userToUnblock = await this.findUserOrFail(id);
+
+    this.ensureCityAccess(requester, userToUnblock.cityId);
+
+    if (
+      requester.type !== UserType.ADMIN &&
+      requester.type !== UserType.SUPERADMIN
+    ) {
+      throw new UnauthorizedException(
+        'Você não tem permissão para desbloquear usuários.',
+      );
+    }
+
+    const changedUser = await this.userRepository.save({
+      ...userToUnblock,
+      blocked: false,
+      blockedReason: null,
+      unblockedAt: addHours(new Date(), -3),
+      unblockedBy: requester.id,
+      updatedAt: addHours(new Date(), -3),
+    });
+
+    return UserResult.fromEntity(changedUser);
+  }
+
   async deleteUser(id: string, requestUser: UserRequest) {
     const requester = await this.findUserOrFail(requestUser.id);
     const userToDelete = await this.findUserOrFail(id);

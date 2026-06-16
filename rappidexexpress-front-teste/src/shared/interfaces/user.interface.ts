@@ -1,6 +1,12 @@
 export interface User {
   id: string;
   isActive: boolean;
+  blocked?: boolean;
+  blockedReason?: string;
+  blockedAt?: string;
+  blockedBySystem?: boolean;
+  unblockedAt?: string;
+  unblockedBy?: string;
   ifoodMerchantId?: string;
   ifoodMerchants?: Array<{
     merchantId: string;

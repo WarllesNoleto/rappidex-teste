@@ -254,9 +254,7 @@ export class IfoodAutoPollingService implements OnModuleInit, OnModuleDestroy {
           await this.ifoodEventService.markAsProcessed(event, true);
         }
       }
-      await this.ifoodImportService.retryPendingImportsForActiveMerchants?.(
-        150,
-      );
+      await this.ifoodImportService.retryPendingImportsForActiveMerchants?.(50);
 
       const uniqueMerchants = Array.from(
         new Set(

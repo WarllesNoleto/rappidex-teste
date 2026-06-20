@@ -23,6 +23,7 @@ import { IfoodOrdersService } from './ifood-orders.service';
 import { IfoodPollingService } from './ifood-polling.service';
 import { IfoodImportService } from './ifood-import.service';
 import { IfoodReadinessService } from './ifood-readiness.service';
+import { IfoodMaintenanceService } from './ifood-maintenance.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
 import { UserEntity } from '../database/entities';
@@ -39,6 +40,7 @@ export class IfoodAdminController {
     private readonly ifoodOrderLinkService: IfoodOrderLinkService,
     private readonly ifoodReadinessService: IfoodReadinessService,
     private readonly ifoodCreditsService: IfoodCreditsService,
+    private readonly ifoodMaintenanceService: IfoodMaintenanceService,
     @InjectRepository(UserEntity)
     private readonly userRepository: MongoRepository<UserEntity>,
   ) {}
@@ -52,6 +54,46 @@ export class IfoodAdminController {
         'As rotas de debug do iFood estão desativadas neste ambiente.',
       );
     }
+  }
+
+  @Get('storage/collections')
+  @UseGuards(JwtAuthGuard)
+  async collectionGrowthSnapshot(@User() user: UserRequest) {
+    if (!onlyForAdmin(user.type)) {
+      throw new UnauthorizedException(
+        'Você não tem permissão para esse recurso.',
+      );
+    }
+    return this.ifoodMaintenanceService.collectionGrowthSnapshot();
+  }
+
+  @Post('maintenance/cleanup/preview')
+  @UseGuards(JwtAuthGuard)
+  async previewIfoodStorageCleanup(@User() user: UserRequest) {
+    if (!onlyForAdmin(user.type)) {
+      throw new UnauthorizedException(
+        'Você não tem permissão para esse recurso.',
+      );
+    }
+    return this.ifoodMaintenanceService.previewCleanup();
+  }
+
+  @Post('maintenance/cleanup')
+  @UseGuards(JwtAuthGuard)
+  async cleanupIfoodStorage(
+    @User() user: UserRequest,
+    @Body()
+    body: { confirm?: boolean },
+  ) {
+    if (!onlyForAdmin(user.type)) {
+      throw new UnauthorizedException(
+        'Você não tem permissão para esse recurso.',
+      );
+    }
+    if (body?.confirm !== true) {
+      return this.ifoodMaintenanceService.previewCleanup();
+    }
+    return this.ifoodMaintenanceService.cleanupOldIfoodRecords();
   }
 
   @Get('token-test')
@@ -172,11 +214,11 @@ export class IfoodAdminController {
       );
     }
 
-      const deliveryDto =
-        await this.ifoodOrdersService.buildCreateDeliveryDto(orderId);
+    const deliveryDto =
+      await this.ifoodOrdersService.buildCreateDeliveryDto(orderId);
 
-      const createdDelivery = await this.deliveryService.createDelivery(
-        deliveryDto,
+    const createdDelivery = await this.deliveryService.createDelivery(
+      deliveryDto,
       {
         id: targetShopkeeperId,
         phone: '',
@@ -225,7 +267,9 @@ export class IfoodAdminController {
       );
     }
 
-    return this.ifoodCreditsService.getCreditSummaryForIntegratedCompanies(user);
+    return this.ifoodCreditsService.getCreditSummaryForIntegratedCompanies(
+      user,
+    );
   }
 
   @Get('credits/company/:companyId')
@@ -320,12 +364,16 @@ export class IfoodAdminController {
     }
 
     if (!company.useIfoodIntegration || !company.isActive) {
-      throw new BadRequestException('A integração iFood não está ativa para esta loja.');
+      throw new BadRequestException(
+        'A integração iFood não está ativa para esta loja.',
+      );
     }
 
     const merchantId = String(company.ifoodMerchantId || '').trim();
     if (!merchantId) {
-      throw new BadRequestException('ifoodMerchantId não configurado para esta loja.');
+      throw new BadRequestException(
+        'ifoodMerchantId não configurado para esta loja.',
+      );
     }
 
     await this.ifoodImportService.retryPendingImportsForCompany(companyId);

@@ -9,6 +9,7 @@ import { IfoodReadinessService } from './ifood-readiness.service';
 export class IfoodImportService {
   private readonly logger = new Logger(IfoodImportService.name);
   private readonly importingOrderIds = new Set<string>();
+  private static readonly MAX_EVENT_AGE_HOURS = 48;
   private static readonly IFOOD_IMPORT_EVENT_CODES = new Set([
     'CFM',
     'CONFIRMED',
@@ -34,8 +35,8 @@ export class IfoodImportService {
       return;
     }
 
-    const eligibleEvents = events.filter((event) =>
-      this.isEligibleImportEvent(event),
+    const eligibleEvents = events.filter(
+      (event) => this.isEligibleImportEvent(event) && !this.isOldEvent(event),
     );
 
     if (eligibleEvents.length === 0) {
@@ -245,6 +246,16 @@ export class IfoodImportService {
       `iFood: tentando importar pedido(s) recentes pendentes | total=${replayCandidates.length}`,
     );
     await this.importFromEvents(replayCandidates);
+  }
+
+  private isOldEvent(event: any) {
+    if (!event?.createdAt) return false;
+    const createdAt = new Date(event.createdAt).getTime();
+    if (!Number.isFinite(createdAt)) return false;
+    return (
+      Date.now() - createdAt >
+      IfoodImportService.MAX_EVENT_AGE_HOURS * 60 * 60 * 1000
+    );
   }
 
   isEligibleImportEvent(event: any) {

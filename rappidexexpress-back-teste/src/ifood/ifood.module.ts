@@ -21,6 +21,7 @@ import { IfoodPollingService } from './ifood-polling.service';
 import { IfoodReadinessService } from './ifood-readiness.service';
 import { IfoodWebhookService } from './ifood-webhook.service';
 import { IfoodHttpService } from './ifood-http.service';
+import { IfoodMaintenanceService } from './ifood-maintenance.service';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { IfoodHttpService } from './ifood-http.service';
     IfoodCreditsService,
     IfoodWebhookService,
     IfoodHttpService,
+    IfoodMaintenanceService,
   ],
   exports: [
     IfoodAuthService,
@@ -58,6 +60,7 @@ import { IfoodHttpService } from './ifood-http.service';
     IfoodCreditsService,
     IfoodWebhookService,
     IfoodHttpService,
+    IfoodMaintenanceService,
   ],
 })
 export class IfoodModule {}
